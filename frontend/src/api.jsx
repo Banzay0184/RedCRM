@@ -5,7 +5,9 @@ import {useNavigate} from "react-router-dom"; // Импортируйте мод
 
 // Устанавливаем базовый URL для всех запросов
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api/',
+    // baseURL: 'http://127.0.0.1:8000/api/',
+    baseURL: 'https://sabina0184.pythonanywhere.com/api/',
+
 });
 
 export const useApi = () => {

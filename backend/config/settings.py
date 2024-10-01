@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # URL вашего React-приложения
-    "http://127.0.0.1:3000",  # Если вы используете этот адрес для разработки
+    "https://red-crm-ruby.vercel.app",  # Если вы используете этот адрес для разработки
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

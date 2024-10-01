@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-r)kp&$z3b8+%_)3=35+6+g!_)g$6_b_ydlw%)--!xck^&0kaxj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'https://sabina0184.pythonanywhere.com/'
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # URL вашего React-приложения

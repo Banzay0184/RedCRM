@@ -30,8 +30,6 @@ ALLOWED_HOSTS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'sabina0184.pythonanywhere.com'
-    "http://localhost:3000",  # URL вашего React-приложения
     "https://red-crm-ruby.vercel.app",  # Если вы используете этот адрес для разработки
 ]
 

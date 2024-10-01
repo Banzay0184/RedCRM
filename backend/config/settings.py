@@ -26,10 +26,11 @@ SECRET_KEY = 'django-insecure-r)kp&$z3b8+%_)3=35+6+g!_)g$6_b_ydlw%)--!xck^&0kaxj
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://sabina0184.pythonanywhere.com/'
+    'https://sabina0184.pythonanywhere.com'
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    'https://sabina0184.pythonanywhere.com'
     "http://localhost:3000",  # URL вашего React-приложения
     "https://red-crm-ruby.vercel.app",  # Если вы используете этот адрес для разработки
 ]

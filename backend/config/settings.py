@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "https://red-crm-beta.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [

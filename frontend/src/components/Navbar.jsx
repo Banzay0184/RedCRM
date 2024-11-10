@@ -76,7 +76,7 @@ function Navbar({onLogout, user}) {
                         </Link>
                     </li>
                     <li>
-                        <Link to="/clients" className="btn btn-outline btn-primary hidden">
+                        <Link to="/settings" className="btn btn-outline btn-primary">
                             Настройка
                         </Link>
                     </li>
@@ -124,7 +124,7 @@ function Navbar({onLogout, user}) {
                             </Link>
                         </li>
                         <li>
-                            <Link to="/clients" className="hover:text-accent hidden" onClick={toggleMobileMenu}>
+                            <Link to="/settings" className="hover:text-accent " onClick={toggleMobileMenu}>
                                 Настройка
                             </Link>
                         </li>

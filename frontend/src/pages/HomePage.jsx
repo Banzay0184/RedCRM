@@ -1,24 +1,23 @@
 import {useEffect, useState} from "react";
 import axios from "../api";
 import DatePicker from "react-datepicker";
-import {format} from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import ru from "date-fns/locale/ru";
 import StatCard from "../components/StatCard.jsx";
 import {Line} from 'react-chartjs-2';
 import {
-    Chart as ChartJS,
-    LineElement,
     CategoryScale,
+    Chart as ChartJS,
+    Legend,
     LinearScale,
+    LineElement,
     PointElement,
     Title,
-    Tooltip,
-    Legend
+    Tooltip
 } from 'chart.js';
 
 // Иконки из react-icons
-import {FaUsers, FaCalendarAlt, FaMoneyBillWave, FaHandHoldingUsd, FaExclamationTriangle} from 'react-icons/fa';
+import {FaCalendarAlt, FaExclamationTriangle, FaHandHoldingUsd, FaMoneyBillWave, FaUsers} from 'react-icons/fa';
 
 ChartJS.register(
     LineElement,

@@ -80,13 +80,13 @@ class DeviceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Device
-        fields = ["id", "service", "camera_count", "comment", "event_service_date"]
+        fields = ["id", "service", "camera_count", "comment", "restaurant_name", "event_service_date"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ["id", "name", "is_active_camera"]
+        fields = ["id", "name", "color", "is_active_camera"]
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -159,7 +159,6 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "client",
-            "restaurant_name",
             "workers",
             "devices",
             "amount",

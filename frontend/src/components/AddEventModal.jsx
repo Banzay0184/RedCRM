@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {IMaskInput} from 'react-imask';
 import {createEvent, getClients, getServices, getWorkers} from '../api';
 import {toast, Toaster} from 'react-hot-toast';
+import axios from "axios";
 
 const AddEventModal = ({onClose, onSave}) => {
     const [clientName, setClientName] = useState('');
@@ -12,22 +13,27 @@ const AddEventModal = ({onClose, onSave}) => {
     const [selectedWorkers, setSelectedWorkers] = useState([]);
     const [services, setServices] = useState([]);
     const [selectedServices, setSelectedServices] = useState([]);
-    const [restaurantName, setRestaurantName] = useState('');
-    const [totalAmount, setTotalAmount] = useState(0);
-    const [advancePayment, setAdvancePayment] = useState(0);
+    // const [restaurantName, setRestaurantName] = useState('');
+    const [totalAmount, setTotalAmount] = useState('');
+    const [advancePayment, setAdvancePayment] = useState('');
     const [generalComment, setGeneralComment] = useState('');
     const [errors, setErrors] = useState({});
 
-    // Добавляем состояние 'saving' для отслеживания процесса сохранения
-    const [saving, setSaving] = useState(false);
+    // Курс обмена
+    const [currency, setCurrency] = useState('USD');
+    const [currencyAdvance, setCurrencyAdvance] = useState('USD');
+    const [convertedAmount, setConvertedAmount] = useState('');
+    const [convertedAdvance, setConvertedAdvance] = useState('');
+    const [exchangeRate, setExchangeRate] = useState(null);
 
-    // Используем useRef для отслеживания состояния сохранения синхронно
+    // Флаг сохранения
+    const [saving, setSaving] = useState(false);
     const isSaving = useRef(false);
 
-    // Состояние загрузки данных
+    // Флаг загрузки данных
     const [loading, setLoading] = useState(true);
 
-    // Получение клиентов, работников и услуг при монтировании компонента
+    // Получение данных при монтировании компонента
     useEffect(() => {
         async function fetchData() {
             try {
@@ -48,8 +54,74 @@ const AddEventModal = ({onClose, onSave}) => {
             }
         }
 
+        async function fetchExchangeRate() {
+            const response = await axios.get('https://api.exchangerate-api.com/v4/latest/USD'); // Замените на ваш API
+            setExchangeRate(response.data.rates.UZS);
+        }
+
+        fetchExchangeRate();
         fetchData();
     }, []);
+
+    // Функция для корректного форматирования чисел
+    const formatNumber = (num) => {
+        if (!num) return '';
+        const parts = num.toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        return parts.join(".");
+    };
+
+    // Обработчик изменения суммы
+    const handleAmountChange = (e) => {
+        const value = e.target.value.replace(/\s/g, '');
+        setTotalAmount(value);
+
+        if (currency === 'USD' && exchangeRate) {
+            const converted = (value * exchangeRate);
+            setConvertedAmount(formatNumber(converted));
+        } else {
+            setConvertedAmount(formatNumber(value));
+        }
+    };
+
+    // Обработчик изменения аванса
+    const handleAdvanceChange = (e) => {
+        const value = e.target.value.replace(/\s/g, '');
+        setAdvancePayment(value);
+
+        if (currencyAdvance === 'USD' && exchangeRate) {
+            const converted = (value * exchangeRate);
+            setConvertedAdvance(formatNumber(converted));
+        } else {
+            setConvertedAdvance(formatNumber(value));
+        }
+    };
+
+    // Обработчик изменения валюты для общей суммы
+    const handleCurrencyChange = (e) => {
+        const selectedCurrency = e.target.value;
+        setCurrency(selectedCurrency);
+
+        if (selectedCurrency === 'USD' && exchangeRate) {
+            const converted = (totalAmount * exchangeRate);
+            setConvertedAmount(formatNumber(converted));
+        } else {
+            setConvertedAmount(formatNumber(totalAmount));
+        }
+    };
+
+    // Обработчик изменения валюты для аванса
+    const handleCurrencyChangeAdvance = (e) => {
+        const selectedCurrencyAdvance = e.target.value;
+        setCurrencyAdvance(selectedCurrencyAdvance);
+
+        if (selectedCurrencyAdvance === 'USD' && exchangeRate) {
+            const converted = (advancePayment * exchangeRate);
+            setConvertedAdvance(formatNumber(converted));
+        } else {
+            setConvertedAdvance(formatNumber(advancePayment));
+        }
+    };
 
     // Добавить второй телефон
     const addPhoneField = () => {
@@ -74,18 +146,18 @@ const AddEventModal = ({onClose, onSave}) => {
         setPhoneNumbers(updatedPhones);
     };
 
-    // Обновление состояния выбранных услуг
+    // Обновление выбранных услуг
     const handleServiceChange = (serviceId) => {
         const serviceIndex = selectedServices.findIndex(
             (service) => service.service === serviceId
         );
         if (serviceIndex > -1) {
-            // Если услуга уже выбрана, удаляем её
+            // Удаляем услугу, если она уже выбрана
             setSelectedServices(
                 selectedServices.filter((service) => service.service !== serviceId)
             );
         } else {
-            // Если услуга не выбрана, добавляем её в список выбранных услуг
+            // Добавляем услугу, если она не выбрана
             const serviceToAdd = services.find((service) => service.id === serviceId);
             setSelectedServices([
                 ...selectedServices,
@@ -99,7 +171,7 @@ const AddEventModal = ({onClose, onSave}) => {
         }
     };
 
-    // Функция для обновления выбранной услуги
+    // Обновление данных выбранной услуги
     const updateSelectedService = (serviceId, updates) => {
         setSelectedServices((prevServices) =>
             prevServices.map((service) =>
@@ -108,27 +180,25 @@ const AddEventModal = ({onClose, onSave}) => {
         );
     };
 
-    // Валидация полей перед сохранением
+    // Валидация полей
     const validateFields = () => {
         const newErrors = {};
 
-        const totalAmountNum = parseFloat(totalAmount);
-        const advancePaymentNum = parseFloat(advancePayment);
+        const totalAmountNum = parseFloat(convertedAmount.replace(/\s/g, ''));
+        const advancePaymentNum = parseFloat(convertedAdvance.replace(/\s/g, ''));
 
         // Проверка обязательных полей
         if (!clientName) newErrors.clientName = 'Имя клиента обязательно';
-        if (!restaurantName)
-            newErrors.restaurantName = 'Название ресторана обязательно';
         if (!phoneNumbers[0].phone_number)
             newErrors.phoneNumbers = 'Первый номер телефона обязателен';
-        if (isNaN(totalAmountNum) || totalAmountNum <= 0)
+        if (isNaN(totalAmountNum))
             newErrors.totalAmount = 'Общая сумма должна быть больше нуля';
         if (isNaN(advancePaymentNum) || advancePaymentNum < 0)
             newErrors.advancePayment = 'Аванс не может быть отрицательным';
         if (advancePaymentNum > totalAmountNum)
             newErrors.advancePayment = 'Аванс не может превышать общую сумму';
 
-        // Проверяем, что каждая услуга содержит необходимые данные
+        // Проверка выбранных услуг
         selectedServices.forEach((service) => {
             if (!service.eventDate) {
                 newErrors[`service_${service.service}_eventDate`] =
@@ -143,83 +213,21 @@ const AddEventModal = ({onClose, onSave}) => {
             }
         });
 
-        // Возвращаем объект ошибок
         return newErrors;
     };
 
+    // Обработчик сохранения
     const handleSave = async () => {
-    if (isSaving.current) {
-        // Если сохранение уже идёт, не позволяем вызвать функцию снова
-        return;
-    }
+        if (isSaving.current) {
+            return;
+        }
 
-    const validationErrors = validateFields();
+        const validationErrors = validateFields();
 
-    if (Object.keys(validationErrors).length > 0) {
-        // Отображаем ошибки с помощью toast
-        const errorMessages = Object.values(validationErrors);
-        errorMessages.forEach((error) => {
-            toast.error(error, {
-                style: {
-                    background: '#f44336',
-                    color: '#fff',
-                },
-                iconTheme: {
-                    primary: '#fff',
-                    secondary: '#f44336',
-                },
-            });
-        });
-        // Обновляем состояние ошибок, если вам это нужно в дальнейшем
-        setErrors(validationErrors);
-        return;
-    }
-
-    // Устанавливаем флаг сохранения в true
-    isSaving.current = true;
-    setSaving(true);
-
-    const eventData = {
-        client: { name: clientName, is_vip: isVIP, phones: phoneNumbers },
-        restaurant_name: restaurantName,
-        devices: selectedServices.map((service) => ({
-            service: service.service,
-            camera_count: parseInt(service.cameraCount) || 0,
-            comment: service.comment,
-            event_service_date: service.eventDate,
-        })),
-        workers: selectedWorkers,
-        amount: parseFloat(totalAmount),
-        advance: parseFloat(advancePayment),
-        comment: generalComment,
-    };
-
-    try {
-        // Сохраняем ответ от сервера
-        const response = await createEvent(eventData);
-        const createdEvent = response.data; // Получаем данные созданного события
-
-        // Вызываем onSave с данными созданного события
-        onSave(createdEvent);
-
-        onClose();
-        toast.success('Событие успешно создано!', {
-            style: {
-                background: '#4caf50',
-                color: '#fff',
-            },
-            iconTheme: {
-                primary: '#fff',
-                secondary: '#4caf50',
-            },
-        });
-    } catch (error) {
-        console.error('Error creating event:', error);
-        if (error.response && error.response.data) {
-            console.error('Детали ошибки:', error.response.data);
-            const serverErrors = Object.values(error.response.data);
-            serverErrors.forEach((errorMsg) => {
-                toast.error(errorMsg, {
+        if (Object.keys(validationErrors).length > 0) {
+            const errorMessages = Object.values(validationErrors);
+            errorMessages.forEach((error) => {
+                toast.error(error, {
                     style: {
                         background: '#f44336',
                         color: '#fff',
@@ -230,25 +238,82 @@ const AddEventModal = ({onClose, onSave}) => {
                     },
                 });
             });
-        } else {
-            toast.error('Произошла непредвиденная ошибка', {
+            setErrors(validationErrors);
+            return;
+        }
+
+        isSaving.current = true;
+        setSaving(true);
+
+        const eventData = {
+            client: {name: clientName, is_vip: isVIP, phones: phoneNumbers},
+            devices: selectedServices.map((service) => ({
+                service: service.service,
+                camera_count: parseInt(service.cameraCount) || 0,
+                restaurant_name: service.restaurantName,
+                comment: service.comment,
+                event_service_date: service.eventDate,
+            })),
+            workers: selectedWorkers,
+            amount: parseInt(convertedAmount.replace(/\s/g, '')),
+            advance: parseInt(convertedAdvance.replace(/\s/g, '')),
+            comment: generalComment,
+        };
+
+        console.log(eventData)
+
+        console.log(parseInt(convertedAmount.replace(/\s/g, '')));
+
+        try {
+            const response = await createEvent(eventData);
+            const createdEvent = response.data;
+
+            onSave(createdEvent);
+            onClose();
+            toast.success('Событие успешно создано!', {
                 style: {
-                    background: '#f44336',
+                    background: '#4caf50',
                     color: '#fff',
                 },
                 iconTheme: {
                     primary: '#fff',
-                    secondary: '#f44336',
+                    secondary: '#4caf50',
                 },
             });
+        } catch (error) {
+            console.error('Error creating event:', error);
+            if (error.response && error.response.data) {
+                console.error('Детали ошибки:', error.response.data);
+                const serverErrors = Object.values(error.response.data);
+                serverErrors.forEach((errorMsg) => {
+                    toast.error(errorMsg, {
+                        style: {
+                            background: '#f44336',
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#f44336',
+                        },
+                    });
+                });
+            } else {
+                toast.error('Произошла непредвиденная ошибка', {
+                    style: {
+                        background: '#f44336',
+                        color: '#fff',
+                    },
+                    iconTheme: {
+                        primary: '#fff',
+                        secondary: '#f44336',
+                    },
+                });
+            }
+        } finally {
+            isSaving.current = false;
+            setSaving(false);
         }
-    } finally {
-        // Сбрасываем флаг сохранения
-        isSaving.current = false;
-        setSaving(false);
-    }
-};
-
+    };
 
     if (loading) {
         return (
@@ -263,7 +328,6 @@ const AddEventModal = ({onClose, onSave}) => {
     return (
         <>
             <div className="modal modal-open">
-                {/* Адаптивная ширина модального окна */}
                 <div className="modal-box w-full max-w-4xl">
                     <h3 className="font-bold text-lg text-white">Добавить Событие</h3>
                     <hr className="my-4"/>
@@ -295,7 +359,7 @@ const AddEventModal = ({onClose, onSave}) => {
                         </label>
                     </div>
 
-                    {/* Адаптивная раскладка для телефона и ресторана */}
+                    {/* Телефон и ресторан */}
                     <div className="flex flex-col md:flex-row md:justify-between mt-4 gap-4">
                         {/* Телефонные номера */}
                         <div className="w-full md:w-1/2">
@@ -332,21 +396,6 @@ const AddEventModal = ({onClose, onSave}) => {
                                     Удалить второй телефон
                                 </button>
                             )}
-                        </div>
-                        {/* Название ресторана */}
-                        <div className="w-full md:w-1/2">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Название ресторана</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Введите название ресторана"
-                                    className="input input-bordered"
-                                    value={restaurantName}
-                                    onChange={(e) => setRestaurantName(e.target.value)}
-                                />
-                            </div>
                         </div>
                     </div>
 
@@ -387,6 +436,25 @@ const AddEventModal = ({onClose, onSave}) => {
                                                 })
                                             }
                                         />
+
+                                        {/* Название ресторана */}
+                                        {service.is_active_camera && (
+                                            <input
+                                                type="text"
+                                                placeholder="Название ресторана"
+                                                className="input input-bordered"
+                                                value={
+                                                    selectedServices.find(
+                                                        (s) => s.service === service.id
+                                                    )?.restaurantName || ''
+                                                }
+                                                onChange={(e) =>
+                                                    updateSelectedService(service.id, {
+                                                        restaurantName: e.target.value,
+                                                    })
+                                                }
+                                            />
+                                        )}
 
                                         {/* Количество камер для активных камер */}
                                         {service.is_active_camera && (
@@ -456,7 +524,7 @@ const AddEventModal = ({onClose, onSave}) => {
                         </div>
                     </div>
 
-                    {/* Адаптивная раскладка для суммы, аванса и комментария */}
+                    {/* Сумма, аванс и комментарий */}
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between mt-4 gap-4">
                         <div className="w-full md:w-1/2">
                             {/* Общая сумма */}
@@ -464,31 +532,53 @@ const AddEventModal = ({onClose, onSave}) => {
                                 <label className="label">
                                     <span className="label-text">Общая сумма</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    placeholder="Общая сумма"
-                                    className="input input-bordered"
-                                    value={totalAmount}
-                                    onChange={(e) =>
-                                        setTotalAmount(parseFloat(e.target.value) || 0)
-                                    }
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Общая сумма"
+                                        className="input input-bordered"
+                                        value={formatNumber(totalAmount)}
+                                        onChange={handleAmountChange}
+                                    />
+                                    <select value={currency} onChange={handleCurrencyChange}
+                                            className="select select-primary">
+                                        <option value="USD">USD</option>
+                                        <option value="UZS">UZS</option>
+                                    </select>
+                                </div>
+                                {currency === 'USD' && (
+                                    <div>
+                                        <strong>Конвертированная сумма: </strong>
+                                        {convertedAmount} UZS
+                                    </div>
+                                )}
                             </div>
 
                             {/* Аванс */}
-                            <div className="form-control mt-4">
+                            <div className="form-control">
                                 <label className="label">
                                     <span className="label-text">Аванс</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    placeholder="Аванс"
-                                    className="input input-bordered"
-                                    value={advancePayment}
-                                    onChange={(e) =>
-                                        setAdvancePayment(parseFloat(e.target.value) || 0)
-                                    }
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Аванс"
+                                        className="input input-bordered"
+                                        value={formatNumber(advancePayment)}
+                                        onChange={handleAdvanceChange}
+                                    />
+                                    <select value={currencyAdvance} onChange={handleCurrencyChangeAdvance}
+                                            className="select select-primary">
+                                        <option value="USD">USD</option>
+                                        <option value="UZS">UZS</option>
+                                    </select>
+                                </div>
+                                {currencyAdvance === 'USD' && (
+                                    <div>
+                                        <strong>Конвертированная сумма: </strong>
+                                        {convertedAdvance} UZS
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -509,7 +599,7 @@ const AddEventModal = ({onClose, onSave}) => {
                         </div>
                     </div>
 
-                    {/* Действия */}
+                    {/* Кнопки действий */}
                     <div className="modal-action">
                         <button
                             className={`btn btn-primary ${saving ? 'loading' : ''}`}
@@ -529,7 +619,6 @@ const AddEventModal = ({onClose, onSave}) => {
                 position="top-right"
                 reverseOrder={false}
                 toastOptions={{
-                    // Настройки по умолчанию для всех уведомлений
                     style: {
                         padding: '16px',
                         color: '#fff',

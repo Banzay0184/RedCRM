@@ -25,10 +25,13 @@ SECRET_KEY = "django-insecure-2^39efq6=s5rt2#-5%ad8@i0&5+!jk3k@7pdizh1fan)oyax5g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
+# ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']
+
 
 CORS_ALLOWED_ORIGINS = [
-    "https://red-crm-beta.vercel.app",
+    'http://localhost:5173'
+    # "https://red-crm-beta.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
+    'colorfield'
 ]
 
 MIDDLEWARE = [

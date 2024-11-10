@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -65,6 +66,7 @@ class Service(BaseModel):
 
     name = models.CharField(max_length=255, unique=True)
     is_active_camera = models.BooleanField(default=False)
+    color = ColorField(default="#FFFFFF")
 
     def __str__(self):
         return self.name
@@ -74,6 +76,7 @@ class Device(BaseModel):
     """Устройства для услуг на мероприятиях."""
 
     camera_count = models.PositiveIntegerField(default=0)  # Количество камер
+    restaurant_name = models.CharField(max_length=255, null=True, blank=True)  # Название ресторана
     comment = models.TextField(null=True, blank=True)  # Команда для управления
     event_service_date = models.DateField(null=True, blank=True)  # Дата использования устройства
     service = models.ForeignKey(Service, CASCADE, "devices")
@@ -87,7 +90,6 @@ class Event(BaseModel):
     """Модель мероприятий."""
 
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events")
-    restaurant_name = models.CharField(max_length=255)
     workers = models.ManyToManyField(Workers, related_name="events")
     amount = models.PositiveIntegerField(default=0)
     advance = models.PositiveIntegerField(default=0)

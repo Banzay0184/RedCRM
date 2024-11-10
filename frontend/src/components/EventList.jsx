@@ -19,10 +19,13 @@ const EventList = ({
                        filterEndDate,
                    }) => {
     const [services, setServices] = useState({});
+    const [servicesColor, setServicesColor] = useState({});
+
     const [worker, setWorker] = useState({}); // [worker]
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+
 
     useEffect(() => {
         fetchServices();
@@ -34,9 +37,18 @@ const EventList = ({
             const response = await getServices();
             const servicesData = response.data;
             const servicesMap = {};
+            const servicesMapColor = {};
             servicesData.forEach((service) => {
                 servicesMap[service.id] = service.name;
+
             });
+
+            servicesData.forEach((service) => {
+                servicesMapColor[service.id] = service.color;
+
+            });
+
+            setServicesColor(servicesMapColor)
             setServices(servicesMap);
         } catch (err) {
             console.error('Ошибка при загрузке услуг:', err);
@@ -201,7 +213,16 @@ const EventList = ({
                                                 key={device.id}
                                                 className="flex items-center space-x-2 my-1"
                                             >
-                                                    <span className="badge text-white badge-info">
+                                                <span
+                                                    className={device.restaurant_name ? 'badge text-white badge-primary' : 'hidden'}>
+                                                        {device.restaurant_name ||
+                                                            'Услуга не найдена'}
+                                                    </span>
+                                                <span style={
+                                                    {
+                                                        color: servicesColor[device.service]
+                                                    }
+                                                } className='badge'>
                                                         {services[device.service] ||
                                                             'Услуга не найдена'}
                                                     </span>
@@ -251,6 +272,7 @@ const EventList = ({
                 <EventDetailModal
                     event={selectedEvent}
                     services={services}
+                    servicesColor={servicesColor}
                     workersMap={worker}
                     onClose={closeModal}
                 />

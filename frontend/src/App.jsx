@@ -1,5 +1,5 @@
-import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
-import {useState, useEffect} from "react";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
+import {useEffect, useState} from "react";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
@@ -7,6 +7,7 @@ import ClientPage from "./pages/ClientPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import {jwtDecode} from "jwt-decode"; // Исправленный импорт
 import {getUser} from "./api";
+import SettingsPage from "./pages/SettingsPage.jsx";
 import EventPage from "./pages/EventPage.jsx"; // Импорт функции для получения профиля
 
 function App() {
@@ -89,6 +90,7 @@ function App() {
                         <Route path="/profile" element={<ProfilePage user={user}/>}/>
                         <Route path="/clients" element={<ClientPage/>}/>
                         <Route path="/events" element={<EventPage/>}/>
+                        <Route path="/settings" element={<SettingsPage/>}/>
                         <Route path="*" element={<Navigate to="/" replace/>}/>
                     </Route>
                 ) : (

@@ -25,13 +25,16 @@ SECRET_KEY = "django-insecure-2^39efq6=s5rt2#-5%ad8@i0&5+!jk3k@7pdizh1fan)oyax5g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = [
+    'localhost', '127.0.0.1',
+    'mukhammadrizo07.pythonanywhere.com'
+]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173'
-    # "https://red-crm-beta.vercel.app",
+    "http://localhost:5173",
+    "https://scclms.uz",
+    "https://www.scclms.uz",
+    "https://red-crm-beta.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [

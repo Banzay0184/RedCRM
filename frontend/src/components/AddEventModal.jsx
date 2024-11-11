@@ -200,10 +200,6 @@ const AddEventModal = ({onClose, onSave}) => {
 
         // Проверка выбранных услуг
         selectedServices.forEach((service) => {
-            if (!service.eventDate) {
-                newErrors[`service_${service.service}_eventDate`] =
-                    'Дата обязательна для выбранной услуги';
-            }
             if (
                 services.find((s) => s.id === service.service)?.is_active_camera &&
                 (!service.cameraCount || isNaN(parseInt(service.cameraCount)))

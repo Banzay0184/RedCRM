@@ -78,7 +78,7 @@ class Device(BaseModel):
     camera_count = models.PositiveIntegerField(default=0)  # Количество камер
     restaurant_name = models.CharField(max_length=255, null=True, blank=True)  # Название ресторана
     comment = models.TextField(null=True, blank=True)  # Команда для управления
-    event_service_date = models.DateField(null=True, blank=True)  # Дата использования устройства
+    event_service_date = models.DateField(null=True, blank=True,)  # Дата использования устройства
     service = models.ForeignKey(Service, CASCADE, "devices")
     event = models.ForeignKey("Event", CASCADE, "devices")
 

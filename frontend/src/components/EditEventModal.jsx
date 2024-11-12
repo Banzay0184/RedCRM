@@ -224,10 +224,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
 
         // Проверяем, что каждая услуга содержит необходимые данные
         selectedServices.forEach((service) => {
-            if (!service.eventDate) {
-                newErrors[`service_${service.service}_eventDate`] =
-                    'Дата обязательна для выбранной услуги';
-            }
+
             if (
                 services.find((s) => s.id === service.service)?.is_active_camera &&
                 (!service.cameraCount || isNaN(parseInt(service.cameraCount)))
@@ -281,7 +278,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 camera_count: parseInt(service.cameraCount) || 0,
                 restaurant_name: service.restaurant_name,
                 comment: service.comment,
-                event_service_date: service.eventDate,
+                event_service_date: service.eventDate || null,
             })),
             workers: selectedWorkers,
             amount: convertedAmount ? parseInt(convertedAmount.replace(/\s/g, '')) : parseInt(totalAmount),

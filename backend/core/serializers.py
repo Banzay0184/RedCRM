@@ -76,7 +76,7 @@ class WorkersSerializer(serializers.ModelSerializer):
 
 
 class DeviceSerializer(serializers.ModelSerializer):
-    event_service_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
+    # event_service_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
 
     class Meta:
         model = Device

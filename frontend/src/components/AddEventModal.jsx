@@ -184,22 +184,16 @@ const AddEventModal = ({onClose, onSave}) => {
     const validateFields = () => {
         const newErrors = {};
 
-        const totalAmountNum = parseFloat(convertedAmount.replace(/\s/g, ''));
-        const advancePaymentNum = parseFloat(convertedAdvance.replace(/\s/g, ''));
 
         // Проверка обязательных полей
         if (!clientName) newErrors.clientName = 'Имя клиента обязательно';
         if (!phoneNumbers[0].phone_number)
             newErrors.phoneNumbers = 'Первый номер телефона обязателен';
-        if (isNaN(totalAmountNum))
-            newErrors.totalAmount = 'Общая сумма должна быть больше нуля';
-        if (isNaN(advancePaymentNum) || advancePaymentNum < 0)
-            newErrors.advancePayment = 'Аванс не может быть отрицательным';
-        if (advancePaymentNum > totalAmountNum)
-            newErrors.advancePayment = 'Аванс не может превышать общую сумму';
+
 
         // Проверка выбранных услуг
         selectedServices.forEach((service) => {
+
             if (
                 services.find((s) => s.id === service.service)?.is_active_camera &&
                 (!service.cameraCount || isNaN(parseInt(service.cameraCount)))
@@ -248,11 +242,11 @@ const AddEventModal = ({onClose, onSave}) => {
                 camera_count: parseInt(service.cameraCount) || 0,
                 restaurant_name: service.restaurantName,
                 comment: service.comment,
-                event_service_date: service.eventDate,
+                event_service_date: service.eventDate || null,
             })),
             workers: selectedWorkers,
-            amount: parseInt(convertedAmount.replace(/\s/g, '')),
-            advance: parseInt(convertedAdvance.replace(/\s/g, '')),
+            amount: parseInt(convertedAmount.replace(/\s/g, '')) || 0,
+            advance: parseInt(convertedAdvance.replace(/\s/g, '')) || 0,
             comment: generalComment,
         };
 

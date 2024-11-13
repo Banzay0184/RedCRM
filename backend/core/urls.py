@@ -10,6 +10,7 @@ from .views import (
     UserListView,
     UserDetailView,
     ServiceDetailView,
+    WorkerDetailView,
 )
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     path("clients/", ClientAPIView.as_view(), name="client-list"),
     path("clients/<int:pk>/", ClientAPIView.as_view(), name="client-detail"),
     path("workers/", WorkerAPIView.as_view(), name="worker-list"),
+    path("workers/<int:pk>/", WorkerDetailView.as_view(), name="worker-detail"),
     path("services/", ServiceAPIView.as_view(), name="service-list"),
     path("service/<int:pk>/", ServiceDetailView.as_view(), name="service-detail"),
     path("events/", EventAPIView.as_view(), name="event-list"),

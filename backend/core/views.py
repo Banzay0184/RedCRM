@@ -99,6 +99,12 @@ class WorkerAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+class WorkerDetailView(UpdateAPIView):
+    serializer_class = WorkersSerializer
+    queryset = Workers.objects.all()
+
     def delete(self, request, pk):
         worker = get_object_or_404(Workers, pk=pk)
         worker.delete()
@@ -119,15 +125,16 @@ class ServiceAPIView(APIView):
         serializer.save()
         return Response(serializer.data, 201)
 
-    def delete(self, request, pk):
-        service = get_object_or_404(Service, pk=pk)
-        service.delete()
-        return Response({"detail": "Service deleted successfully."}, 204)
 
 
 class ServiceDetailView(UpdateAPIView):
     serializer_class = ServiceSerializer
     queryset = Service.objects.all()
+
+    def delete(self, request, pk):
+        service = get_object_or_404(Service, pk=pk)
+        service.delete()
+        return Response({"detail": "Service deleted successfully."}, 204)
 
 
 class EventAPIView(APIView):

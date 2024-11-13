@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Базовый URL для всех запросов
-// const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api";
+// const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 
 // Создаём экземпляр axios с базовой конфигурацией
@@ -48,8 +48,12 @@ export const deleteEvent = (id) => api.delete(`/events/${id}/`);
 
 export const getWorkers = () => api.get("/workers/");
 export const createWorker = (data) => api.post("/workers/", data);
+export const deleteWorker = (id)=> api.delete(`/workers/${id}/`);
+export const updateWorker = (id, data) => api.put(`/workers/${id}/`, data);
 
 export const getServices = () => api.get("/services/");
 export const createService = (data) => api.post("/services/", data);
+export const deleteService = (id)=> api.delete(`/service/${id}/`);
+export const updateService = (id, data) => api.put(`/service/${id}/`, data);
 
 export default api;

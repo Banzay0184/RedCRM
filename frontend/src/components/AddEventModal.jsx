@@ -10,29 +10,20 @@ const AddEventModal = ({onClose, onSave}) => {
     const [isVIP, setIsVIP] = useState(false);
     const [phoneNumbers, setPhoneNumbers] = useState([{phone_number: ''}]);
     const [workers, setWorkers] = useState([]);
-    const [selectedWorkers, setSelectedWorkers] = useState([]);
     const [services, setServices] = useState([]);
     const [selectedServices, setSelectedServices] = useState([]);
-    // const [restaurantName, setRestaurantName] = useState('');
     const [totalAmount, setTotalAmount] = useState('');
     const [advancePayment, setAdvancePayment] = useState('');
     const [generalComment, setGeneralComment] = useState('');
-    const [errors, setErrors] = useState({});
     const [computerNumbers, setComputerNumbers] = useState('');
-
-    // Курс обмена
     const [currency, setCurrency] = useState('USD');
     const [currencyAdvance, setCurrencyAdvance] = useState('USD');
     const [convertedAmount, setConvertedAmount] = useState('');
     const [convertedAdvance, setConvertedAdvance] = useState('');
     const [exchangeRate, setExchangeRate] = useState(null);
-
-    // Флаг сохранения
     const [saving, setSaving] = useState(false);
-    const isSaving = useRef(false);
-
-    // Флаг загрузки данных
     const [loading, setLoading] = useState(true);
+    const isSaving = useRef(false);
 
     // Получение данных при монтировании компонента
     useEffect(() => {
@@ -56,7 +47,7 @@ const AddEventModal = ({onClose, onSave}) => {
         }
 
         async function fetchExchangeRate() {
-            const response = await axios.get('https://api.exchangerate-api.com/v4/latest/USD'); // Замените на ваш API
+            const response = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
             setExchangeRate(response.data.rates.UZS);
         }
 
@@ -124,7 +115,20 @@ const AddEventModal = ({onClose, onSave}) => {
         }
     };
 
-        const handleComputerNumbersChange = (e) => {
+    // Обработчик для добавления или удаления рабочих конкретного сервиса
+    const handleWorkerChange = (serviceId, workerId) => {
+        setSelectedServices(selectedServices.map((s) => {
+            if (s.service === serviceId) {
+                const newWorkers = s.workers.includes(workerId)
+                    ? s.workers.filter(id => id !== workerId)
+                    : [...s.workers, workerId];
+                return {...s, workers: newWorkers};
+            }
+            return s;
+        }));
+    };
+
+    const handleComputerNumbersChange = (e) => {
         const value = e.target.value.replace(/\D/g, ''); // Ограничение на ввод только чисел
         setComputerNumbers(value);
     };
@@ -152,27 +156,16 @@ const AddEventModal = ({onClose, onSave}) => {
         setPhoneNumbers(updatedPhones);
     };
 
-    // Обновление выбранных услуг
+    // Обработчик выбора сервиса и добавления рабочих в каждый сервис
     const handleServiceChange = (serviceId) => {
-        const serviceIndex = selectedServices.findIndex(
-            (service) => service.service === serviceId
-        );
-        if (serviceIndex > -1) {
-            // Удаляем услугу, если она уже выбрана
-            setSelectedServices(
-                selectedServices.filter((service) => service.service !== serviceId)
-            );
+        const existingServiceIndex = selectedServices.findIndex(s => s.service === serviceId);
+        if (existingServiceIndex > -1) {
+            setSelectedServices(selectedServices.filter(s => s.service !== serviceId));
         } else {
-            // Добавляем услугу, если она не выбрана
-            const serviceToAdd = services.find((service) => service.id === serviceId);
+            const service = services.find(s => s.id === serviceId);
             setSelectedServices([
                 ...selectedServices,
-                {
-                    service: serviceToAdd.id,
-                    eventDate: '',
-                    cameraCount: 0,
-                    comment: '',
-                },
+                {service: serviceId, eventDate: '', cameraCount: 0, comment: '', workers: []}
             ]);
         }
     };
@@ -248,9 +241,9 @@ const AddEventModal = ({onClose, onSave}) => {
                 camera_count: parseInt(service.cameraCount) || 0,
                 restaurant_name: service.restaurantName,
                 comment: service.comment,
+                workers: service.workers,
                 event_service_date: service.eventDate || null,
             })),
-            workers: selectedWorkers,
             amount: parseInt(convertedAmount.replace(/\s/g, '')) || 0,
             advance: parseInt(convertedAdvance.replace(/\s/g, '')) || 0,
             computer_numbers: parseInt(computerNumbers) || 0,
@@ -325,7 +318,7 @@ const AddEventModal = ({onClose, onSave}) => {
     return (
         <>
             <div className="modal modal-open">
-                <div className="modal-box w-full max-w-4xl">
+                <div className="modal-box w-full max-w-6xl">
                     <h3 className="font-bold text-lg text-white">Добавить Событие</h3>
                     <hr className="my-4"/>
 
@@ -457,7 +450,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                         {service.is_active_camera && (
                                             <input
                                                 type="text"
-                                                placeholder="Количество камер"
+                                                placeholder="камер"
                                                 className="input input-bordered"
                                                 value={
                                                     selectedServices.find(
@@ -488,37 +481,38 @@ const AddEventModal = ({onClose, onSave}) => {
                                                 })
                                             }
                                         />
+
+                                        {/* Выбор работников для конкретного сервиса */}
+                                        {service.is_active_camera && (
+                                            <div className="form-control">
+                                                <div className="dropdown">
+                                                    <label tabIndex={0} className="btn btn-outline btn-primary w-full">
+                                                        Выберите работников
+                                                    </label>
+                                                    <ul tabIndex={0}
+                                                        className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
+                                                        {workers.map((worker) => (
+                                                            <li key={worker.id} className="flex gap-2 items-center">
+                                                                <label
+                                                                    className="cursor-pointer flex items-center gap-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="checkbox checkbox-primary"
+                                                                        checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}
+                                                                        onChange={() => handleWorkerChange(service.id, worker.id)}
+                                                                    />
+                                                                    <span>{worker.name}</span>
+                                                                </label>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         ))}
-                    </div>
-
-                    {/* Работники */}
-                    <div className="form-control mt-4">
-                        <label className="label">
-                            <span className="label-text">Работники</span>
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {workers.map((worker) => (
-                                <div key={worker.id} className="flex gap-2 items-center">
-                                    <label className="cursor-pointer flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox checkbox-primary"
-                                            checked={selectedWorkers.includes(worker.id)}
-                                            onChange={() => {
-                                                const updatedWorkers = selectedWorkers.includes(worker.id)
-                                                    ? selectedWorkers.filter((id) => id !== worker.id)
-                                                    : [...selectedWorkers, worker.id];
-                                                setSelectedWorkers(updatedWorkers);
-                                            }}
-                                        />
-                                        <span>{worker.name}</span>
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Сумма, аванс и комментарий */}
@@ -529,7 +523,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                 <label className="label">
                                     <span className="label-text">Общая сумма</span>
                                 </label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 mb-1">
                                     <input
                                         type="text"
                                         placeholder="Общая сумма"
@@ -556,7 +550,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                 <label className="label">
                                     <span className="label-text">Аванс</span>
                                 </label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 mb-1">
                                     <input
                                         type="text"
                                         placeholder="Аванс"
@@ -594,11 +588,11 @@ const AddEventModal = ({onClose, onSave}) => {
                                 />
                             </div>
                             <label className="label">
-                                <span className="label-text">Количество компьютеров</span>
+                                <span className="label-text">Номер компьютера </span>
                             </label>
                             <input
                                 type="text"
-                                placeholder="Введите количество компьютеров"
+                                placeholder="Номер компьютера"
                                 className="input input-bordered"
                                 value={computerNumbers}
                                 onChange={handleComputerNumbersChange}

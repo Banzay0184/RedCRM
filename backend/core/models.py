@@ -81,7 +81,7 @@ class Device(BaseModel):
     event_service_date = models.DateField(null=True, blank=True,)  # Дата использования устройства
     service = models.ForeignKey(Service, CASCADE, "devices")
     event = models.ForeignKey("Event", CASCADE, "devices")
-    workers = models.ManyToManyField(Workers, related_name="devices")
+    workers = models.ManyToManyField(Workers, related_name="devices", blank=True)
 
 
     # def __str__(self):

@@ -76,11 +76,20 @@ class WorkersSerializer(serializers.ModelSerializer):
 
 
 class DeviceSerializer(serializers.ModelSerializer):
+    workers = serializers.PrimaryKeyRelatedField(many=True, queryset=Workers.objects.all())
     # event_service_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
+
+    def create(self, validated_data):
+        workers = validated_data.pop("workers", None)  # Извлекаем workers, если они есть
+        device = Device.objects.create(**validated_data)
+        if workers:
+            device.workers.set(workers)  # Привязываем работников к устройству
+        return device
+
 
     class Meta:
         model = Device
-        fields = ["id", "service", "camera_count", "comment", "restaurant_name", "event_service_date"]
+        fields = ["id", "service", "camera_count", "comment", 'workers', "restaurant_name", "event_service_date"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -92,74 +101,85 @@ class ServiceSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     client = ClientSerializer()
     devices = DeviceSerializer(many=True)
-    workers = serializers.PrimaryKeyRelatedField(many=True, queryset=Workers.objects.all())
+    # workers = serializers.PrimaryKeyRelatedField(many=True, queryset=Workers.objects.all())
 
     def create(self, validated_data):
-        # Извлекаем устройства и работников
-        devices = validated_data.pop("devices")
+        devices_data = validated_data.pop("devices", [])
         client_data = validated_data.pop("client")
-        workers = validated_data.pop("workers")
-
-        # Извлекаем и отделяем телефоны от данных клиента
         phones = client_data.pop("phones", [])
 
-        # Создаем клиента
+        # Создаём клиента
         client = Client.objects.create(**client_data)
-
-        # Добавляем телефоны клиенту
         for phone in phones:
             client.phones.create(**phone)
+        validated_data["client"] = client
 
-        # Привязываем клиента к данным события
-        validated_data['client'] = client
+        # Создаём событие
+        event = Event.objects.create(**validated_data)
 
-        # Привязываем работников к данным события
-        validated_data['workers'] = workers
+        # Создаём устройства и добавляем работников
+        for device_data in devices_data:
+            workers = device_data.pop("workers", [])
+            device = Device.objects.create(event=event, **device_data)
+            if workers:
+                device.workers.set(workers)
 
-        # Создаем событие
-        instance = super().create(validated_data)
-
-        # Создаем устройства, привязанные к событию
-        Device.objects.bulk_create([Device(**{"event_id": instance.id, **item}) for item in devices])
-
-        return instance
+        return event
 
     def update(self, instance, validated_data):
-        # Обновляем данные клиента
-        client_data = validated_data.pop('client', None)
+        client_data = validated_data.pop("client", None)
+        devices_data = validated_data.pop("devices", None)
+
+        # Обновление клиента
         if client_data:
-            client_instance = instance.client
-            client_serializer = ClientSerializer(client_instance, data=client_data)
+            client_serializer = ClientSerializer(instance.client, data=client_data)
             client_serializer.is_valid(raise_exception=True)
             client_serializer.save()
 
-        # Обновляем данные устройств
-        devices_data = validated_data.pop('devices', None)
+        # Обновление устройств
         if devices_data is not None:
-            # Удаляем существующие устройства
-            instance.devices.all().delete()
-            # Создаём новые устройства
-            for device_data in devices_data:
-                Device.objects.create(event=instance, **device_data)
+            existing_devices = {device.id: device for device in instance.devices.all()}
 
-        # Обновляем поле workers (многие-ко-многим)
-        workers = validated_data.pop('workers', None)
-        if workers is not None:
-            instance.workers.set(workers)
+            updated_device_ids = set()
+
+            for device_data in devices_data:
+                workers = device_data.pop("workers", [])
+                device_id = device_data.get("id")
+
+                if device_id and device_id in existing_devices:
+                    # Обновляем существующее устройство
+                    device = existing_devices[device_id]
+                    for attr, value in device_data.items():
+                        setattr(device, attr, value)
+                    device.save()
+                    if workers:
+                        device.workers.set(workers)
+                    updated_device_ids.add(device_id)
+                else:
+                    # Создаем новое устройство
+                    device = Device.objects.create(event=instance, **device_data)
+                    if workers:
+                        device.workers.set(workers)
+                    updated_device_ids.add(device.id)
+
+            # Удаляем устройства, которые не были включены в devices_data
+            for device_id, device in existing_devices.items():
+                if device_id not in updated_device_ids:
+                    device.delete()
 
         # Обновляем остальные поля события
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
         instance.save()
         return instance
+
+
 
     class Meta:
         model = Event
         fields = [
             "id",
             "client",
-            "workers",
             "devices",
             'computer_numbers',
             "amount",

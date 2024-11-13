@@ -82,6 +82,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             restaurant_name: device.restaurant_name,
             cameraCount: device.camera_count,
             comment: device.comment,
+            workers: device.workers || [],
         }));
         setSelectedServices(initialSelectedServices);
     };
@@ -181,12 +182,10 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             (service) => service.service === serviceId
         );
         if (serviceIndex > -1) {
-            // Если услуга уже выбрана, удаляем её
             setSelectedServices(
                 selectedServices.filter((service) => service.service !== serviceId)
             );
         } else {
-            // Если услуга не выбрана, добавляем её в список выбранных услуг
             const serviceToAdd = services.find((service) => service.id === serviceId);
             setSelectedServices([
                 ...selectedServices,
@@ -195,6 +194,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                     eventDate: '',
                     cameraCount: 0,
                     comment: '',
+                    workers: [],
                 },
             ]);
         }
@@ -237,6 +237,22 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         return newErrors;
     };
 
+    const handleWorkerChange = (serviceId, workerId) => {
+    setSelectedServices(selectedServices.map((service) => {
+        if (service.service === serviceId) {
+            // Toggle worker presence in the array
+            const isWorkerSelected = service.workers.includes(workerId);
+            const updatedWorkers = isWorkerSelected
+                ? service.workers.filter(id => id !== workerId) // Remove if already present
+                : [...service.workers, workerId]; // Add if not present
+
+            return { ...service, workers: updatedWorkers };
+        }
+        return service;
+    }));
+};
+
+
     const handleSave = async () => {
         if (isSaving.current) {
             // Если сохранение уже идёт, не позволяем вызвать функцию снова
@@ -278,8 +294,8 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 restaurant_name: service.restaurant_name,
                 comment: service.comment,
                 event_service_date: service.eventDate || null,
+                workers: service.workers || []
             })),
-            workers: selectedWorkers,
             amount: convertedAmount ? parseInt(convertedAmount.replace(/\s/g, '')) : parseInt(totalAmount),
             advance: convertedAdvance ? parseInt(convertedAdvance.replace(/\s/g, '')) : parseInt(advancePayment),
             comment: generalComment,
@@ -356,7 +372,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         <>
             <div className="modal modal-open">
                 {/* Адаптивная ширина модального окна */}
-                <div className="modal-box w-full max-w-4xl">
+                <div className="modal-box w-full max-w-6xl">
                     <h3 className="font-bold text-lg text-white">Редактировать Событие</h3>
                     <hr className="my-4"/>
 
@@ -451,7 +467,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
 
                                 {/* Поля для выбранных услуг */}
                                 {selectedServices.some((s) => s.service === service.id) && (
-                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                    <div className="flex flex-col justify-center md:flex-row md:items-center gap-4">
                                         {/* Дата */}
                                         <input
                                             type="date"
@@ -522,39 +538,35 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                                                 })
                                             }
                                         />
+
+                                        {/* Выбор работников для конкретного сервиса */}
+                                        <div className="form-control">
+                                            <div className="dropdown">
+                                                <label tabIndex={0} className="btn btn-outline btn-primary w-full">
+                                                    Выберите работников
+                                                </label>
+                                                <ul tabIndex={0}
+                                                    className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
+                                                    {workers.map((worker) => (
+                                                        <li key={worker.id} className="flex gap-2 items-center">
+                                                            <label className="cursor-pointer flex items-center gap-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="checkbox checkbox-primary"
+                                                                    checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}
+                                                                    onChange={() => handleWorkerChange(service.id, worker.id)}
+                                                                />
+                                                                <span>{worker.name}</span>
+                                                            </label>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         ))}
-                    </div>
-
-                    {/* Работники */}
-                    <div className="form-control mt-4">
-                        <label className="label">
-                            <span className="label-text">Работники</span>
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {workers.map((worker) => (
-                                <div key={worker.id} className="flex gap-2 items-center">
-                                    <label className="cursor-pointer flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox checkbox-primary"
-                                            checked={selectedWorkers.includes(worker.id)}
-                                            onChange={() => {
-                                                const updatedWorkers = selectedWorkers.includes(
-                                                    worker.id
-                                                )
-                                                    ? selectedWorkers.filter((id) => id !== worker.id)
-                                                    : [...selectedWorkers, worker.id];
-                                                setSelectedWorkers(updatedWorkers);
-                                            }}
-                                        />
-                                        <span>{worker.name}</span>
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Адаптивная раскладка для суммы, аванса и комментария */}

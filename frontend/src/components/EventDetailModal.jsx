@@ -58,21 +58,6 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                             </div>
                         </section>
 
-                        <section>
-                            <h4 className="text-xl font-semibold">Работники</h4>
-                            {event.workers && event.workers.length > 0 ? (
-                                <ul className="ml-4 mt-2">
-                                    {event.workers.map((workerId) => (
-                                        <li key={workerId}>
-                                            {workersMap[workerId] || 'Имя работника не найдено'}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="ml-4 text-gray-600 mt-2">Нет информации о работниках.</p>
-                            )}
-                        </section>
-
                         <section className="pb-4">
                             <h4 className="text-xl font-semibold">Устройства и услуги</h4>
                             {event.devices.map((device) => (
@@ -91,6 +76,14 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                         : 'Дата не указана'}</p>
                                     <p className={device.comment ? '' : 'hidden'}>
                                         <strong>Комментарий:</strong> {device.comment}</p>
+
+                                    <div className={device.workers ? '' : 'hidden'}>
+                                        {device.workers.map((workerId) => (
+                                            <p key={workerId}>
+                                                 <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
                             ))}
                         </section>

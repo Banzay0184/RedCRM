@@ -27,6 +27,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
     const [currencyAdvance, setCurrencyAdvance] = useState('UZS');
     const [convertedAmount, setConvertedAmount] = useState('');
     const [convertedAdvance, setConvertedAdvance] = useState('');
+    const [computerNumbers, setComputerNumbers] = useState('');
     const [exchangeRate, setExchangeRate] = useState(null);
 
     // Загружаем данные при монтировании компонента
@@ -71,6 +72,8 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         setTotalAmount(eventData.amount);
         setAdvancePayment(eventData.advance);
         setGeneralComment(eventData.comment);
+        setComputerNumbers(eventData.computer_numbers)
+
 
         // Инициализация выбранных услуг
         const initialSelectedServices = eventData.devices.map((device) => ({
@@ -217,10 +220,6 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         if (!clientName) newErrors.clientName = 'Имя клиента обязательно';
         if (!phoneNumbers[0].phone_number)
             newErrors.phoneNumbers = 'Первый номер телефона обязателен';
-        if (isNaN(totalAmountNum) || totalAmountNum <= 0)
-            newErrors.totalAmount = 'Общая сумма должна быть больше нуля';
-        if (isNaN(advancePaymentNum) || advancePaymentNum < 0)
-            newErrors.advancePayment = 'Аванс не может быть отрицательным';
 
         // Проверяем, что каждая услуга содержит необходимые данные
         selectedServices.forEach((service) => {
@@ -284,6 +283,8 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             amount: convertedAmount ? parseInt(convertedAmount.replace(/\s/g, '')) : parseInt(totalAmount),
             advance: convertedAdvance ? parseInt(convertedAdvance.replace(/\s/g, '')) : parseInt(advancePayment),
             comment: generalComment,
+            computer_numbers: parseInt(computerNumbers) || 0,
+
         };
         console.log();
         try {
@@ -627,6 +628,16 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                                     placeholder="Комментарий"
                                     value={generalComment}
                                     onChange={(e) => setGeneralComment(e.target.value)}
+                                />
+                                <label className="label">
+                                    <span className="label-text">Количество компьютеров</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Введите количество компьютеров"
+                                    className="input input-bordered"
+                                    value={computerNumbers}
+                                    onChange={(e) => setComputerNumbers(e.target.value)}
                                 />
                             </div>
                         </div>

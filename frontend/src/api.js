@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Базовый URL для всех запросов
-const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+// const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 
 // Создаём экземпляр axios с базовой конфигурацией

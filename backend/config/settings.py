@@ -25,12 +25,12 @@ SECRET_KEY = "django-insecure-2^39efq6=s5rt2#-5%ad8@i0&5+!jk3k@7pdizh1fan)oyax5g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
-# ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
-    # 'http://localhost:5173'
-    "https://red-crm-beta.vercel.app",
+    'http://localhost:5173'
+    # "https://red-crm-beta.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -158,8 +158,8 @@ REST_FRAMEWORK = {
 
 # Опционально: Настройка времени жизни токенов
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  # Время жизни access-токена
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Время жизни refresh-токена
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),  # Время жизни access-токена
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),  # Время жизни refresh-токена
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",

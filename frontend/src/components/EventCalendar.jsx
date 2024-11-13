@@ -171,7 +171,13 @@ const EventCalendar = ({
 
             {isModalOpen && selectedDevice && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                    <div className="modal-box relative max-w-sm w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-6 sm:p-8 rounded-lg shadow-xl">
+                    <div
+                        className="modal-box relative max-w-sm w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-6 sm:p-8 rounded-lg shadow-xl">
+                        <button
+                            className="absolute top-3 left-3 text-lg text-white"
+                        >
+                            {selectedDevice.event.computer_numbers}
+                        </button>
                         <button
                             onClick={closeModal}
                             className="absolute top-3 right-3 text-lg text-white hover:text-gray-300 focus:outline-none"
@@ -183,13 +189,14 @@ const EventCalendar = ({
                         </h3>
                         <div className="space-y-2 sm:space-y-4">
                             <div className="flex items-center text-sm sm:text-base">
-                                <FaCalendarAlt className="mr-2" />
+                                <FaCalendarAlt className="mr-2"/>
                                 <p>
-                                    <strong>Название услуги:</strong> {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
+                                    <strong>Название
+                                        услуги:</strong> {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
                                 </p>
                             </div>
                             <div className="flex items-center text-sm sm:text-base">
-                                <FaUser className="mr-2" />
+                                <FaUser className="mr-2"/>
                                 <p>
                                     <strong>Работники:</strong>
                                     {selectedDevice.event.workers && selectedDevice.event.workers.length > 0
@@ -208,7 +215,7 @@ const EventCalendar = ({
                             <p className="text-sm sm:text-base">
                                 <strong>Клиент:</strong> {selectedDevice.event.client.name}
                             </p>
-                            <p className={ selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
+                            <p className={selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
                                 <strong>Комментарий:</strong> {selectedDevice.comment}
                             </p>
                         </div>

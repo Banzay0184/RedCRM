@@ -161,6 +161,7 @@ class EventSerializer(serializers.ModelSerializer):
             "client",
             "workers",
             "devices",
+            'computer_numbers',
             "amount",
             "advance",
             "comment",

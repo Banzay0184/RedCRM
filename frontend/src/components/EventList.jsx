@@ -32,6 +32,12 @@ const EventList = ({
         fetchWorker()
     }, []);
 
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Дата не указана';
+        const date = new Date(dateString);
+        return format(date, 'dd MMMM yyyy', {locale: ru});
+    };
+
     const fetchServices = async () => {
         try {
             const response = await getServices();
@@ -195,7 +201,7 @@ const EventList = ({
                                             const serviceDate = parseISO(
                                                 device.event_service_date
                                             );
-                                            serviceDateText = format(
+                                            serviceDateText = formatDate(
                                                 serviceDate,
                                                 'dd.MM.yyyy',
                                                 {locale: ru}

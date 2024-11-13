@@ -18,6 +18,7 @@ const AddEventModal = ({onClose, onSave}) => {
     const [advancePayment, setAdvancePayment] = useState('');
     const [generalComment, setGeneralComment] = useState('');
     const [errors, setErrors] = useState({});
+    const [computerNumbers, setComputerNumbers] = useState('');
 
     // Курс обмена
     const [currency, setCurrency] = useState('USD');
@@ -121,6 +122,11 @@ const AddEventModal = ({onClose, onSave}) => {
         } else {
             setConvertedAdvance(formatNumber(advancePayment));
         }
+    };
+
+        const handleComputerNumbersChange = (e) => {
+        const value = e.target.value.replace(/\D/g, ''); // Ограничение на ввод только чисел
+        setComputerNumbers(value);
     };
 
     // Добавить второй телефон
@@ -247,6 +253,7 @@ const AddEventModal = ({onClose, onSave}) => {
             workers: selectedWorkers,
             amount: parseInt(convertedAmount.replace(/\s/g, '')) || 0,
             advance: parseInt(convertedAdvance.replace(/\s/g, '')) || 0,
+            computer_numbers: parseInt(computerNumbers) || 0,
             comment: generalComment,
         };
 
@@ -586,6 +593,16 @@ const AddEventModal = ({onClose, onSave}) => {
                                     onChange={(e) => setGeneralComment(e.target.value)}
                                 />
                             </div>
+                            <label className="label">
+                                <span className="label-text">Количество компьютеров</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Введите количество компьютеров"
+                                className="input input-bordered"
+                                value={computerNumbers}
+                                onChange={handleComputerNumbersChange}
+                            />
                         </div>
                     </div>
 

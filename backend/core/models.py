@@ -81,6 +81,8 @@ class Device(BaseModel):
     event_service_date = models.DateField(null=True, blank=True,)  # Дата использования устройства
     service = models.ForeignKey(Service, CASCADE, "devices")
     event = models.ForeignKey("Event", CASCADE, "devices")
+    workers = models.ManyToManyField(Workers, related_name="devices")
+
 
     # def __str__(self):
     #     return f"{self.comment} для {self.service.name}"
@@ -90,9 +92,10 @@ class Event(BaseModel):
     """Модель мероприятий."""
 
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events")
-    workers = models.ManyToManyField(Workers, related_name="events")
+    # workers = models.ManyToManyField(Workers, related_name="events")
     amount = models.PositiveIntegerField(default=0)
     advance = models.PositiveIntegerField(default=0)
+    computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
 
     def clean(self):

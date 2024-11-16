@@ -12,7 +12,7 @@ import {
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaUser} from 'react-icons/fa';
+import {FaArrowLeft, FaArrowRight, FaCalendarAlt} from 'react-icons/fa';
 import {getWorkers} from "../api.js";
 
 const EventCalendar = ({
@@ -38,8 +38,13 @@ const EventCalendar = ({
         return map;
     }, {});
 
-    const formatCurrency = (number) =>
-        new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'UZS'}).format(number);
+    const formatCurrency = (number, isUSD) =>
+        new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: isUSD ? 'USD' : 'UZS',
+            minimumFractionDigits: isUSD ? 2 : 0,
+            maximumFractionDigits: isUSD ? 2 : 0,
+        }).format(number);
 
     const devicesWithDate = events.reduce((acc, event) => {
         event.devices.forEach((device) => {
@@ -188,19 +193,27 @@ const EventCalendar = ({
                         >
                             ✕
                         </button>
-                        <h3 className="text-xl sm:text-2xl mt-4 font-bold mb-4 sm:mb-6">
-                            Информация об услуге
+                        <h3 className="flex items-center text-xl sm:text-2xl mt-4 font-bold mb-4 sm:mb-6">
+                            <FaCalendarAlt className="mr-2"/>
+                            {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
                         </h3>
                         <div className="space-y-2 sm:space-y-4">
+                            <p className="text-sm sm:text-base">
+                                <strong>Клиент:</strong> {selectedDevice.event.client.name}
+                            </p>
+                            <p className="text-sm sm:text-base">
+                                <strong>Телефон:</strong> +{selectedDevice.event.client.phones.map((phone) => phone.phone_number).join(', +')}
+                            </p>
+                            <p className={selectedDevice.restaurant_name ? 'text-sm sm:text-base' : 'hidden'}>
+                                <strong>Название ресторана:</strong> {selectedDevice.restaurant_name || 'Нет данных'}
+                            </p>
+                            <p className={selectedDevice.camera_count ? 'text-sm sm:text-base' : 'hidden'}>
+                                <strong>Количество камер:</strong> {selectedDevice.camera_count}
+                            </p>
+                            <p className={selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
+                                <strong>Комментарий:</strong> {selectedDevice.comment}
+                            </p>
                             <div className="flex items-center text-sm sm:text-base">
-                                <FaCalendarAlt className="mr-2"/>
-                                <p>
-                                    <strong>Название
-                                        услуги:</strong> {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
-                                </p>
-                            </div>
-                            <div className="flex items-center text-sm sm:text-base">
-                                <FaUser className="mr-2"/>
                                 <p>
                                     <strong>Работники: </strong>
                                     {selectedDevice.workers && selectedDevice.workers.length > 0
@@ -210,27 +223,19 @@ const EventCalendar = ({
                                         : 'Нет работников'}
                                 </p>
                             </div>
-                            <p className={selectedDevice.camera_count ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Количество камер:</strong> {selectedDevice.camera_count}
-                            </p>
-                            <p className={selectedDevice.restaurant_name ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Название ресторана:</strong> {selectedDevice.restaurant_name || 'Нет данных'}
-                            </p>
-                            <p className="text-sm sm:text-base">
-                                <strong>Клиент:</strong> {selectedDevice.event.client.name}
-                            </p>
-                            <p className={selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Комментарий:</strong> {selectedDevice.comment}
+                            <p>
+                                <strong>Общая
+                                    сумма:</strong> {formatCurrency(selectedDevice.event.amount, selectedDevice.event.amount_money)}
                             </p>
                             <p>
-                                <strong>Общая сумма:</strong> {formatCurrency(selectedDevice.event.amount)}
-                            </p>
-                            <p>
-                                <strong>Аванс:</strong> {formatCurrency(selectedDevice.event.advance)}
+                                <strong>Аванс:</strong> {formatCurrency(selectedDevice.event.advance, selectedDevice.event.advance_money)}
                             </p>
                             <p>
                                 <strong>Остаток:</strong>{' '}
-                                {formatCurrency(selectedDevice.event.amount - selectedDevice.event.advance)}
+                                {formatCurrency(
+                                    selectedDevice.event.amount - selectedDevice.event.advance,
+                                    selectedDevice.event.amount_money
+                                )}
                             </p>
                         </div>
                     </div>

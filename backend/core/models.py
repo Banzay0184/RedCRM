@@ -94,7 +94,9 @@ class Event(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events")
     # workers = models.ManyToManyField(Workers, related_name="events")
     amount = models.PositiveIntegerField(default=0)
+    amount_money = models.BooleanField(default=False)
     advance = models.PositiveIntegerField(default=0)
+    advance_money = models.BooleanField(default=False)
     computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
 

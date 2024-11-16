@@ -1,6 +1,5 @@
 import {useContext, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {AiFillEye, AiFillEyeInvisible} from "react-icons/ai";
 import {login} from "../api";
 import {GlobalContext} from "../components/BaseContex.jsx";
 
@@ -97,7 +96,6 @@ function LoginPage({setIsAuthenticated}) {
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
                     >
-            {showPassword ? <AiFillEyeInvisible/> : <AiFillEye/>}
           </span>
                 </div>
 

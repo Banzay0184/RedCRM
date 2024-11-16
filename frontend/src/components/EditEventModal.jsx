@@ -44,8 +44,13 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 setWorkers(workersData.data);
                 setServices(servicesData.data);
 
-                // Инициализируем состояния на основе переданного события
+                // Загружаем курс обмена
+                const exchangeRateResponse = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
+                setExchangeRate(exchangeRateResponse.data.rates.UZS);
+
+                // Теперь инициализируем данные события
                 initializeEventData(event);
+
                 setLoading(false);
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
@@ -54,12 +59,6 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             }
         }
 
-        async function fetchExchangeRate() {
-            const response = await axios.get('https://api.exchangerate-api.com/v4/latest/USD'); // Замените на ваш API
-            setExchangeRate(response.data.rates.UZS);
-        }
-
-        fetchExchangeRate();
         fetchData();
     }, [event]);
 
@@ -69,11 +68,35 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         setIsVIP(eventData.client.is_vip);
         setPhoneNumbers(eventData.client.phones);
         setSelectedWorkers(eventData.workers);
-        setTotalAmount(eventData.amount);
-        setAdvancePayment(eventData.advance);
         setGeneralComment(eventData.comment);
-        setComputerNumbers(eventData.computer_numbers)
+        setComputerNumbers(eventData.computer_numbers);
 
+        // Устанавливаем валюту для amount
+        setCurrency(eventData.amount_money ? 'USD' : 'UZS');
+        setTotalAmount(eventData.amount.toString());
+
+        // Устанавливаем валюту для advance
+        setCurrencyAdvance(eventData.advance_money ? 'USD' : 'UZS');
+        setAdvancePayment(eventData.advance.toString());
+
+        // Обновляем конвертированные суммы для отображения
+        if (exchangeRate) {
+            if (eventData.amount_money) {
+                const converted = eventData.amount * exchangeRate;
+                setConvertedAmount(formatNumber(converted));
+            } else {
+                const converted = eventData.amount / exchangeRate;
+                setConvertedAmount(formatNumber(converted));
+            }
+
+            if (eventData.advance_money) {
+                const converted = eventData.advance * exchangeRate;
+                setConvertedAdvance(formatNumber(converted));
+            } else {
+                const converted = eventData.advance / exchangeRate;
+                setConvertedAdvance(formatNumber(converted));
+            }
+        }
 
         // Инициализация выбранных услуг
         const initialSelectedServices = eventData.devices.map((device) => ({
@@ -86,6 +109,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         }));
         setSelectedServices(initialSelectedServices);
     };
+
 
     // Функция для форматирования чисел с пробелами
     const formatNumber = (num) => {
@@ -100,11 +124,15 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         const value = e.target.value.replace(/\s/g, '');
         setTotalAmount(value);
 
+        // Конвертация для отображения
         if (currency === 'USD' && exchangeRate) {
-            const converted = (value * exchangeRate).toFixed(2);
+            const converted = value * exchangeRate;
+            setConvertedAmount(formatNumber(converted));
+        } else if (currency === 'UZS' && exchangeRate) {
+            const converted = value / exchangeRate;
             setConvertedAmount(formatNumber(converted));
         } else {
-            setConvertedAmount(formatNumber(value));
+            setConvertedAmount('');
         }
     };
 
@@ -112,46 +140,51 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         const value = e.target.value.replace(/\s/g, '');
         setAdvancePayment(value);
 
+        // Конвертация для отображения
         if (currencyAdvance === 'USD' && exchangeRate) {
-            const converted = (value * exchangeRate).toFixed(2);
+            const converted = value * exchangeRate;
+            setConvertedAdvance(formatNumber(converted));
+        } else if (currencyAdvance === 'UZS' && exchangeRate) {
+            const converted = value / exchangeRate;
             setConvertedAdvance(formatNumber(converted));
         } else {
-            setConvertedAdvance(formatNumber(value));
+            setConvertedAdvance('');
         }
     };
 
     // Обработчики изменения валюты
     const handleCurrencyChange = (e) => {
         const selectedCurrency = e.target.value;
-        if (selectedCurrency === 'USD' && currency === 'UZS' && exchangeRate) {
-            // Конвертируем из UZS в USD при переключении на USD
-            const converted = (parseInt(totalAmount) / exchangeRate);
-            setTotalAmount(converted);
-            setConvertedAmount(formatNumber(totalAmount));
-        } else if (selectedCurrency === 'UZS' && currency === 'USD' && exchangeRate) {
-            // Конвертируем из USD в UZS при переключении на UZS
-            const converted = (parseInt(totalAmount) * exchangeRate);
-            setTotalAmount(converted);
-            setConvertedAmount(formatNumber(totalAmount));
-        }
         setCurrency(selectedCurrency);
+
+        // Обновляем конвертированную сумму для отображения
+        if (selectedCurrency === 'USD' && exchangeRate) {
+            const converted = totalAmount * exchangeRate;
+            setConvertedAmount(formatNumber(converted));
+        } else if (selectedCurrency === 'UZS' && exchangeRate) {
+            const converted = totalAmount / exchangeRate;
+            setConvertedAmount(formatNumber(converted));
+        } else {
+            setConvertedAmount('');
+        }
     };
 
     const handleCurrencyChangeAdvance = (e) => {
         const selectedCurrencyAdvance = e.target.value;
-        if (selectedCurrencyAdvance === 'USD' && currencyAdvance === 'UZS' && exchangeRate) {
-            // Конвертируем из UZS в USD при переключении на USD
-            const converted = (parseInt(advancePayment) / exchangeRate);
-            setAdvancePayment(converted);
-            setConvertedAdvance(formatNumber(advancePayment));
-        } else if (selectedCurrencyAdvance === 'UZS' && currencyAdvance === 'USD' && exchangeRate) {
-            // Конвертируем из USD в UZS при переключении на UZS
-            const converted = (parseInt(advancePayment) * exchangeRate);
-            setAdvancePayment(converted);
-            setConvertedAdvance(formatNumber(advancePayment));
-        }
         setCurrencyAdvance(selectedCurrencyAdvance);
+
+        // Обновляем конвертированную сумму для отображения
+        if (selectedCurrencyAdvance === 'USD' && exchangeRate) {
+            const converted = advancePayment * exchangeRate;
+            setConvertedAdvance(formatNumber(converted));
+        } else if (selectedCurrencyAdvance === 'UZS' && exchangeRate) {
+            const converted = advancePayment / exchangeRate;
+            setConvertedAdvance(formatNumber(converted));
+        } else {
+            setConvertedAdvance('');
+        }
     };
+
 
     // Добавить второй телефон
     const addPhoneField = () => {
@@ -238,31 +271,29 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
     };
 
     const handleWorkerChange = (serviceId, workerId) => {
-    setSelectedServices(selectedServices.map((service) => {
-        if (service.service === serviceId) {
-            // Toggle worker presence in the array
-            const isWorkerSelected = service.workers.includes(workerId);
-            const updatedWorkers = isWorkerSelected
-                ? service.workers.filter(id => id !== workerId) // Remove if already present
-                : [...service.workers, workerId]; // Add if not present
+        setSelectedServices(selectedServices.map((service) => {
+            if (service.service === serviceId) {
+                // Toggle worker presence in the array
+                const isWorkerSelected = service.workers.includes(workerId);
+                const updatedWorkers = isWorkerSelected
+                    ? service.workers.filter(id => id !== workerId) // Remove if already present
+                    : [...service.workers, workerId]; // Add if not present
 
-            return { ...service, workers: updatedWorkers };
-        }
-        return service;
-    }));
-};
+                return {...service, workers: updatedWorkers};
+            }
+            return service;
+        }));
+    };
 
 
     const handleSave = async () => {
         if (isSaving.current) {
-            // Если сохранение уже идёт, не позволяем вызвать функцию снова
             return;
         }
 
         const validationErrors = validateFields();
 
         if (Object.keys(validationErrors).length > 0) {
-            // Отображаем ошибки с помощью toast
             const errorMessages = Object.values(validationErrors);
             errorMessages.forEach((error) => {
                 toast.error(error, {
@@ -276,17 +307,52 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                     },
                 });
             });
-            // Обновляем состояние ошибок, если вам это нужно в дальнейшем
             setErrors(validationErrors);
             return;
         }
 
-        // Устанавливаем флаг сохранения в true
         isSaving.current = true;
         setSaving(true);
 
+        // Обработка amount
+        const processedAmount = parseFloat(totalAmount.replace(/\s/g, '')) || 0;
+        const amountMoney = currency === 'USD';
+
+        // Обработка advance
+        let processedAdvancePayment = parseFloat(advancePayment.replace(/\s/g, '')) || 0;
+        let advanceMoney = currencyAdvance === 'USD';
+
+        if (amountMoney) {
+            // amount в USD
+            if (!advanceMoney) {
+                // advance в UZS, нужно конвертировать
+                if (exchangeRate) {
+                    processedAdvancePayment = processedAdvancePayment / exchangeRate;
+                    advanceMoney = true; // Устанавливаем advance_money в True (USD)
+                } else {
+                    toast.error('Курс обмена недоступен', {
+                        style: {
+                            background: '#f44336',
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#f44336',
+                        },
+                    });
+                    isSaving.current = false;
+                    setSaving(false);
+                    return;
+                }
+            }
+            // Если advance уже в USD, ничего не делаем
+        } else {
+            // amount в UZS, advance оставляем как есть
+            // processedAdvancePayment и advanceMoney уже установлены
+        }
+
         const eventData = {
-            id: event.id, // Добавляем ID события для обновления
+            id: event.id,
             client: {name: clientName, is_vip: isVIP, phones: phoneNumbers},
             devices: selectedServices.map((service) => ({
                 service: service.service,
@@ -294,19 +360,20 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 restaurant_name: service.restaurant_name,
                 comment: service.comment,
                 event_service_date: service.eventDate || null,
-                workers: service.workers || []
+                workers: service.workers || [],
             })),
-            amount: convertedAmount ? parseInt(convertedAmount.replace(/\s/g, '')) : parseInt(totalAmount),
-            advance: convertedAdvance ? parseInt(convertedAdvance.replace(/\s/g, '')) : parseInt(advancePayment),
+            amount: processedAmount,
+            amount_money: amountMoney,
+            advance: parseInt(processedAdvancePayment),
+            advance_money: advanceMoney,
             comment: generalComment,
             computer_numbers: parseInt(computerNumbers) || 0,
-
         };
-        console.log();
+
         try {
             // Обновляем событие на сервере
             const response = await updateEvent(event.id, eventData);
-            const updatedEvent = response.data; // Получаем обновленные данные события
+            const updatedEvent = response.data;
 
             // Вызываем onUpdate с данными обновленного события
             onUpdate(updatedEvent);
@@ -352,7 +419,6 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 });
             }
         } finally {
-            // Сбрасываем флаг сохранения
             isSaving.current = false;
             setSaving(false);
         }
@@ -587,7 +653,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                                     />
                                     <select value={currency} onChange={handleCurrencyChange}
                                             className="select select-primary">
-                                        <option value="USD">USD</option>
+                                        <option value="USD">$</option>
                                         <option value="UZS">UZS</option>
                                     </select>
                                 </div>
@@ -614,7 +680,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                                     />
                                     <select value={currencyAdvance} onChange={handleCurrencyChangeAdvance}
                                             className="select select-primary">
-                                        <option value="USD">USD</option>
+                                        <option value="USD">$</option>
                                         <option value="UZS">UZS</option>
                                     </select>
                                 </div>

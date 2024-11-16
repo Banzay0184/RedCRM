@@ -64,10 +64,10 @@ function Navbar({onLogout}) {
                 </span>
             </div>
 
-            {user.username === 'Banzay' && 'Rizo' ? (
+            {user.username === 'Rizo' && 'Rizo' ? (
                 <div className="hidden lg:flex navbar-center">
                     <ul className="menu menu-horizontal px-4 space-x-4">
-                        {user.username === 'Banzay' && 'Rizo' ?
+                        {user.username === 'Rizo' && 'Rizo' ?
                             <li>
                                 <Link to="/clients" className="btn btn-outline btn-primary">
                                     Клиенты
@@ -109,7 +109,7 @@ function Navbar({onLogout}) {
                 {/* Меню для маленьких экранов */}
                 <div className="lg:hidden flex items-center space-x-4">
                     <ThemeToggle onThemeChange={onThemeChange}/>
-                    {user.username === 'Banzay' && 'Rizo' ? (
+                    {user.username === 'Rizo' && 'Rizo' ? (
                         <button onClick={toggleMobileMenu}>
                             {isMobileMenuOpen ? <FaTimes className="text-2xl"/> : <FaBars className="text-2xl"/>}
                         </button>

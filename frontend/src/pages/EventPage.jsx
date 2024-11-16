@@ -140,7 +140,7 @@ const EventPage = () => {
             )}
 
             {/* Верхняя панель */}
-            {user.username === 'Banzay' && 'Rizo' ? (
+            {user.username === 'Rizo' && 'Rizo' ? (
                 <div className="flex flex-col justify-between xl:flex-row lg:flex-col lg:justify-between mb-4 gap-4">
                     {/* Левая часть: кнопки */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -225,7 +225,7 @@ const EventPage = () => {
             ): ''}
 
             {/* Отображаем либо EventList, либо EventCalendar в зависимости от состояния viewMode */}
-            {viewMode === 'calendar' && user.username === 'Banzay' && 'Rizo' ? (
+            {viewMode === 'calendar' && user.username === 'Rizo' && 'Rizo' ? (
                 <EventList
                     events={events}
                     loading={loading}

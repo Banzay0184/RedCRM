@@ -89,7 +89,7 @@ function App() {
                 <Routes>
                     {isAuthenticated ? (
                         <Route path="/" element={<Layout onLogout={handleLogout} user={user}/>}>
-                            {user.username === 'Banzay' && 'Rizo' ? <Route index element={<HomePage/>}/> : <Route index user={user} element={<EventPage/>}/>}
+                            {user.username === 'Rizo' && 'Rizo' ? <Route index element={<HomePage/>}/> : <Route index user={user} element={<EventPage/>}/>}
                             <Route path="/settings" element={<SettingsPage/>}/>
                             <Route path="/clients" element={<ClientPage/>}/>
                             <Route path="/profile" element={<ProfilePage user={user}/>}/>

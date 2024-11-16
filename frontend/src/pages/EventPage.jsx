@@ -1,10 +1,11 @@
 // EventPage.js
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import AddEventModal from '../components/AddEventModal';
-import EventList from '../components/EventList';
 import EventCalendar from '../components/EventCalendar';
 import {getEvents, getServices} from '../api';
-import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch,} from 'react-icons/fa';
+import {GlobalContext} from "../components/BaseContex.jsx";
+import EventList from "../components/EventList.jsx";
+import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch} from "react-icons/fa";
 
 const EventPage = () => {
     // Ваши состояния и функции остаются без изменений
@@ -22,7 +23,9 @@ const EventPage = () => {
     const [services, setServices] = useState([]);
 
     // Состояние для переключения между списком и календарем
-    const [viewMode, setViewMode] = useState('list');
+    const [viewMode, setViewMode] = useState('calendar');
+
+    const {user} = useContext(GlobalContext)
 
     useEffect(() => {
         fetchEvents();
@@ -94,7 +97,6 @@ const EventPage = () => {
     const toggleViewMode = () => {
         setViewMode((prevMode) => (prevMode === 'list' ? 'calendar' : 'list'));
     };
-
     return (
         <div className="p-4 relative">
             {/* Сообщения об ошибке и успехе */}
@@ -138,90 +140,92 @@ const EventPage = () => {
             )}
 
             {/* Верхняя панель */}
-            <div className="flex flex-col justify-between xl:flex-row lg:flex-col lg:justify-between mb-4 gap-4">
-                {/* Левая часть: кнопки */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <button
-                        className="btn btn-success text-white w-full sm:w-auto flex items-center justify-center gap-2"
-                        onClick={handleAdd}
-                    >
-                        <FaPlus/>
-                        <span>Добавить событие</span>
-                    </button>
-                    {/* Кнопка переключения представления */}
-                    <button
-                        className="btn bg-gray-200 hover:bg-gray-300 text-gray-700 w-full sm:w-auto flex items-center justify-center gap-2"
-                        onClick={toggleViewMode}
-                    >
-                        {viewMode === 'list' ? (
-                            <>
-                                <FaCalendarAlt/>
-                                <span>Календарь</span>
-                            </>
-                        ) : (
-                            <>
-                                <FaListUl/>
-                                <span>Список</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-
-                {/* Правая часть: фильтры */}
-                <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2">
-                    {/* Поиск */}
-                    <div
-                        className="group flex items-center border rounded-lg px-3 py-2 w-full md:w-auto hover:border-green-400">
-                        <FaSearch className="text-gray-500 mr-2 group-hover:text-green-400"/>
-                        <input
-                            type="text"
-                            placeholder="Поиск"
-                            className="bg-transparent group-hover:placeholder:text-green-400 focus:outline-none w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Фильтр по услуге */}
-                    <div
-                        className="group flex items-center border rounded-lg px-3 py-2 w-full md:w-auto hover:border-green-400">
-                        <FaFilter className="text-gray-500 group-hover:text-green-400 mr-2"/>
-                        <select
-                            className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
-                            value={filterService}
-                            onChange={(e) => setFilterService(e.target.value)}
+            {user.username === 'Banzay' && 'Rizo' ? (
+                <div className="flex flex-col justify-between xl:flex-row lg:flex-col lg:justify-between mb-4 gap-4">
+                    {/* Левая часть: кнопки */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <button
+                            className="btn btn-success text-white w-full sm:w-auto flex items-center justify-center gap-2"
+                            onClick={handleAdd}
                         >
-                            <option value="">Все услуги</option>
-                            {services.map((service) => (
-                                <option key={service.id} value={service.id}>
-                                    {service.name}
-                                </option>
-                            ))}
-                        </select>
+                            <FaPlus/>
+                            <span>Добавить событие</span>
+                        </button>
+                        {/* Кнопка переключения представления */}
+                        <button
+                            className="btn bg-gray-200 hover:bg-gray-300 text-gray-700 w-full sm:w-auto flex items-center justify-center gap-2"
+                            onClick={toggleViewMode}
+                        >
+                            {viewMode === 'list' ? (
+                                <>
+                                    <FaCalendarAlt/>
+                                    <span>Календарь</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FaListUl/>
+                                    <span>Список</span>
+                                </>
+                            )}
+                        </button>
                     </div>
 
-                    {/* Фильтр по дате услуги */}
-                    <div
-                        className="group hover:border-green-400 flex items-center border rounded-lg px-3 py-2 w-full md:w-auto">
-                        <input
-                            type="date"
-                            className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
-                            value={filterStartDate}
-                            onChange={(e) => setFilterStartDate(e.target.value)}
-                        />
-                        <span className="mx-2 text-gray-500 group-hover:text-green-400">-</span>
-                        <input
-                            type="date"
-                            className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
-                            value={filterEndDate}
-                            onChange={(e) => setFilterEndDate(e.target.value)}
-                        />
+                    {/* Правая часть: фильтры */}
+                    <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2">
+                        {/* Поиск */}
+                        <div
+                            className="group flex items-center border rounded-lg px-3 py-2 w-full md:w-auto hover:border-green-400">
+                            <FaSearch className="text-gray-500 mr-2 group-hover:text-green-400"/>
+                            <input
+                                type="text"
+                                placeholder="Поиск"
+                                className="bg-transparent group-hover:placeholder:text-green-400 focus:outline-none w-full"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Фильтр по услуге */}
+                        <div
+                            className="group flex items-center border rounded-lg px-3 py-2 w-full md:w-auto hover:border-green-400">
+                            <FaFilter className="text-gray-500 group-hover:text-green-400 mr-2"/>
+                            <select
+                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
+                                value={filterService}
+                                onChange={(e) => setFilterService(e.target.value)}
+                            >
+                                <option value="">Все услуги</option>
+                                {services.map((service) => (
+                                    <option key={service.id} value={service.id}>
+                                        {service.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Фильтр по дате услуги */}
+                        <div
+                            className="group hover:border-green-400 flex items-center border rounded-lg px-3 py-2 w-full md:w-auto">
+                            <input
+                                type="date"
+                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
+                                value={filterStartDate}
+                                onChange={(e) => setFilterStartDate(e.target.value)}
+                            />
+                            <span className="mx-2 text-gray-500 group-hover:text-green-400">-</span>
+                            <input
+                                type="date"
+                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
+                                value={filterEndDate}
+                                onChange={(e) => setFilterEndDate(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            ): ''}
 
             {/* Отображаем либо EventList, либо EventCalendar в зависимости от состояния viewMode */}
-            {viewMode === 'list' ? (
+            {viewMode === 'calendar' && user.username === 'Banzay' && 'Rizo' ? (
                 <EventList
                     events={events}
                     loading={loading}
@@ -234,6 +238,7 @@ const EventPage = () => {
                     filterEndDate={filterEndDate}
                 />
             ) : (
+
                 <EventCalendar
                     events={events}
                     loading={loading}

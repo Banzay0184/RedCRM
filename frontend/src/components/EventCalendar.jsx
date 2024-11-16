@@ -38,6 +38,9 @@ const EventCalendar = ({
         return map;
     }, {});
 
+    const formatCurrency = (number) =>
+        new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'UZS'}).format(number);
+
     const devicesWithDate = events.reduce((acc, event) => {
         event.devices.forEach((device) => {
             if (device.event_service_date) {
@@ -218,6 +221,16 @@ const EventCalendar = ({
                             </p>
                             <p className={selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
                                 <strong>Комментарий:</strong> {selectedDevice.comment}
+                            </p>
+                            <p>
+                                <strong>Общая сумма:</strong> {formatCurrency(selectedDevice.event.amount)}
+                            </p>
+                            <p>
+                                <strong>Аванс:</strong> {formatCurrency(selectedDevice.event.advance)}
+                            </p>
+                            <p>
+                                <strong>Остаток:</strong>{' '}
+                                {formatCurrency(selectedDevice.event.amount - selectedDevice.event.advance)}
                             </p>
                         </div>
                     </div>

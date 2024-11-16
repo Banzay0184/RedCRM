@@ -8,12 +8,14 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import {jwtDecode} from "jwt-decode"; // Исправленный импорт
 import {getUser} from "./api";
 import SettingsPage from "./pages/SettingsPage.jsx";
-import EventPage from "./pages/EventPage.jsx"; // Импорт функции для получения профиля
+import EventPage from "./pages/EventPage.jsx";
+import BaseContex from "./components/BaseContex.jsx"; // Импорт функции для получения профиля
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true); // Состояние загрузки
     const [user, setUser] = useState(null);
+    
 
     // Проверка срока действия токена
     const checkTokenExpiration = () => {
@@ -80,31 +82,33 @@ function App() {
         );
     }
 
-    // Рендер приложения
+
     return (
-        <Router>
-            <Routes>
-                {isAuthenticated ? (
-                    <Route path="/" element={<Layout onLogout={handleLogout} user={user}/>}>
-                        <Route index element={<HomePage/>}/>
-                        <Route path="/profile" element={<ProfilePage user={user}/>}/>
-                        <Route path="/clients" element={<ClientPage/>}/>
-                        <Route path="/events" element={<EventPage/>}/>
-                        <Route path="/settings" element={<SettingsPage/>}/>
-                        <Route path="*" element={<Navigate to="/" replace/>}/>
-                    </Route>
-                ) : (
-                    <>
-                        <Route
-                            path="/login"
-                            element={isAuthenticated ? <Navigate to="/" replace/> :
-                                <LoginPage setIsAuthenticated={setIsAuthenticated}/>}
-                        />
-                        <Route path="*" element={<Navigate to="/login" replace/>}/>
-                    </>
-                )}
-            </Routes>
-        </Router>
+        <BaseContex user={user} setUser={setUser} checkTokenExpiration={checkTokenExpiration}>
+            <Router>
+                <Routes>
+                    {isAuthenticated ? (
+                        <Route path="/" element={<Layout onLogout={handleLogout} user={user}/>}>
+                            {user.username === 'Banzay' && 'Rizo' ? <Route index element={<HomePage/>}/> : <Route index user={user} element={<EventPage/>}/>}
+                            <Route path="/settings" element={<SettingsPage/>}/>
+                            <Route path="/clients" element={<ClientPage/>}/>
+                            <Route path="/profile" element={<ProfilePage user={user}/>}/>
+                            <Route path="/events" user={user} element={<EventPage/>}/>
+                            <Route path="*" element={<Navigate to="/" replace/>}/>
+                        </Route>
+                    ) : (
+                        <>
+                            <Route
+                                path="/login"
+                                element={isAuthenticated ? <Navigate to="/" replace/> :
+                                    <LoginPage setIsAuthenticated={setIsAuthenticated}/>}
+                            />
+                            <Route path="*" element={<Navigate to="/login" replace/>}/>
+                        </>
+                    )}
+                </Routes>
+            </Router>
+        </BaseContex>
     );
 }
 

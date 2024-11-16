@@ -80,7 +80,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                     <div className={device.workers ? '' : 'hidden'}>
                                         {device.workers.map((workerId) => (
                                             <p key={workerId}>
-                                                 <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
+                                                <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
                                             </p>
                                         ))}
                                     </div>
@@ -122,16 +122,12 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 <div className="print-content hidden">
                     {/* Логотип и заголовок */}
                     <div className="text-center mb-8">
-                        <img src="../../public/logoRedB.png" alt="Логотип" className="mx-auto h-36 mb-4"/>
-                        <h1 className="text-2xl font-bold text-primary mb-2">Договор на оказание услуг</h1>
+                        <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[70%] mb-4"/>
                     </div>
 
                     {/* Дата и информация о клиенте */}
-                    <div className="mb-2 border-b border-gray-300 pb-4 text-gray-700">
-                        <p className="text-right text-sm mb-2">
-                            <strong>Дата:</strong> {formatDate(new Date())}
-                        </p>
-                        <div className="flex justify-between">
+                    <div className="mb-2 flex items-start p-2 justify-between border-b border-gray-300 text-gray-700">
+                        <div className="flex flex-col">
                             <p className="text-lg font-semibold">
                                 <strong>Клиент:</strong> {event.client.name}
                             </p>
@@ -139,6 +135,9 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
+                        <p className="text-right text-sm">
+                            <strong>Дата:</strong> {formatDate(new Date())}
+                        </p>
                     </div>
 
                     {/* Услуги и устройства в виде карточек */}
@@ -213,6 +212,38 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                         <p>Подпись заказчика</p>
                         <p>_________________</p>
                     </div>
+
+                    <div className="mt-4">
+                        <div className="grid grid-cols-2">
+                            <div className="p-4 border border-black border-dashed">
+                                <p className="text-sm text-gray-700">
+                                    <strong>Дата услуги:</strong> {formatDate(event.devices[0].event_service_date)}
+                                </p>
+                                <p className="text-lg font-semibold">
+                                    <strong>Клиент:</strong> {event.client.name}
+                                </p>
+                                <p className="text-lg font-semibold">
+                                    <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
+                                </p>
+                            </div>
+                            <div className="p-4 border border-black border-dashed">
+                                <h3 className="text-xl text-center font-bold">
+                                    Монтажёр
+                                </h3>
+                                <p className="text-sm text-gray-700">
+                                    <strong>Дата услуги:</strong> {formatDate(event.devices[0].event_service_date)}
+                                </p>
+                                <p className="text-lg font-semibold">
+                                    <strong>Клиент:</strong> {event.client.name}
+                                </p>
+
+                                <p className="text-lg font-sembold">
+                                    <strong>Номер компьютера:</strong>  {event.computer_numbers || '_________'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

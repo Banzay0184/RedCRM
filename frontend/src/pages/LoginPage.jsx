@@ -1,7 +1,9 @@
-import {useState} from "react";
+import {useContext, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {AiFillEye, AiFillEyeInvisible} from "react-icons/ai";
-import {login} from "../api"; // Импорт API запроса
+import {login} from "../api";
+import {GlobalContext} from "../components/BaseContex.jsx";
+
 
 // Объект для перевода ошибок
 const errorTranslations = {
@@ -21,15 +23,19 @@ function LoginPage({setIsAuthenticated}) {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const {checkTokenExpiration} = useContext(GlobalContext)
 
     const handleLogin = async (e) => {
-        e.preventDefault();
+
+         e.preventDefault();
         setIsLoading(true); // Включаем индикатор загрузки
 
         try {
             const response = await login(username, password);
             localStorage.setItem("token", response.data.access);
+            console.log(response)
             setIsAuthenticated(true);
+            checkTokenExpiration()
             navigate("/"); // Перенаправляем на главную страницу
         } catch (error) {
             const serverMessage = error.response?.data?.detail || "Unknown error";

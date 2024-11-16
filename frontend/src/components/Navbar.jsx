@@ -1,12 +1,14 @@
 import {Link} from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
-import {useEffect, useState} from "react";
-import {FaBars, FaTimes, FaUserCircle} from "react-icons/fa"; // Иконки
+import {useContext, useEffect, useState} from "react";
+import {FaBars, FaTimes, FaUserCircle} from "react-icons/fa";
+import {GlobalContext} from "./BaseContex.jsx"; // Иконки
 
-function Navbar({onLogout, user}) {
+function Navbar({onLogout}) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Для мобильного меню
     const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     const [currentTime, setCurrentTime] = useState({hours: 0, minutes: 0, seconds: 0}); // Текущее время
+    const {user} = useContext(GlobalContext)
 
     useEffect(() => {
         const handleThemeChange = () => {
@@ -62,26 +64,31 @@ function Navbar({onLogout, user}) {
                 </span>
             </div>
 
-            {/* Центр меню для больших экранов */}
-            <div className="hidden lg:flex navbar-center">
-                <ul className="menu menu-horizontal px-4 space-x-4">
-                    <li>
-                        <Link to="/clients" className="btn btn-outline btn-primary">
-                            Клиенты
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/events" className="btn btn-outline btn-primary">
-                            Мероприятия
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/settings" className="btn btn-outline btn-primary">
-                            Настройка
-                        </Link>
-                    </li>
-                </ul>
-            </div>
+            {user.username === 'Banzay' && 'Rizo' ? (
+                <div className="hidden lg:flex navbar-center">
+                    <ul className="menu menu-horizontal px-4 space-x-4">
+                        {user.username === 'Banzay' && 'Rizo' ?
+                            <li>
+                                <Link to="/clients" className="btn btn-outline btn-primary">
+                                    Клиенты
+                                </Link>
+                            </li>
+
+                            : ''}
+
+                        <li>
+                            <Link to="/events" className="btn btn-outline btn-primary">
+                                Мероприятия
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/settings" className="btn btn-outline btn-primary">
+                                Настройка
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
+            ) : ''}
 
             <div className="navbar-end flex items-center space-x-4">
                 {/* Иконка пользователя и имя */}
@@ -102,46 +109,63 @@ function Navbar({onLogout, user}) {
                 {/* Меню для маленьких экранов */}
                 <div className="lg:hidden flex items-center space-x-4">
                     <ThemeToggle onThemeChange={onThemeChange}/>
-                    <button onClick={toggleMobileMenu}>
-                        {isMobileMenuOpen ? <FaTimes className="text-2xl"/> : <FaBars className="text-2xl"/>}
-                    </button>
+                    {user.username === 'Banzay' && 'Rizo' ? (
+                        <button onClick={toggleMobileMenu}>
+                            {isMobileMenuOpen ? <FaTimes className="text-2xl"/> : <FaBars className="text-2xl"/>}
+                        </button>
+                    ) : (
+                        <button
+                            className="text-red-600 hover:bg-gray-200 px-4 py-2 w-full text-left"
+                            onClick={() => {
+                                toggleMobileMenu();
+                                handleLogout();
+                            }}
+                        >
+                            Выйти
+                        </button>
+                    )}
+
                 </div>
             </div>
 
-            {/* Мобильное меню */}
-            {isMobileMenuOpen && (
-                <div
-                    className="lg:hidden absolute top-[10%] left-0 w-full bg-base-100 shadow-lg z-10 transition-all duration-300">
-                    <ul className="flex flex-col items-center p-4 space-y-4">
-                        <li>
-                            <Link to="/clients" className="hover:text-accent" onClick={toggleMobileMenu}>
-                                Клиенты
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/events" className="hover:text-accent" onClick={toggleMobileMenu}>
-                                Мероприятия
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/settings" className="hover:text-accent " onClick={toggleMobileMenu}>
-                                Настройка
-                            </Link>
-                        </li>
-                        <li>
-                            <button
-                                className="text-red-600 hover:bg-gray-200 px-4 py-2 w-full text-left"
-                                onClick={() => {
-                                    toggleMobileMenu();
-                                    handleLogout();
-                                }}
-                            >
-                                Выйти
-                            </button>
-                        </li>
-                    </ul>
+            {user.username === 'Banzeay' && 'Rizo' ? (
+                <div>
+                    {isMobileMenuOpen && (
+                        <div
+                            className="lg:hidden absolute top-[10%] left-0 w-full bg-base-100 shadow-lg z-10 transition-all duration-300">
+                            <ul className="flex flex-col items-center p-4 space-y-4">
+                                <li>
+                                    <Link to="/clients" className="btn btn-outline btn-primary">
+                                        Клиенты
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link to="/events" className="hover:text-accent" onClick={toggleMobileMenu}>
+                                        Мероприятия
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/settings" className="hover:text-accent " onClick={toggleMobileMenu}>
+                                        Настройка
+                                    </Link>
+                                </li>
+                                <li>
+                                    <button
+                                        className="text-red-600 hover:bg-gray-200 px-4 py-2 w-full text-left"
+                                        onClick={() => {
+                                            toggleMobileMenu();
+                                            handleLogout();
+                                        }}
+                                    >
+                                        Выйти
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
-            )}
+            ) : ''}
         </div>
     );
 }

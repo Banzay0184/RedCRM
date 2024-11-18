@@ -128,7 +128,7 @@ function Navbar({onLogout}) {
                 </div>
             </div>
 
-            {user.username === 'Banzeay' && 'Rizo' ? (
+            {user.username === 'Rizo' && 'Rizo' ? (
                 <div>
                     {isMobileMenuOpen && (
                         <div

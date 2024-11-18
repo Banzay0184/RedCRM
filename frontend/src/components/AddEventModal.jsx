@@ -597,7 +597,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                     />
                                     <select value={currency} onChange={handleCurrencyChange}
                                             className="select select-primary">
-                                        <option value="USD">USD</option>
+                                        <option value="USD">$</option>
                                         <option value="UZS">UZS</option>
                                     </select>
                                 </div>
@@ -624,7 +624,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                     />
                                     <select value={currencyAdvance} onChange={handleCurrencyChangeAdvance}
                                             className="select select-primary">
-                                        <option value="USD">USD</option>
+                                        <option value="USD">$</option>
                                         <option value="UZS">UZS</option>
                                     </select>
                                 </div>

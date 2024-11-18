@@ -25,7 +25,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
         <div className="modal modal-open flex items-center justify-center z-50">
             <div className="modal-box relative max-w-3xl p-8 rounded-xl shadow-2xl border-t-8 border-primary">
                 {/* Основное содержимое модального окна */}
-                <div className="modal-content">
+                <div className="modal-content print:hidden">
                     <div
                         className="btn btn-sm btn-circle absolute left-3 top-3 bg-info text-white print:hidden"
                     >
@@ -127,7 +127,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 </div>
 
                 {/* Печатный макет с современным дизайном */}
-                <div className="print-content hidden">
+                <div className="print-content hidden print:block">
                     {/* Логотип и заголовок */}
                     <div className="text-center mb-8">
                         <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[300px] mb-4"/>
@@ -248,15 +248,14 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                     _________ Монтажёр
                                 </h3>
                                 <p className="text-sm text-gray-700">
-                                    {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
-                                    <strong>Дата услуги:</strong>
+                                    <strong>Дата услуги:</strong> {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
                                 </p>
                                 <p className="text-sm">
-                                    {event.client.name} <strong>Клиент:</strong>
+                                    <strong>Клиент:</strong> {event.client.name}
                                 </p>
 
                                 <p className="text-sm">
-                                    {event.computer_numbers || '_________'} <strong>Номер компьютера:</strong>
+                                    {event.computer_numbers || '_________'} <strong>Номер компьютера</strong>
                                 </p>
                             </div>
                         </div>

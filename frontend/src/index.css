@@ -77,7 +77,7 @@
 
 @media print {
     .modal-content {
-        display: none !important;
+        display: none;
     }
 
     .print-content {
@@ -99,7 +99,7 @@
 
     @page {
         size: A4;
-        margin: 2mm;
+        margin: 5mm;
     }
 
     body {

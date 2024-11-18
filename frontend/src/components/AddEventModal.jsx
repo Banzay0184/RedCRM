@@ -652,7 +652,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                 />
                             </div>
                             <label className="label">
-                                <span className="label-text">Номер компьютера </span>
+                                <span className="label-text">Номер компьютера: </span>
                             </label>
                             <input
                                 type="text"

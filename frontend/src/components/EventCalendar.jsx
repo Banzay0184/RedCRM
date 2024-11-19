@@ -237,6 +237,9 @@ const EventCalendar = ({
                                     selectedDevice.event.amount_money
                                 )}
                             </p>
+                            <p className={selectedDevice.event.comment ? 'text-sm sm:text-base' : 'hidden'}>
+                                <strong>Общий комментарий:</strong> {selectedDevice.event.comment}
+                            </p>
                         </div>
                     </div>
                 </div>

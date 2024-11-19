@@ -116,22 +116,28 @@ const EventList = ({
         setConfirmDelete(null);
     };
 
-    // Функция для фильтрации событий
+    const sortEvents = (events) => {
+        return events.sort((a, b) => {
+            if (a.created_at && b.created_at) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            }
+            return b.id - a.id;
+        });
+    };
+
     const filterEvents = () => {
-        return events.filter((event) => {
-            // Поиск по имени клиента или номеру телефона
+        const sortedEvents = sortEvents(events); // Сортируем события
+        return sortedEvents.filter((event) => {
             const matchesSearchQuery =
                 event.client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 event.client.phones.some((phone) =>
                     phone.phone_number.includes(searchQuery)
                 );
 
-            // Фильтр по услуге
             const matchesService =
                 filterService === '' ||
                 event.devices.some((device) => device.service.toString() === filterService);
 
-            // Фильтр по дате услуги
             const matchesDate =
                 (filterStartDate === '' && filterEndDate === '') ||
                 event.devices.some((device) => {
@@ -156,6 +162,7 @@ const EventList = ({
             return matchesSearchQuery && matchesService && matchesDate;
         });
     };
+
 
     const filteredEvents = filterEvents();
 

@@ -112,7 +112,7 @@ const EventCalendar = ({
 
             const todayClass = isToday(day)
                 ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full p-2 shadow-lg transition duration-300'
-                : 'hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 transition duration-300';
+                : 'hover:bg-gradient-to-r hover:from-indigo-100 p-2 hover:to-purple-100 transition duration-300';
 
             const notCurrentMonthClass = !isSameMonth(day, currentMonth)
                 ? 'text-gray-400'
@@ -121,27 +121,37 @@ const EventCalendar = ({
             days.push(
                 <div
                     key={formattedDate}
-                    className={`flex flex-col items-center justify-center h-[100%] lg:h-28 border rounded-lg ${notCurrentMonthClass} ${todayClass}`}
+                    className={`h-[100%] border rounded-lg ${notCurrentMonthClass} ${todayClass}`}
                 >
                     <div className="text-sm sm:text-base md:text-lg font-bold">
                         {format(day, 'd')}
                     </div>
                     {dayDevices.length > 0 && (
-                        <div className="mt-1 flex flex-wrap justify-center">
+                        <div className="flex-col flex gap-1">
                             {dayDevices.map(({device, event, serviceColor}, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => openModal(device, event)}
-                                    className="text-white rounded-full p-1 sm:p-2 shadow-lg hover:opacity-80 transition duration-300 m-1"
-                                    style={{backgroundColor: serviceColor}}
-                                >
-                                    <FaCalendarAlt className="text-base sm:text-lg md:text-sm"/>
-                                </button>
+                                // <div
+                                //     key={index}
+                                //     onClick={() => openModal(device, event)}
+                                //     className="text-white rounded-full p-1 sm:p-2 shadow-lg hover:opacity-80 transition duration-300 m-1"
+                                //     style={{backgroundColor: serviceColor}}
+                                // >
+                                // </div>
+                                <div  onClick={() => openModal(device, event)} className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer' style={{borderColor: serviceColor}} key={index}>
+                                    <p>{device.restaurant_name || ''}</p>
+                                    <p>
+                                        {device.workers && device.workers.length > 0
+                                            ? device.workers
+                                                .map((workerId) => workersMap[workerId] || `ID: ${workerId}`)
+                                                .join(' ')
+                                            : 'Нет'}
+                                    </p>
+                                </div>
                             ))}
                         </div>
                     )}
                 </div>
             );
+            console.log(dayDevices)
             day = addDays(day, 1);
         }
         return days;

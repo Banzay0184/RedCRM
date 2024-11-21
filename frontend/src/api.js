@@ -50,6 +50,8 @@ export const getWorkers = () => api.get("/workers/");
 export const createWorker = (data) => api.post("/workers/", data);
 export const deleteWorker = (id)=> api.delete(`/workers/${id}/`);
 export const updateWorker = (id, data) => api.put(`/workers/${id}/`, data);
+export const updateWorkersOrder = (data) => api.post("/workers/update_order/", data);
+
 
 export const getServices = () => api.get("/services/");
 export const createService = (data) => api.post("/services/", data);

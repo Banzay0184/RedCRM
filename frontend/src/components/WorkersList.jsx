@@ -1,5 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {createWorker, deleteWorker, getWorkers, updateWorker} from '../api';
+import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
+import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import {SortableItem} from './SortableItem'; // Создадим этот компонент ниже
+import {createWorker, deleteWorker, getWorkers, updateWorker, updateWorkersOrder} from '../api';
 import {toast} from 'react-hot-toast';
 
 function WorkersList() {
@@ -16,7 +19,9 @@ function WorkersList() {
     const fetchWorkers = async () => {
         try {
             const response = await getWorkers();
-            setWorkers(response.data);
+            // Сортируем работников по полю 'order'
+            const sortedWorkers = response.data.sort((a, b) => a.order - b.order);
+            setWorkers(sortedWorkers);
         } catch (error) {
             toast.error('Ошибка загрузки списка работников');
         }
@@ -31,12 +36,19 @@ function WorkersList() {
         }
 
         try {
-            const workerData = { name: currentName, phone_number: currentPhoneNumber };
+            const workerData = {name: currentName, phone_number: currentPhoneNumber};
+
             if (editingWorkerId) {
                 await updateWorker(editingWorkerId, workerData);
-                setWorkers((prev) => prev.map((w) => (w.id === editingWorkerId ? { ...w, ...workerData } : w)));
+                setWorkers((prev) =>
+                    prev.map((w) => (w.id === editingWorkerId ? {...w, ...workerData} : w))
+                );
                 toast.success('Работник обновлен');
             } else {
+                // Определяем максимальный order
+                const maxOrder = workers.length > 0 ? Math.max(...workers.map(w => w.order)) : 0;
+                workerData.order = maxOrder + 1;
+
                 const response = await createWorker(workerData);
                 setWorkers([...workers, response.data]);
                 toast.success('Работник добавлен');
@@ -71,6 +83,34 @@ function WorkersList() {
         setIsModalOpen(false);
     };
 
+    const sensors = useSensors(
+        useSensor(PointerSensor)
+    );
+
+    const handleDragEnd = async (event) => {
+        const {active, over} = event;
+
+        if (active.id !== over.id) {
+            const oldIndex = workers.findIndex(worker => worker.id === active.id);
+            const newIndex = workers.findIndex(worker => worker.id === over.id);
+
+            const newWorkers = arrayMove(workers, oldIndex, newIndex);
+
+            setWorkers(newWorkers);
+
+            // Обновляем порядок на бэкенде
+            try {
+                await updateWorkersOrder(newWorkers.map((worker, index) => ({
+                    id: worker.id,
+                    order: index
+                })));
+                toast.success('Порядок работников обновлен');
+            } catch (error) {
+                toast.error('Ошибка обновления порядка работников');
+            }
+        }
+    };
+
     return (
         <div className="p-2 flex flex-col items-center">
             <h2 className="text-2xl font-semibold mb-3">Управление Работниками</h2>
@@ -85,33 +125,28 @@ function WorkersList() {
                 Добавить Работника
             </button>
 
-            <div className="grid grid-cols-1 gap-6 w-full">
-                {workers.map((worker) => (
-                    <div
-                        key={worker.id}
-                        className="bg-white p-2 rounded-xl shadow-lg flex items-center justify-between transition-transform duration-200 hover:scale-105"
-                    >
-                        <div className="flex flex-col">
-                            <span className="text-lg font-semibold text-gray-800">{worker.name}</span>
-                            <span className="text-gray-600">{worker.phone_number}</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <button
-                                className="text-blue-500 font-semibold hover:text-blue-700 transition duration-150"
-                                onClick={() => handleEditWorker(worker)}
-                            >
-                                ✏️
-                            </button>
-                            <button
-                                className="text-red-500 font-semibold hover:text-red-700 transition duration-150"
-                                onClick={() => handleDeleteWorker(worker.id)}
-                            >
-                                🗑️
-                            </button>
-                        </div>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={workers.map(worker => worker.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="grid grid-cols-1 gap-6 w-full">
+                        {workers.map((worker) => (
+                            <SortableItem
+                                key={worker.id}
+                                id={worker.id}
+                                worker={worker}
+                                onEdit={() => handleEditWorker(worker)}
+                                onDelete={() => handleDeleteWorker(worker.id)}
+                            />
+                        ))}
                     </div>
-                ))}
-            </div>
+                </SortableContext>
+            </DndContext>
 
             {isModalOpen && (
                 <div

@@ -11,6 +11,7 @@ from .views import (
     UserDetailView,
     ServiceDetailView,
     WorkerDetailView,
+    update_workers_order,
 )
 
 urlpatterns = [
@@ -25,6 +26,7 @@ urlpatterns = [
     path("clients/<int:pk>/", ClientAPIView.as_view(), name="client-detail"),
     path("workers/", WorkerAPIView.as_view(), name="worker-list"),
     path("workers/<int:pk>/", WorkerDetailView.as_view(), name="worker-detail"),
+    path('workers/update_order/', update_workers_order, name='update_workers_order'),
     path("services/", ServiceAPIView.as_view(), name="service-list"),
     path("service/<int:pk>/", ServiceDetailView.as_view(), name="service-detail"),
     path("events/", EventAPIView.as_view(), name="event-list"),

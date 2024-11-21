@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -85,7 +86,8 @@ class ClientAPIView(APIView):
 
 
 class WorkerAPIView(APIView):
-    """API для создания и получения работников."""
+    queryset = Workers.objects.all().order_by('order')
+    serializer_class = WorkersSerializer
 
     def get(self, request):
         workers = Workers.objects.all()
@@ -100,6 +102,19 @@ class WorkerAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+@api_view(['POST'])
+def update_workers_order(request):
+    workers_order = request.data  # Ожидаем список словарей с 'id' и 'order'
+
+    try:
+        for worker_data in workers_order:
+            worker = Workers.objects.get(id=worker_data['id'])
+            worker.order = worker_data['order']
+            worker.save()
+        return Response({'message': 'Порядок работников обновлен'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class WorkerDetailView(UpdateAPIView):
     serializer_class = WorkersSerializer

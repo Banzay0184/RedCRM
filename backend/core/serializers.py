@@ -66,7 +66,7 @@ class ClientSerializer(serializers.ModelSerializer):
 class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workers
-        fields = ["id", "name", "phone_number"]
+        fields = ["id", "name", "phone_number",'order']
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)

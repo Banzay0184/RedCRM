@@ -56,6 +56,7 @@ class Workers(PhoneNumber, BaseModel):
     """Модель сотрудников."""
 
     name = models.CharField(max_length=255)
+    order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name

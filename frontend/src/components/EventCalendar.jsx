@@ -137,7 +137,7 @@ const EventCalendar = ({
                                 // >
                                 // </div>
                                 <div  onClick={() => openModal(device, event)} className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer' style={{borderColor: serviceColor}} key={index}>
-                                    <p>{device.restaurant_name || ''}</p>
+                                    <p className='text-lg text-blue-300' >{device.restaurant_name || ''}</p>
                                     <p>
                                         {device.workers && device.workers.length > 0
                                             ? device.workers

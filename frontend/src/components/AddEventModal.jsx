@@ -25,6 +25,17 @@ const AddEventModal = ({onClose, onSave}) => {
     const [loading, setLoading] = useState(true);
     const isSaving = useRef(false);
 
+    const [workerSelectionServiceId, setWorkerSelectionServiceId] = useState(null);
+
+    const openWorkerSelection = (serviceId) => {
+        setWorkerSelectionServiceId(serviceId);
+    };
+
+    const closeWorkerSelection = () => {
+        setWorkerSelectionServiceId(null);
+    };
+
+
     // Получение данных при монтировании компонента
     useEffect(() => {
         let isMounted = true;
@@ -39,7 +50,8 @@ const AddEventModal = ({onClose, onSave}) => {
 
                 if (isMounted) {
                     setClients(clientsData.data);
-                    setWorkers(workersData.data);
+                    const sortedWorkers = workersData.data.sort((a, b) => a.order - b.order);
+                    setWorkers(sortedWorkers);
                     setServices(servicesData.data);
                     setLoading(false);
                 }
@@ -546,33 +558,67 @@ const AddEventModal = ({onClose, onSave}) => {
                                             }
                                         />
 
-                                        {/* Выбор работников для конкретного сервиса */}
                                         {service.is_active_camera && (
                                             <div className="form-control">
-                                                <div className="dropdown">
-                                                    <label tabIndex={0} className="btn btn-outline btn-primary w-full">
-                                                        Выберите работников
-                                                    </label>
-                                                    <ul tabIndex={0}
-                                                        className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
-                                                        {workers.map((worker) => (
-                                                            <li key={worker.id} className="flex gap-2 items-center">
-                                                                <label
-                                                                    className="cursor-pointer flex items-center gap-2">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        className="checkbox checkbox-primary"
-                                                                        checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}
-                                                                        onChange={() => handleWorkerChange(service.id, worker.id)}
-                                                                    />
-                                                                    <span>{worker.name}</span>
-                                                                </label>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
+                                                {/* Display selected workers */}
+                                                {/* Button to open worker selection */}
+                                                <button
+                                                    className="btn btn-outline btn-primary mt-2"
+                                                    onClick={() => openWorkerSelection(service.id)}
+                                                >
+                                                    Работники
+                                                    ({selectedServices.find(s => s.service === service.id)?.workers.length || 0})
+                                                </button>
                                             </div>
                                         )}
+
+                                        {/*<div className="flex flex-col gap-2">*/}
+                                        {/*    {selectedServices.find(s => s.service === service.id)?.workers.map((workerId) => {*/}
+                                        {/*        const worker = workers.find(w => w.id === workerId);*/}
+                                        {/*        return (*/}
+                                        {/*            <div key={workerId}*/}
+                                        {/*                 className="flex items-center text-w justify-between">*/}
+                                        {/*                <span>{worker?.name || 'Неизвестный работник'}</span>*/}
+                                        {/*                <button*/}
+                                        {/*                    className="btn btn-xs btn-error ml-1"*/}
+                                        {/*                    onClick={() => handleWorkerChange(service.id, workerId)}*/}
+                                        {/*                >*/}
+                                        {/*                    Удалить*/}
+                                        {/*                </button>*/}
+                                        {/*            </div>*/}
+                                        {/*        );*/}
+                                        {/*    })}*/}
+                                        {/*</div>*/}
+
+
+                                        {/* Выбор работников для конкретного сервиса */}
+                                        {/*{service.is_active_camera && (*/}
+                                        {/*    <div className="form-control">*/}
+                                        {/*        <div className="dropdown">*/}
+                                        {/*            <label tabIndex={0} className="btn btn-outline btn-primary w-full">*/}
+                                        {/*                Выберите работников*/}
+                                        {/*                ({selectedServices.find(s => s.service === service.id)?.workers.length || 0})*/}
+                                        {/*            </label>*/}
+                                        {/*            <ul tabIndex={0}*/}
+                                        {/*                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">*/}
+                                        {/*                {workers.map((worker) => (*/}
+                                        {/*                    <li key={worker.id} className="flex gap-2 items-center">*/}
+                                        {/*                        <label*/}
+                                        {/*                            className="cursor-pointer flex items-center gap-2">*/}
+                                        {/*                            <input*/}
+                                        {/*                                type="checkbox"*/}
+                                        {/*                                className="checkbox checkbox-primary"*/}
+                                        {/*                                checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}*/}
+                                        {/*                                onChange={() => handleWorkerChange(service.id, worker.id)}*/}
+                                        {/*                            />*/}
+                                        {/*                            <span>{worker.name}</span>*/}
+                                        {/*                        </label>*/}
+                                        {/*                    </li>*/}
+                                        {/*                ))}*/}
+                                        {/*            </ul>*/}
+                                        {/*        </div>*/}
+                                        {/*    </div>*/}
+                                        {/*)}*/}
                                     </div>
                                 )}
                             </div>
@@ -690,6 +736,34 @@ const AddEventModal = ({onClose, onSave}) => {
                     },
                 }}
             />
+            {workerSelectionServiceId !== null && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Выберите работников</h3>
+                        <ul className="menu">
+                            {workers.map((worker) => (
+                                <li key={worker.id}>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-primary"
+                                            checked={
+                                                selectedServices.find(s => s.service === workerSelectionServiceId)?.workers.includes(worker.id) || false
+                                            }
+                                            onChange={() => handleWorkerChange(workerSelectionServiceId, worker.id)}
+                                        />
+                                        <span>{worker.name}</span>
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="modal-action">
+                            <button className="btn" onClick={closeWorkerSelection}>Готово
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

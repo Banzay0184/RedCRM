@@ -129,22 +129,21 @@ const EventCalendar = ({
                     {dayDevices.length > 0 && (
                         <div className="flex-col flex gap-1">
                             {dayDevices.map(({device, event, serviceColor}, index) => (
-                                // <div
-                                //     key={index}
-                                //     onClick={() => openModal(device, event)}
-                                //     className="text-white rounded-full p-1 sm:p-2 shadow-lg hover:opacity-80 transition duration-300 m-1"
-                                //     style={{backgroundColor: serviceColor}}
-                                // >
-                                // </div>
-                                <div  onClick={() => openModal(device, event)} className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer' style={{borderColor: serviceColor}} key={index}>
-                                    <p className='text-lg text-blue-300' >{device.restaurant_name || ''}</p>
-                                    <p>
-                                        {device.workers && device.workers.length > 0
-                                            ? device.workers
-                                                .map((workerId) => workersMap[workerId] || `ID: ${workerId}`)
-                                                .join(' ')
-                                            : 'Нет'}
-                                    </p>
+                                <div onClick={() => openModal(device, event)}
+                                     className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer'
+                                     style={{borderColor: serviceColor}} key={index}>
+                                    <p className='text-sm text-blue-300'>{device.restaurant_name || ''}</p>
+                                    <div className="flex ">
+                                        <p className='text-[10px]'>
+                                            {device.workers && device.workers.length > 0
+                                                ? device.workers.map((workerId) => (
+                                                    <p>
+                                                        {workersMap[workerId] || `ID: ${workerId}`}
+                                                    </p>
+                                                )) : ''
+                                            }
+                                        </p>
+                                    </div>
                                 </div>
                             ))}
                         </div>

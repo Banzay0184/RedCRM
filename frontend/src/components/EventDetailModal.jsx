@@ -127,7 +127,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 </div>
 
                 {/* Печатный макет с современным дизайном */}
-                <div className="print-content hidden print:block">
+                <div className="print-content hidden">
                     {/* Логотип и заголовок */}
                     <div className="text-center mb-8">
                         <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[300px] mb-4"/>

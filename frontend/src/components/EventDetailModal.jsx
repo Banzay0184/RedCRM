@@ -1,5 +1,5 @@
 import React from 'react';
-import {format} from 'date-fns';
+import {format, isValid, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
 
 const EventDetailModal = ({event, services, servicesColor, workersMap, onClose}) => {
@@ -13,13 +13,31 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
 
     const formatDate = (dateString) => {
         if (!dateString) return 'Дата не указана';
-        const date = new Date(dateString);
+        const date = parseISO(dateString);
+        if (!isValid(date)) return 'Дата не указана';
         return format(date, 'dd MMMM yyyy', {locale: ru});
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return 'Дата не указана';
+        const date = parseISO(dateString);
+        if (!isValid(date)) return 'Дата не указана';
+        return format(date, 'dd.MM.yyyy HH:mm', {locale: ru});
+    };
+
+    const formatDateShort = (dateString) => {
+        if (!dateString) return 'Дата не указана';
+        const date = parseISO(dateString);
+        if (!isValid(date)) return 'Дата не указана';
+        return format(date, 'dd.MM.yyyy', {locale: ru});
     };
 
     const handlePrint = () => {
         window.print();
     };
+
+    // Текущая дата для печатной версии
+    const currentDate = format(new Date(), 'dd MMMM yyyy', {locale: ru});
 
     return (
         <div className="modal modal-open flex items-center justify-center z-50">
@@ -70,51 +88,48 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                             <h4 className="text-xl font-semibold">Устройства и услуги</h4>
                             {event.devices.map((device) => (
                                 <div key={device.id} className="p-4 mt-4 rounded-lg border border-indigo-200">
-                                    <p style={
-                                        {
-                                            color: servicesColor[device.service]
-                                        }
-                                    }><strong>Услуга:</strong> {services[device.service] || 'Услуга не найдена'}</p>
-                                    <p className={device.restaurant_name ? '' : 'hidden'}>
-                                        <strong>Ресторан:</strong> {device.restaurant_name}</p>
-                                    <p className={device.camera_count ? '' : 'hidden'}><strong>Количество
-                                        камер:</strong> {device.camera_count}</p>
-                                    <p><strong>Дата услуги:</strong> {device.event_service_date
-                                        ? format(new Date(device.event_service_date), 'dd.MM.yyyy', {locale: ru})
-                                        : 'Дата не указана'}</p>
-                                    <p className={device.comment ? '' : 'hidden'}>
-                                        <strong>Комментарий:</strong> {device.comment}</p>
+                                    <p style={{color: servicesColor[device.service]}}>
+                                        <strong>Услуга:</strong> {services[device.service] || 'Услуга не найдена'}
+                                    </p>
+                                    {device.restaurant_name && (
+                                        <p><strong>Ресторан:</strong> {device.restaurant_name}</p>
+                                    )}
+                                    {device.camera_count && (
+                                        <p><strong>Количество камер:</strong> {device.camera_count}</p>
+                                    )}
+                                    <p>
+                                        <strong>Дата услуги:</strong>{' '}
+                                        {device.event_service_date ? formatDateShort(device.event_service_date) : 'Дата не указана'}
+                                    </p>
+                                    {device.comment && (
+                                        <p><strong>Комментарий:</strong> {device.comment}</p>
+                                    )}
 
-                                    <div className={device.workers ? '' : 'hidden'}>
-                                        {device.workers.map((workerId) => (
-                                            <p key={workerId}>
-                                                <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
-                                            </p>
-                                        ))}
-                                    </div>
+                                    {device.workers && device.workers.map((workerId) => (
+                                        <p key={workerId}>
+                                            <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
+                                        </p>
+                                    ))}
                                 </div>
                             ))}
                         </section>
 
-                        <section className={event.comment ? 'border-b pb-4' : 'hidden'}>
-                            <h4 className="text-xl font-semibold">Дополнительная информация</h4>
-                            <div className="ml-4 space-y-1">
-                                <p><strong>Комментарий:</strong> {event.comment}</p>
-                            </div>
-                        </section>
+                        {event.comment && (
+                            <section className="border-b pb-4">
+                                <h4 className="text-xl font-semibold">Дополнительная информация</h4>
+                                <div className="ml-4 space-y-1">
+                                    <p><strong>Комментарий:</strong> {event.comment}</p>
+                                </div>
+                            </section>
+                        )}
 
                         <section className="pb-4">
                             <h4 className="text-xl font-semibold">Временные метки</h4>
                             <div className="ml-4 space-y-1">
-                                <p><strong>Дата
-                                    создания:</strong> {format(new Date(event.created_at), 'dd.MM.yyyy HH:mm', {locale: ru})}
-                                </p>
-                                <p>
-                                    <strong>Обновлено:</strong> {format(new Date(event.updated_at), 'dd.MM.yyyy HH:mm', {locale: ru})}
-                                </p>
+                                <p><strong>Дата создания:</strong> {formatDateTime(event.created_at)}</p>
+                                <p><strong>Обновлено:</strong> {formatDateTime(event.updated_at)}</p>
                             </div>
                         </section>
-
                     </div>
 
                     {/* Кнопка печати */}
@@ -126,7 +141,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </button>
                 </div>
 
-                {/* Печатный макет с современным дизайном */}
+                {/* Печатный макет */}
                 <div className="print-content hidden">
                     {/* Логотип и заголовок */}
                     <div className="text-center mb-8">
@@ -143,9 +158,9 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
-                        <div className="">
+                        <div>
                             <p className="text-right text-sm">
-                                <strong>Дата:</strong> {formatDate(new Date())}
+                                <strong>Дата:</strong> {currentDate}
                             </p>
                             <p className="text-sm">
                                 <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
@@ -153,7 +168,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                         </div>
                     </div>
 
-                    {/* Услуги и устройства в виде карточек */}
+                    {/* Услуги и устройства */}
                     <div className="mb-2">
                         <h2 className="text-2xl font-semibold mb-2 text-primary">Список услуг</h2>
                         <div className="grid grid-cols-3 gap-2">
@@ -166,7 +181,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                         {services[device.service] || 'Услуга не найдена'}
                                     </h3>
                                     <p className="text-sm text-gray-700">
-                                        <strong>Дата услуги:</strong> {formatDate(device.event_service_date)}
+                                        <strong>Дата услуги:</strong> {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
                                     </p>
                                     {device.restaurant_name && (
                                         <p className="text-sm text-gray-700">
@@ -191,7 +206,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     {/* Финансовая информация */}
                     <div className="mb-1">
                         <h2 className="text-xl font-semibold mb-1 text-primary">Финансовая информация</h2>
-                        <div className="flex text-gray-800">
+                        <div className="flex text-gray-800 space-x-2">
                             <div className="bg-gray-100 p-4 rounded-lg">
                                 <p>
                                     <strong>Общая сумма:</strong> {formatCurrency(event.amount, event.amount_money)}
@@ -214,8 +229,8 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     <div className="mb-1">
                         <h2 className="text-xl font-semibold mb-2 text-primary">Условия договора</h2>
                         <p className="text-justify text-gray-700 leading-relaxed">
-                            Просим вас ознакомиться с описанием предоставляемых услуг, представленным выше. Обращаем
-                            ваше внимание, что полная предоплата (100%) должна быть произведена до дня свадьбы.
+                            Просим вас ознакомиться с описанием предоставляемых услуг, представленным выше.
+                            Обращаем ваше внимание, что полная предоплата (100%) должна быть произведена до дня свадьбы.
                             Спасибо, что выбрали нас!
                         </p>
                     </div>
@@ -227,19 +242,19 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     <div className="mt-4">
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-2 gap-2">
                             <div className="p-4 border border-black border-dashed">
                                 <p className="text-sm text-gray-700">
-                                    <strong>Дата
-                                        услуги:</strong> {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
+                                    <strong>Дата услуги:</strong>
+                                    {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
                                 </p>
                                 <p className="text-sm">
                                     <strong>Клиент:</strong> {event.client.name}
                                 </p>
-                                <p className="text-sm ">
+                                <p className="text-sm">
                                     <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                                 </p>
-                                <p className="text-sm ">
+                                <p className="text-sm">
                                     <strong>Долг:</strong> ______________
                                 </p>
                             </div>
@@ -248,12 +263,12 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                     _________ Монтажёр
                                 </h3>
                                 <p className="text-sm text-gray-700">
-                                    <strong>Дата услуги:</strong> {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
+                                    <strong>Дата услуги:</strong>
+                                    {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
                                 </p>
                                 <p className="text-sm">
                                     <strong>Клиент:</strong> {event.client.name}
                                 </p>
-
                                 <p className="text-sm">
                                     {event.computer_numbers || '_________'} <strong>Номер компьютера</strong>
                                 </p>

@@ -3,39 +3,37 @@ import React, {useEffect, useState} from 'react';
 import {deleteEvent, getServices, getWorkers} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
-import {format, isToday, isTomorrow, isWithinInterval, parseISO} from 'date-fns';
+import {format, isToday, isTomorrow, isValid, isWithinInterval, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
 import {FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
 
 const EventList = ({
-                       events,
-                       loading,
-                       onDeleteEvent,
-                       onUpdateEvent,
-                       setErrorMessage,
-                       searchQuery,
-                       filterService,
-                       filterStartDate,
-                       filterEndDate,
-                   }) => {
+    events,
+    loading,
+    onDeleteEvent,
+    onUpdateEvent,
+    setErrorMessage,
+    searchQuery,
+    filterService,
+    filterStartDate,
+    filterEndDate,
+}) => {
     const [services, setServices] = useState({});
     const [servicesColor, setServicesColor] = useState({});
 
-    const [worker, setWorker] = useState({}); // [worker]
+    const [worker, setWorker] = useState({});
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
 
-
     useEffect(() => {
         fetchServices();
-        fetchWorker()
+        fetchWorker();
     }, []);
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Дата не указана';
-        const date = new Date(dateString);
-        return format(date, 'dd MMMM yyyy', {locale: ru});
+    const formatDate = (dateValue, dateFormat = 'dd MMMM yyyy', localeObj = ru) => {
+        if (!dateValue || !isValid(dateValue)) return 'Дата не указана';
+        return format(dateValue, dateFormat, {locale: localeObj});
     };
 
     const fetchServices = async () => {
@@ -46,22 +44,19 @@ const EventList = ({
             const servicesMapColor = {};
             servicesData.forEach((service) => {
                 servicesMap[service.id] = service.name;
-
             });
 
             servicesData.forEach((service) => {
                 servicesMapColor[service.id] = service.color;
-
             });
 
-            setServicesColor(servicesMapColor)
+            setServicesColor(servicesMapColor);
             setServices(servicesMap);
         } catch (err) {
             console.error('Ошибка при загрузке услуг:', err);
             setErrorMessage('Ошибка при загрузке услуг');
         }
     };
-
 
     const fetchWorker = async () => {
         try {
@@ -126,7 +121,7 @@ const EventList = ({
     };
 
     const filterEvents = () => {
-        const sortedEvents = sortEvents(events); // Сортируем события
+        const sortedEvents = sortEvents(events);
         return sortedEvents.filter((event) => {
             const matchesSearchQuery =
                 event.client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -146,6 +141,8 @@ const EventList = ({
                     const startDate = filterStartDate ? parseISO(filterStartDate) : null;
                     const endDate = filterEndDate ? parseISO(filterEndDate) : null;
 
+                    if (!isValid(serviceDate)) return false;
+
                     if (startDate && endDate) {
                         return isWithinInterval(serviceDate, {
                             start: startDate,
@@ -163,7 +160,6 @@ const EventList = ({
         });
     };
 
-
     const filteredEvents = filterEvents();
 
     if (loading)
@@ -179,100 +175,101 @@ const EventList = ({
                 <div className="overflow-x-auto">
                     <table className="table w-full">
                         <thead>
-                        <tr className="bg-primary text-white text-primary-content">
-                            <th>Клиент</th>
-                            <th>Телефон</th>
-                            <th>Ресторан</th>
-                            <th>Услуга и дата</th>
-                            <th className="text-center">Действия</th>
-                        </tr>
+                            <tr className="bg-primary text-white text-primary-content">
+                                <th>Клиент</th>
+                                <th>Телефон</th>
+                                <th>Ресторан</th>
+                                <th>Услуга и дата</th>
+                                <th className="text-center">Действия</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {filteredEvents.map((event, index) => (
-                            <tr
-                                key={event.id}
-                                className={index % 2 === 0 ? 'bg-base-200' : ''}
-                            >
-                                <td className="font-semibold">{event.client.name}</td>
-                                <td>
-                                    {event.client.phones.map((phone) => (
-                                        <div key={phone.id}>{phone.phone_number}</div>
-                                    ))}
-                                </td>
-                                <td>{event.restaurant_name}</td>
-                                <td>
-                                    {event.devices.map((device) => {
-                                        let dateClass = '';
-                                        let serviceDateText = 'Дата не указана';
-                                        if (device.event_service_date) {
-                                            const serviceDate = parseISO(
-                                                device.event_service_date
-                                            );
-                                            serviceDateText = formatDate(
-                                                serviceDate,
-                                                'dd.MM.yyyy',
-                                                {locale: ru}
-                                            );
+                            {filteredEvents.map((event, index) => (
+                                <tr
+                                    key={event.id}
+                                    className={index % 2 === 0 ? 'bg-base-200' : ''}
+                                >
+                                    <td className="font-semibold">{event.client.name}</td>
+                                    <td>
+                                        {event.client.phones.map((phone) => (
+                                            <div key={phone.id}>{phone.phone_number}</div>
+                                        ))}
+                                    </td>
+                                    <td>{event.restaurant_name}</td>
+                                    <td>
+                                        {event.devices.map((device) => {
+                                            let dateClass = '';
+                                            let serviceDateText = 'Дата не указана';
+                                            if (device.event_service_date) {
+                                                const serviceDate = parseISO(device.event_service_date);
 
-                                            if (isToday(serviceDate)) {
-                                                dateClass = 'text-success font-bold';
-                                            } else if (isTomorrow(serviceDate)) {
-                                                dateClass = 'text-warning font-bold';
-                                            }
-                                        }
+                                                if (isValid(serviceDate)) {
+                                                    serviceDateText = formatDate(serviceDate, 'dd.MM.yyyy', ru);
 
-                                        return (
-                                            <div
-                                                key={device.id}
-                                                className="flex items-center space-x-2 my-1"
-                                            >
-                                                <span
-                                                    className={device.restaurant_name ? 'badge text-white badge-primary' : 'hidden'}>
-                                                        {device.restaurant_name ||
-                                                            'Услуга не найдена'}
-                                                    </span>
-                                                <span style={
-                                                    {
-                                                        color: servicesColor[device.service]
+                                                    if (isToday(serviceDate)) {
+                                                        dateClass = 'text-success font-bold';
+                                                    } else if (isTomorrow(serviceDate)) {
+                                                        dateClass = 'text-warning font-bold';
                                                     }
-                                                } className='badge'>
-                                                        {services[device.service] ||
-                                                            'Услуга не найдена'}
-                                                    </span>
-                                                <span
-                                                    className={`text-sm ${dateClass}`}
+                                                } else {
+                                                    serviceDateText = 'Неверная дата';
+                                                }
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={device.id}
+                                                    className="flex items-center space-x-2 my-1"
                                                 >
+                                                    <span
+                                                        className={
+                                                            device.restaurant_name
+                                                                ? 'badge text-white badge-primary'
+                                                                : 'hidden'
+                                                        }
+                                                    >
+                                                        {device.restaurant_name || 'Услуга не найдена'}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            color: servicesColor[device.service],
+                                                        }}
+                                                        className="badge"
+                                                    >
+                                                        {services[device.service] || 'Услуга не найдена'}
+                                                    </span>
+                                                    <span className={`text-sm ${dateClass}`}>
                                                         {serviceDateText}
                                                     </span>
-                                            </div>
-                                        );
-                                    })}
-                                </td>
-                                <td className="flex justify-center space-x-2">
-                                    <button
-                                        className="btn btn-sm btn-info"
-                                        onClick={() => openModal(event)}
-                                        title="Просмотреть детали"
-                                    >
-                                        <FaInfoCircle className='text-white'/>
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-warning"
-                                        onClick={() => openEditModal(event)}
-                                        title="Редактировать"
-                                    >
-                                        <FaEdit className='text-white'/>
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-error"
-                                        onClick={() => handleDelete(event)}
-                                        title="Удалить"
-                                    >
-                                        <FaTrash className='text-white'/>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                                </div>
+                                            );
+                                        })}
+                                    </td>
+                                    <td className="flex justify-center space-x-2">
+                                        <button
+                                            className="btn btn-sm btn-info"
+                                            onClick={() => openModal(event)}
+                                            title="Просмотреть детали"
+                                        >
+                                            <FaInfoCircle className="text-white" />
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-warning"
+                                            onClick={() => openEditModal(event)}
+                                            title="Редактировать"
+                                        >
+                                            <FaEdit className="text-white" />
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-error"
+                                            onClick={() => handleDelete(event)}
+                                            title="Удалить"
+                                        >
+                                            <FaTrash className="text-white" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

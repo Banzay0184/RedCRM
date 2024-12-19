@@ -151,23 +151,34 @@ const EventCalendar = ({
                         {format(day, 'd')}
                     </div>
                     {dayDevices.length > 0 && (
-                        <div className="flex-col flex gap-1">
+                        <div className="flex-col flex gap-2">
                             {dayDevices.map(({device, event, serviceColor}, index) => (
-                                <div onClick={() => openModal(device, event)}
-                                     className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer'
-                                     style={{borderColor: serviceColor}} key={index}>
-                                    <p className='text-sm text-blue-300'>{device.restaurant_name || ''}</p>
-                                    <div className="flex ">
-                                        <p className='text-[10px]'>
-                                            {device.workers && device.workers.length > 0
-                                                ? device.workers.map((workerId) => (
-                                                    <span key={workerId}>
+                                <div key={index} className='flex gap-2 items-start' >
+                                    <div onClick={() => openModal(device, event)}
+                                         className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer'
+                                         style={{borderColor: serviceColor}} key={index}>
+                                        <p className='text-sm text-blue-300'>{device.restaurant_name || ''}</p>
+                                        <div className="flex ">
+                                            <p className='text-[10px]'>
+                                                {device.workers && device.workers.length > 0
+                                                    ? device.workers.map((workerId) => (
+                                                        <span key={workerId}>
                                                         {workersMap[workerId] || `ID: ${workerId}`}<br/>
                                                     </span>
-                                                )) : ''
-                                            }
-                                        </p>
+                                                    )) : ''
+                                                }
+                                            </p>
+                                        </div>
                                     </div>
+                                    {user.username === 'Rizo' && 'Rizo' ? (
+                                        <button
+                                            className=""
+                                            onClick={() => openEditModal(event)}
+                                            title="Редактировать"
+                                        >
+                                            <FaEdit className="text-white"/>
+                                        </button>
+                                    ) : ''}
                                 </div>
                             ))}
                         </div>
@@ -280,16 +291,6 @@ const EventCalendar = ({
                                     <strong>Общий комментарий:</strong> {selectedDevice.event.comment}
                                 </p>
                             )}
-
-                            {user.username === 'Rizo' && 'Rizo' ? (
-                                <button
-                                    className="btn btn-sm btn-warning"
-                                    onClick={() => openEditModal(selectedDevice.event)}
-                                    title="Редактировать"
-                                >
-                                    <FaEdit className="text-white"/>
-                                </button>
-                            ) : ''}
                         </div>
                     </div>
                 </div>

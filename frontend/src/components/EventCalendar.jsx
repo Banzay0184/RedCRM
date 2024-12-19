@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {
     addDays,
     addMonths,
@@ -12,12 +12,16 @@ import {
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaArrowLeft, FaArrowRight, FaCalendarAlt} from 'react-icons/fa';
+import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit} from 'react-icons/fa';
 import {getWorkers} from "../api.js";
+import EditEventModal from "./EditEventModal.jsx";
+import {GlobalContext} from "./BaseContex.jsx";
 
 const EventCalendar = ({
                            events,
                            services,
+                           onUpdateEvent,
+                           setErrorMessage,
                            searchQuery,
                            filterService,
                            filterStartDate,
@@ -28,15 +32,22 @@ const EventCalendar = ({
     const [isModalOpen, setModalOpen] = useState(false);
     const [workersList, setWorkersList] = useState([]);
 
+    const [editEvent, setEditEvent] = useState(null);
+
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, {weekStartsOn: 1});
     const endDate = endOfWeek(monthEnd, {weekStartsOn: 1});
 
-    const servicesMap = services.reduce((map, service) => {
-        map[service.id] = service;
-        return map;
-    }, {});
+    const {user} = useContext(GlobalContext)
+
+
+    const servicesMap = useMemo(() => {
+        return services.reduce((map, service) => {
+            map[service.id] = service;
+            return map;
+        }, {});
+    }, [services]);
 
     const formatCurrency = (number, isUSD) =>
         new Intl.NumberFormat('ru-RU', {
@@ -46,25 +57,27 @@ const EventCalendar = ({
             maximumFractionDigits: isUSD ? 2 : 0,
         }).format(number);
 
-    const devicesWithDate = events.reduce((acc, event) => {
-        event.devices.forEach((device) => {
-            if (device.event_service_date) {
-                let deviceDate = parse(device.event_service_date, 'yyyy-MM-dd', new Date());
-                if (isNaN(deviceDate)) {
-                    deviceDate = parse(device.event_service_date, 'dd.MM.yyyy', new Date());
+    const devicesWithDate = useMemo(() => {
+        return events.reduce((acc, event) => {
+            event.devices.forEach((device) => {
+                if (device.event_service_date) {
+                    let deviceDate = parse(device.event_service_date, 'yyyy-MM-dd', new Date());
+                    if (isNaN(deviceDate)) {
+                        deviceDate = parse(device.event_service_date, 'dd.MM.yyyy', new Date());
+                    }
+                    if (!isNaN(deviceDate)) {
+                        acc.push({
+                            device,
+                            event,
+                            date: format(deviceDate, 'yyyy-MM-dd'),
+                            serviceColor: servicesMap[device.service]?.color || '#000',
+                        });
+                    }
                 }
-                if (!isNaN(deviceDate)) {
-                    acc.push({
-                        device,
-                        event,
-                        date: format(deviceDate, 'yyyy-MM-dd'),
-                        serviceColor: servicesMap[device.service]?.color || '#000',
-                    });
-                }
-            }
-        });
-        return acc;
-    }, []);
+            });
+            return acc;
+        }, []);
+    }, [events, servicesMap]);
 
     useEffect(() => {
         const fetchWorkers = async () => {
@@ -102,6 +115,17 @@ const EventCalendar = ({
         setSelectedDevice(null);
     };
 
+    const openEditModal = (event) => {
+        // Открываем модальное окно редактирования только при действии пользователя
+        setEditEvent(event);
+        setModalOpen(false);
+        setSelectedDevice(null);
+    };
+
+    const closeEditModal = () => {
+        setEditEvent(null);
+    };
+
     const renderDays = () => {
         const days = [];
         let day = startDate;
@@ -137,9 +161,9 @@ const EventCalendar = ({
                                         <p className='text-[10px]'>
                                             {device.workers && device.workers.length > 0
                                                 ? device.workers.map((workerId) => (
-                                                    <p>
-                                                        {workersMap[workerId] || `ID: ${workerId}`}
-                                                    </p>
+                                                    <span key={workerId}>
+                                                        {workersMap[workerId] || `ID: ${workerId}`}<br/>
+                                                    </span>
                                                 )) : ''
                                             }
                                         </p>
@@ -150,7 +174,6 @@ const EventCalendar = ({
                     )}
                 </div>
             );
-            console.log(dayDevices)
             day = addDays(day, 1);
         }
         return days;
@@ -213,15 +236,21 @@ const EventCalendar = ({
                             <p className="text-sm sm:text-base">
                                 <strong>Телефон:</strong> +{selectedDevice.event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
-                            <p className={selectedDevice.restaurant_name ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Название ресторана:</strong> {selectedDevice.restaurant_name || 'Нет данных'}
-                            </p>
-                            <p className={selectedDevice.camera_count ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Количество камер:</strong> {selectedDevice.camera_count}
-                            </p>
-                            <p className={selectedDevice.comment ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Комментарий:</strong> {selectedDevice.comment}
-                            </p>
+                            {selectedDevice.restaurant_name && (
+                                <p className="text-sm sm:text-base">
+                                    <strong>Название ресторана:</strong> {selectedDevice.restaurant_name}
+                                </p>
+                            )}
+                            {selectedDevice.camera_count && (
+                                <p className="text-sm sm:text-base">
+                                    <strong>Количество камер:</strong> {selectedDevice.camera_count}
+                                </p>
+                            )}
+                            {selectedDevice.comment && (
+                                <p className="text-sm sm:text-base">
+                                    <strong>Комментарий:</strong> {selectedDevice.comment}
+                                </p>
+                            )}
                             <div className="flex items-center text-sm sm:text-base">
                                 <p>
                                     <strong>Работники: </strong>
@@ -246,12 +275,34 @@ const EventCalendar = ({
                                     selectedDevice.event.amount_money
                                 )}
                             </p>
-                            <p className={selectedDevice.event.comment ? 'text-sm sm:text-base' : 'hidden'}>
-                                <strong>Общий комментарий:</strong> {selectedDevice.event.comment}
-                            </p>
+                            {selectedDevice.event.comment && (
+                                <p className="text-sm sm:text-base">
+                                    <strong>Общий комментарий:</strong> {selectedDevice.event.comment}
+                                </p>
+                            )}
+
+                            {user.username === 'Rizo' && 'Rizo' ? (
+                                <button
+                                    className="btn btn-sm btn-warning"
+                                    onClick={() => openEditModal(selectedDevice.event)}
+                                    title="Редактировать"
+                                >
+                                    <FaEdit className="text-white"/>
+                                </button>
+                            ) : ''}
                         </div>
                     </div>
                 </div>
+            )}
+
+            {editEvent && (
+                <EditEventModal
+                    event={editEvent}
+                    services={services}
+                    onClose={closeEditModal}
+                    onUpdate={onUpdateEvent}
+                    setErrorMessage={setErrorMessage}
+                />
             )}
         </div>
     );

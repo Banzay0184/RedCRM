@@ -1,11 +1,11 @@
-// EventList.js
 import React, {useEffect, useState} from 'react';
 import {deleteEvent, getServices, getWorkers} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
+import AdvanceManager from './AdvanceManager';
 import {format, isToday, isTomorrow, isValid, isWithinInterval, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
+import {FaDollarSign, FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
 
 const EventList = ({
     events,
@@ -25,6 +25,8 @@ const EventList = ({
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [advanceManagerOpen, setAdvanceManagerOpen] = useState(false);
+    const [currentEventId, setCurrentEventId] = useState(null);
 
     useEffect(() => {
         fetchServices();
@@ -109,6 +111,16 @@ const EventList = ({
 
     const cancelDelete = () => {
         setConfirmDelete(null);
+    };
+
+    const openAdvanceManager = (eventId) => {
+        setCurrentEventId(eventId);
+        setAdvanceManagerOpen(true);
+    };
+
+    const closeAdvanceManager = () => {
+        setAdvanceManagerOpen(false);
+        setCurrentEventId(null);
     };
 
     const sortEvents = (events) => {
@@ -222,15 +234,6 @@ const EventList = ({
                                                     className="flex items-center space-x-2 my-1"
                                                 >
                                                     <span
-                                                        className={
-                                                            device.restaurant_name
-                                                                ? 'badge text-white badge-primary'
-                                                                : 'hidden'
-                                                        }
-                                                    >
-                                                        {device.restaurant_name || 'Услуга не найдена'}
-                                                    </span>
-                                                    <span
                                                         style={{
                                                             color: servicesColor[device.service],
                                                         }}
@@ -251,21 +254,28 @@ const EventList = ({
                                             onClick={() => openModal(event)}
                                             title="Просмотреть детали"
                                         >
-                                            <FaInfoCircle className="text-white" />
+                                            <FaInfoCircle className="text-white"/>
                                         </button>
                                         <button
                                             className="btn btn-sm btn-warning"
                                             onClick={() => openEditModal(event)}
                                             title="Редактировать"
                                         >
-                                            <FaEdit className="text-white" />
+                                            <FaEdit className="text-white"/>
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-success"
+                                            onClick={() => openAdvanceManager(event.id)}
+                                            title="Управление авансами"
+                                        >
+                                            <FaDollarSign className="text-white"/>
                                         </button>
                                         <button
                                             className="btn btn-sm btn-error"
                                             onClick={() => handleDelete(event)}
                                             title="Удалить"
                                         >
-                                            <FaTrash className="text-white" />
+                                            <FaTrash className="text-white"/>
                                         </button>
                                     </td>
                                 </tr>
@@ -296,6 +306,16 @@ const EventList = ({
                     onClose={closeEditModal}
                     onUpdate={onUpdateEvent}
                     setErrorMessage={setErrorMessage}
+                />
+            )}
+
+            {/* Модальное окно управления авансами */}
+            {advanceManagerOpen && (
+                <AdvanceManager
+                    eventId={currentEventId}
+                    isOpen={advanceManagerOpen}
+                    onClose={closeAdvanceManager}
+                    onAdvanceUpdate={() => fetchServices()}
                 />
             )}
 

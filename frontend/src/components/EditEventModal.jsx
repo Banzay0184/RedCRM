@@ -3,6 +3,7 @@ import {IMaskInput} from 'react-imask';
 import {getClients, getServices, getWorkers, updateEvent} from '../api';
 import {toast, Toaster} from 'react-hot-toast';
 import axios from "axios";
+import AdvanceManager from "./AdvanceManager.jsx";
 
 const EditEventModal = ({event, onClose, onUpdate}) => {
     const [clientName, setClientName] = useState('');
@@ -21,6 +22,8 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
     const [saving, setSaving] = useState(false);
     const isSaving = useRef(false);
     const [loading, setLoading] = useState(true);
+
+    const [isAdvanceManagerOpen, setIsAdvanceManagerOpen] = useState(false);
 
     // Состояния для валют и конвертации
     const [currency, setCurrency] = useState('UZS');
@@ -426,6 +429,10 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
         }
     };
 
+     const handleAdvanceUpdate = (newAdvance) => {
+        setAdvancePayment(newAdvance);
+    };
+
     if (loading) {
         return (
             <div className="modal modal-open">
@@ -668,32 +675,32 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                             </div>
 
                             {/* Аванс */}
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text">Аванс</span>
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Аванс"
-                                        className="input input-bordered"
-                                        value={formatNumber(advancePayment)}
-                                        onChange={handleAdvanceChange}
-                                    />
-                                    <select value={currencyAdvance} onChange={handleCurrencyChangeAdvance}
-                                            className="select select-primary">
-                                        <option value="USD">$</option>
-                                        <option value="UZS">UZS</option>
-                                    </select>
-                                </div>
-                                {currencyAdvance === 'USD' && (
-                                    <div>
-                                        <strong>Конвертированная сумма: </strong>
-                                        {convertedAdvance} UZS
-                                    </div>
-                                )}
+                            {/*<div className="form-control mt-4">*/}
+                            {/*    <label className="label">*/}
+                            {/*        <span className="label-text">Аванс</span>*/}
+                            {/*    </label>*/}
+                            {/*    <div className="flex gap-2">*/}
+                            {/*        <input*/}
+                            {/*            type="text"*/}
+                            {/*            placeholder="Аванс"*/}
+                            {/*            className="input input-bordered"*/}
+                            {/*            value={formatNumber(advancePayment)}*/}
+                            {/*            onChange={handleAdvanceChange}*/}
+                            {/*        />*/}
+                            {/*        <select value={currencyAdvance} onChange={handleCurrencyChangeAdvance}*/}
+                            {/*                className="select select-primary">*/}
+                            {/*            <option value="USD">$</option>*/}
+                            {/*            <option value="UZS">UZS</option>*/}
+                            {/*        </select>*/}
+                            {/*    </div>*/}
+                            {/*    {currencyAdvance === 'USD' && (*/}
+                            {/*        <div>*/}
+                            {/*            <strong>Конвертированная сумма: </strong>*/}
+                            {/*            {convertedAdvance} UZS*/}
+                            {/*        </div>*/}
+                            {/*    )}*/}
 
-                            </div>
+                            {/*</div>*/}
                         </div>
 
                         {/* Общий комментарий */}
@@ -738,6 +745,13 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                     </div>
                 </div>
             </div>
+
+            <AdvanceManager
+                eventId={event.id}
+                isOpen={isAdvanceManagerOpen}
+                onClose={() => setIsAdvanceManagerOpen(false)}
+                onAdvanceUpdate={handleAdvanceUpdate}
+            />
             {/* Контейнер для уведомлений */}
             <Toaster
                 position="top-right"

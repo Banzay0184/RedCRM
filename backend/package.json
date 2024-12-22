@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "react-input-mask": "^2.0.4"
+  },
+  "devDependencies": {
+    "@material-tailwind/react": "^2.1.10"
   }
 }

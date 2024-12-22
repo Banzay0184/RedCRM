@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
-from .models import Client, PhoneClient, Workers, Service, Device, Event, EventLog
+from .models import Client, PhoneClient, Workers, Service, Device, Event, EventLog, AdvanceHistory
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -97,11 +96,19 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ["id", "name", "color", "is_active_camera"]
 
+class AdvanceHistorySerializer(serializers.ModelSerializer):
+    """Сериализатор для истории аванса."""
+
+    class Meta:
+        model = AdvanceHistory
+        fields = ["id", "amount", "change_type", "date"]
+
+
 
 class EventSerializer(serializers.ModelSerializer):
     client = ClientSerializer()
     devices = DeviceSerializer(many=True)
-    # workers = serializers.PrimaryKeyRelatedField(many=True, queryset=Workers.objects.all())
+    advance_history = AdvanceHistorySerializer(many=True, read_only=True)  # История аванса
 
     def create(self, validated_data):
         devices_data = validated_data.pop("devices", [])
@@ -173,7 +180,27 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    # Добавляем метод для обновления аванса
+    def update_advance(self, instance, amount, change_type):
+        """Обновление аванса с историей."""
+        if change_type == "add":
+            instance.advance += amount
+        elif change_type == "subtract":
+            instance.advance -= amount
 
+        # Валидация
+        if instance.advance < 0:
+            raise serializers.ValidationError("Аванс не может быть отрицательным.")
+        if instance.advance > instance.amount:
+            raise serializers.ValidationError("Аванс не может быть больше общей суммы.")
+
+        # Сохранение изменений
+        instance.save()
+
+        # Добавление в историю
+        AdvanceHistory.objects.create(event=instance, amount=amount, change_type=change_type)
+
+        return instance
 
     class Meta:
         model = Event
@@ -181,15 +208,17 @@ class EventSerializer(serializers.ModelSerializer):
             "id",
             "client",
             "devices",
-            'computer_numbers',
+            "computer_numbers",
             "amount",
-            'amount_money',
+            "amount_money",
             "advance",
-            'advance_money',
+            "advance_money",
             "comment",
             "created_at",
             "updated_at",
+            "advance_history",  # Добавляем поле для истории
         ]
+
 
 
 

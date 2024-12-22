@@ -1,14 +1,16 @@
+from botocore.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.generics import get_object_or_404, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, Workers, Service, Event
-from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer
+from .models import Client, Workers, Service, Event, AdvanceHistory
+from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer, \
+    AdvanceHistorySerializer
 
 
 class ProtectedView(APIView):
@@ -115,6 +117,42 @@ def update_workers_order(request):
         return Response({'message': 'Порядок работников обновлен'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def update_advance(request, pk):
+    """Обновление аванса с сохранением истории."""
+    # Получаем событие по ID
+    event = get_object_or_404(Event, pk=pk)
+    amount = request.data.get('amount')
+    change_type = request.data.get('change_type')
+
+    if amount is None or change_type not in ['add', 'subtract']:
+        return Response({"error": "Некорректные данные"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        amount = float(amount)
+    except ValueError:
+        return Response({"error": "Сумма должна быть числом"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Обновляем аванс
+    if change_type == 'add':
+        event.advance += amount
+    elif change_type == 'subtract':
+        event.advance -= amount
+
+    # Валидация
+    if event.advance < 0:
+        return Response({"error": "Аванс не может быть отрицательным."}, status=status.HTTP_400_BAD_REQUEST)
+    if event.advance > event.amount:
+        return Response({"error": "Аванс не может быть больше общей суммы."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Сохраняем изменения
+    event.save()
+    AdvanceHistory.objects.create(event=event, amount=amount, change_type=change_type)
+
+    # Возвращаем обновлённые данные
+    serializer = EventSerializer(event)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 class WorkerDetailView(UpdateAPIView):
     serializer_class = WorkersSerializer

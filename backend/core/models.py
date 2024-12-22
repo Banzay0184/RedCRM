@@ -101,6 +101,26 @@ class Event(BaseModel):
     computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
 
+    def update_advance(self, amount, change_type):
+        """Метод обновления аванса с сохранением истории."""
+        if change_type == 'add':
+            self.advance += amount
+        elif change_type == 'subtract':
+            self.advance -= amount
+
+        # Валидация
+        if self.advance < 0:
+            raise ValidationError("Аванс не может быть отрицательным.")
+        if self.advance > self.amount:
+            raise ValidationError("Аванс не может быть больше общей суммы.")
+
+        # Сохранение
+        self.save()
+
+        # Запись истории
+        AdvanceHistory.objects.create(event=self, amount=amount, change_type=change_type)
+
+
     def clean(self):
         """Проверка, что аванс не превышает общую сумму и что сумма не отрицательна."""
         if self.advance > self.amount:
@@ -110,6 +130,22 @@ class Event(BaseModel):
 
     def __str__(self):
         return f"{self.client.name} - {self.restaurant_name}"
+
+
+class AdvanceHistory(BaseModel):
+    """История изменений аванса."""
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="advance_history")
+    amount = models.IntegerField()  # Сумма изменения
+    change_type = models.CharField(
+        max_length=10,
+        choices=[('add', 'Добавлено'), ('subtract', 'Убыло')]
+    )
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.amount} {self.get_change_type_display()} - {self.date}"
+
 
 
 class EventLog(BaseModel):

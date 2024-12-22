@@ -215,9 +215,11 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             (service) => service.service === serviceId
         );
         if (serviceIndex > -1) {
-            setSelectedServices(
-                selectedServices.filter((service) => service.service !== serviceId)
-            );
+            if (window.confirm('Вы точно хотите изменить услугу?')) {
+                setSelectedServices(
+                    selectedServices.filter((service) => service.service !== serviceId)
+                );
+            }
         } else {
             const serviceToAdd = services.find((service) => service.id === serviceId);
             setSelectedServices([

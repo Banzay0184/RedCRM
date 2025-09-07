@@ -2,7 +2,8 @@ import {Link} from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import {useContext, useEffect, useState} from "react";
 import {FaBars, FaTimes, FaUserCircle} from "react-icons/fa";
-import {GlobalContext} from "./BaseContex.jsx"; // Иконки
+import {GlobalContext} from "./BaseContex.jsx";
+import {isAdmin} from "../utils/roles.js";
 
 function Navbar({onLogout}) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Для мобильного меню
@@ -64,17 +65,14 @@ function Navbar({onLogout}) {
                 </span>
             </div>
 
-            {user.username === 'Rizo' && 'Rizo' ? (
+            {isAdmin(user) ? (
                 <div className="hidden lg:flex navbar-center">
                     <ul className="menu menu-horizontal px-4 space-x-4">
-                        {user.username === 'Rizo' && 'Rizo' ?
-                            <li>
-                                <Link to="/clients" className="btn btn-outline btn-primary">
-                                    Клиенты
-                                </Link>
-                            </li>
-
-                            : ''}
+                        <li>
+                            <Link to="/clients" className="btn btn-outline btn-primary">
+                                Клиенты
+                            </Link>
+                        </li>
 
                         <li>
                             <Link to="/events" className="btn btn-outline btn-primary">
@@ -109,7 +107,7 @@ function Navbar({onLogout}) {
                 {/* Меню для маленьких экранов */}
                 <div className="lg:hidden flex items-center space-x-4">
                     <ThemeToggle onThemeChange={onThemeChange}/>
-                    {user.username === 'Rizo' && 'Rizo' ? (
+                    {isAdmin(user) ? (
                         <button onClick={toggleMobileMenu}>
                             {isMobileMenuOpen ? <FaTimes className="text-2xl"/> : <FaBars className="text-2xl"/>}
                         </button>
@@ -128,7 +126,7 @@ function Navbar({onLogout}) {
                 </div>
             </div>
 
-            {user.username === 'Rizo' && 'Rizo' ? (
+            {isAdmin(user) ? (
                 <div>
                     {isMobileMenuOpen && (
                         <div

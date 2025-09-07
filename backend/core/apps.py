@@ -6,4 +6,5 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
-        import core.signals  # Подключаем сигналы
+        # Импортируем сигналы из tasks.py
+        import core.tasks

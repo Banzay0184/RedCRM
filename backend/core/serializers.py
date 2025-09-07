@@ -180,28 +180,6 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    # Добавляем метод для обновления аванса
-    def update_advance(self, instance, amount, change_type):
-        """Обновление аванса с историей."""
-        if change_type == "add":
-            instance.advance += amount
-        elif change_type == "subtract":
-            instance.advance -= amount
-
-        # Валидация
-        if instance.advance < 0:
-            raise serializers.ValidationError("Аванс не может быть отрицательным.")
-        if instance.advance > instance.amount:
-            raise serializers.ValidationError("Аванс не может быть больше общей суммы.")
-
-        # Сохранение изменений
-        instance.save()
-
-        # Добавление в историю
-        AdvanceHistory.objects.create(event=instance, amount=amount, change_type=change_type)
-
-        return instance
-
     class Meta:
         model = Event
         fields = [
@@ -218,8 +196,6 @@ class EventSerializer(serializers.ModelSerializer):
             "updated_at",
             "advance_history",  # Добавляем поле для истории
         ]
-
-
 
 
 class EventLogSerializer(serializers.ModelSerializer):

@@ -21,23 +21,31 @@ export function SortableItem({ id, worker, onEdit, onDelete }) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className="bg-white p-2 rounded-xl shadow-lg flex items-center justify-between transition-transform duration-200 hover:scale-105"
     >
-      <div className="flex flex-col">
+      <div 
+        {...listeners}
+        className="flex flex-col cursor-grab active:cursor-grabbing flex-grow"
+      >
         <span className="text-lg font-semibold text-gray-800">{worker.name}</span>
         <span className="text-gray-600">{worker.phone_number}</span>
       </div>
       <div className="flex space-x-3">
         <button
           className="text-blue-500 font-semibold hover:text-blue-700 transition duration-150"
-          onClick={onEdit}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
         >
           ✏️
         </button>
         <button
           className="text-red-500 font-semibold hover:text-red-700 transition duration-150"
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
         >
           🗑️
         </button>

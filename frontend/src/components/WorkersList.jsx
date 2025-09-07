@@ -90,13 +90,22 @@ function WorkersList() {
     const handleDragEnd = async (event) => {
         const {active, over} = event;
 
-        if (active.id !== over.id) {
-            const oldIndex = workers.findIndex(worker => worker.id === active.id);
-            const newIndex = workers.findIndex(worker => worker.id === over.id);
+        // Проверяем, что over не null и active.id !== over.id
+        if (!over || active.id === over.id) {
+            return;
+        }
 
-            const newWorkers = arrayMove(workers, oldIndex, newIndex);
+        const oldIndex = workers.findIndex(worker => worker.id === active.id);
+        const newIndex = workers.findIndex(worker => worker.id === over.id);
 
-            setWorkers(newWorkers);
+        // Проверяем, что индексы найдены
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
+        }
+
+        const newWorkers = arrayMove(workers, oldIndex, newIndex);
+
+        setWorkers(newWorkers);
 
             // Обновляем порядок на бэкенде
             try {
@@ -108,7 +117,6 @@ function WorkersList() {
             } catch (error) {
                 toast.error('Ошибка обновления порядка работников');
             }
-        }
     };
 
     return (

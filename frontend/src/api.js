@@ -1,8 +1,9 @@
 import axios from "axios";
 
 // Базовый URL для всех запросов
-const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api";
-// const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? "https://mukhammadrizo07.pythonanywhere.com/api" 
+    : "http://127.0.0.1:8000/api";
 
 
 // Создаём экземпляр axios с базовой конфигурацией
@@ -16,7 +17,9 @@ const api = axios.create({
 // Добавляем интерцептор для добавления токена в заголовок запроса
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token");
+        // Проверяем оба хранилища для токена
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        
         if (token) {
             config.headers["Authorization"] = `Bearer ${token}`;
         }
@@ -44,6 +47,7 @@ export const getEvents = () => api.get("/events/");
 export const getEventById = (id) => api.get(`/events/${id}/`);
 export const createEvent = (data) => api.post("/events/", data);
 export const updateEvent = (id, data) => api.put(`/events/${id}/`, data);
+export const updateEventAdvance = (id, advanceData) => api.patch(`/events/${id}/`, advanceData);
 export const deleteEvent = (id) => api.delete(`/events/${id}/`);
 
 export const getWorkers = () => api.get("/workers/");
@@ -55,7 +59,7 @@ export const updateWorkersOrder = (data) => api.post("/workers/update_order/", d
 
 export const getServices = () => api.get("/services/");
 export const createService = (data) => api.post("/services/", data);
-export const deleteService = (id)=> api.delete(`/service/${id}/`);
-export const updateService = (id, data) => api.put(`/service/${id}/`, data);
+export const deleteService = (id)=> api.delete(`/services/${id}/`);
+export const updateService = (id, data) => api.put(`/services/${id}/`, data);
 
 export default api;

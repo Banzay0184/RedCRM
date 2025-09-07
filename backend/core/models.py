@@ -85,15 +85,10 @@ class Device(BaseModel):
     workers = models.ManyToManyField(Workers, related_name="devices", blank=True)
 
 
-    # def __str__(self):
-    #     return f"{self.comment} для {self.service.name}"
-
-
 class Event(BaseModel):
     """Модель мероприятий."""
 
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events")
-    # workers = models.ManyToManyField(Workers, related_name="events")
     amount = models.PositiveIntegerField(default=0)
     amount_money = models.BooleanField(default=False)
     advance = models.PositiveIntegerField(default=0)
@@ -129,7 +124,7 @@ class Event(BaseModel):
             raise ValidationError("Сумма и аванс не могут быть отрицательными.")
 
     def __str__(self):
-        return f"{self.client.name} - {self.restaurant_name}"
+        return f"{self.client.name} - {self.amount} сум"
 
 
 class AdvanceHistory(BaseModel):

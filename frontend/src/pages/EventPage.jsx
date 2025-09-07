@@ -6,6 +6,7 @@ import {getEvents, getServices} from '../api';
 import {GlobalContext} from "../components/BaseContex.jsx";
 import EventList from "../components/EventList.jsx";
 import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch} from "react-icons/fa";
+import {canManageEvents} from "../utils/roles.js";
 
 const EventPage = () => {
     // Ваши состояния и функции остаются без изменений
@@ -140,7 +141,7 @@ const EventPage = () => {
             )}
 
             {/* Верхняя панель */}
-            {user.username === 'Rizo' && 'Rizo' ? (
+            {canManageEvents(user) ? (
                 <div className="flex flex-col justify-between xl:flex-row lg:flex-col lg:justify-between mb-4 gap-4">
                     {/* Левая часть: кнопки */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -225,7 +226,7 @@ const EventPage = () => {
             ): ''}
 
             {/* Отображаем либо EventList, либо EventCalendar в зависимости от состояния viewMode */}
-            {viewMode === 'calendar' && user.username === 'Rizo' && 'Rizo' ? (
+            {viewMode === 'calendar' && canManageEvents(user) ? (
                 <EventList
                     events={events}
                     loading={loading}

@@ -1,7 +1,9 @@
 import {useContext, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {login} from "../api";
+import {login, getUser} from "../api";
 import {GlobalContext} from "../components/BaseContex.jsx";
+import {jwtDecode} from "jwt-decode";
+import {getTokenStorage} from "../utils/roles.js";
 
 
 // Объект для перевода ошибок
@@ -15,27 +17,51 @@ function translateError(errorMessage) {
     return errorTranslations[errorMessage] || "Неверное имя пользователя или пароль";
 }
 
-function LoginPage({setIsAuthenticated}) {
+function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const {checkTokenExpiration} = useContext(GlobalContext)
+    const {checkTokenExpiration, setIsAuthenticated, saveToken, setUser} = useContext(GlobalContext)
 
     const handleLogin = async (e) => {
-
-         e.preventDefault();
+        e.preventDefault();
         setIsLoading(true); // Включаем индикатор загрузки
 
         try {
             const response = await login(username, password);
-            localStorage.setItem("token", response.data.access);
-            console.log(response)
+            const token = response.data.access;
+            
+            // Временно сохраняем токен в localStorage для получения данных пользователя
+            localStorage.setItem("token", token);
+            
+            // Декодируем токен для получения user_id
+            const decodedToken = jwtDecode(token);
+            
+            // Получаем данные пользователя
+            const userResponse = await getUser(decodedToken.user_id);
+            const user = userResponse.data;
+            
+            // Сохраняем токен в правильное хранилище
+            saveToken(token, user);
+            
+            // Удаляем временный токен только если он был сохранен в другом хранилище
+            const storage = getTokenStorage(user);
+            if (storage === 'sessionStorage') {
+                localStorage.removeItem("token"); // Удаляем из localStorage, если токен в sessionStorage
+            }
+            // Если токен в localStorage, не удаляем его
+            
+            // Сначала устанавливаем пользователя, затем аутентификацию
+            setUser(user);
             setIsAuthenticated(true);
-            checkTokenExpiration()
-            navigate("/"); // Перенаправляем на главную страницу
+            
+            // Небольшая задержка для обеспечения обновления состояния
+            setTimeout(() => {
+                navigate("/"); // Перенаправляем на главную страницу
+            }, 100);
         } catch (error) {
             const serverMessage = error.response?.data?.detail || "Unknown error";
             setError(translateError(serverMessage));

@@ -10,10 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="event",
-            name="restaurant_name",
-        ),
         migrations.AddField(
             model_name="device",
             name="restaurant_name",

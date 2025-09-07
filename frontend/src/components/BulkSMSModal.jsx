@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 function BulkSMSModal({ clients, onSendSMS, onClose }) {
     const [message, setMessage] = useState('');
 

@@ -1,5 +1,12 @@
 import {useState} from 'react';
 
+// Заглушка для функции отправки SMS (SMS функциональность отключена)
+const sendSMS = async (clientId, message) => {
+    console.log(`SMS для клиента ${clientId}: ${message}`);
+    // В реальном приложении здесь был бы вызов API для отправки SMS
+    throw new Error('SMS функциональность отключена');
+};
+
 function SendSMSModal({client, onClose}) {
     const [message, setMessage] = useState('');
 
@@ -9,6 +16,7 @@ function SendSMSModal({client, onClose}) {
             alert(`SMS отправлено клиенту ${client.name}`);
         } catch (error) {
             console.error('Ошибка при отправке SMS:', error);
+            alert('SMS функциональность отключена');
         } finally {
             onClose();
         }

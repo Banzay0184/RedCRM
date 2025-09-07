@@ -1,5 +1,5 @@
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useContext} from "react";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
@@ -9,12 +9,49 @@ import {jwtDecode} from "jwt-decode";
 import {getUser} from "./api";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import EventPage from "./pages/EventPage.jsx";
-import BaseContex from "./components/BaseContex.jsx";
+import BaseContex, {GlobalContext} from "./components/BaseContex.jsx";
+import {getTokenStorage, isAdmin, canViewStatistics, getUserRole} from "./utils/roles.js";
+
+function AppContent({onLogout}) {
+    const {isAuthenticated, user} = useContext(GlobalContext);
+    
+    return (
+        <Router>
+            <Routes>
+                {isAuthenticated ? (
+                    <Route path="/" element={<Layout user={user} onLogout={onLogout}/>}>
+                        {(() => {
+                            const canViewStats = canViewStatistics(user);
+                            return canViewStats ? (
+                                <Route index element={<HomePage/>}/>
+                            ) : (
+                                <Route index element={<EventPage/>}/>
+                            );
+                        })()}
+                        {isAdmin(user) && <Route path="/settings" element={<SettingsPage/>}/>}
+                        {isAdmin(user) && <Route path="/clients" element={<ClientPage/>}/>}
+                        <Route path="/profile" element={<ProfilePage user={user}/>}/>
+                        <Route path="/events" element={<EventPage/>}/>
+                        <Route path="*" element={<Navigate to="/" replace/>}/>
+                    </Route>
+                ) : (
+                    <>
+                        <Route
+                            path="/login"
+                            element={<LoginPage />}
+                        />
+                        <Route path="*" element={<Navigate to="/login" replace/>}/>
+                    </>
+                )}
+            </Routes>
+        </Router>
+    );
+}
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     // Проверка токена из нужного хранилища
     const getToken = () => {
@@ -22,7 +59,7 @@ function App() {
     };
 
     // Проверка срока действия токена
-    const checkTokenExpiration = () => {
+    const checkTokenExpiration = async () => {
         const token = getToken();
 
         if (token) {
@@ -34,7 +71,7 @@ function App() {
                     handleLogout(); // Токен истек
                 } else {
                     setIsAuthenticated(true); // Токен действителен
-                    fetchUserProfile(decodedToken.user_id); // Получаем профиль пользователя
+                    await fetchUserProfile(decodedToken.user_id); // Получаем профиль пользователя
                 }
             } catch (error) {
                 console.error("Ошибка при декодировании токена:", error);
@@ -50,29 +87,34 @@ function App() {
     const fetchUserProfile = async (userId) => {
         try {
             const response = await getUser(userId);
-            setUser(response.data);
+            const userData = response.data;
+            setUser(userData);
+            setIsAuthenticated(true); // Устанавливаем аутентификацию после получения данных пользователя
+            setIsLoading(false); // Завершаем загрузку при успешном получении профиля
         } catch (error) {
             console.error("Ошибка при получении профиля пользователя:", error);
             handleLogout();
-        } finally {
-            setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        checkTokenExpiration();
+        const initializeAuth = async () => {
+            await checkTokenExpiration();
+        };
+        
+        initializeAuth();
 
         // Проверка токена каждые 60 секунд
         const interval = setInterval(() => {
             checkTokenExpiration();
-        }, 1000);
+        }, 60000);
 
         return () => clearInterval(interval);
     }, []);
 
-    // Автоматическое удаление токена для Rizo при закрытии браузера
+    // Автоматическое удаление токена для админов при закрытии браузера
     useEffect(() => {
-        if (user?.username === "Rizo") {
+        if (isAdmin(user)) {
             const handleBeforeUnload = () => {
                 sessionStorage.removeItem("token"); // Удаляем токен только из sessionStorage
                 localStorage.removeItem("token");
@@ -96,8 +138,10 @@ function App() {
     };
 
     // Сохранение токена в нужное хранилище
-    const saveToken = (token, username) => {
-        if (username === "Rizo") {
+    const saveToken = (token, user) => {
+        const storage = getTokenStorage(user);
+        
+        if (storage === 'sessionStorage') {
             sessionStorage.setItem("token", token);
         } else {
             localStorage.setItem("token", token);
@@ -112,44 +156,10 @@ function App() {
             </div>
         );
     }
-
+    
     return (
-        <BaseContex user={user} setUser={setUser} checkTokenExpiration={checkTokenExpiration}>
-            <Router>
-                <Routes>
-                    {isAuthenticated ? (
-                        <Route path="/" element={<Layout onLogout={handleLogout} user={user}/>}>
-                            {user?.username === "Rizo" ? (
-                                <Route index element={<HomePage/>}/>
-                            ) : (
-                                <Route index element={<EventPage/>}/>
-                            )}
-                            <Route path="/settings" element={<SettingsPage/>}/>
-                            <Route path="/clients" element={<ClientPage/>}/>
-                            <Route path="/profile" element={<ProfilePage user={user}/>}/>
-                            <Route path="/events" element={<EventPage/>}/>
-                            <Route path="*" element={<Navigate to="/" replace/>}/>
-                        </Route>
-                    ) : (
-                        <>
-                            <Route
-                                path="/login"
-                                element={
-                                    isAuthenticated ? (
-                                        <Navigate to="/" replace/>
-                                    ) : (
-                                        <LoginPage
-                                            setIsAuthenticated={setIsAuthenticated}
-                                            saveToken={(token) => saveToken(token, "Rizo")}
-                                        />
-                                    )
-                                }
-                            />
-                            <Route path="*" element={<Navigate to="/login" replace/>}/>
-                        </>
-                    )}
-                </Routes>
-            </Router>
+        <BaseContex user={user} setUser={setUser} checkTokenExpiration={checkTokenExpiration} saveToken={saveToken} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}>
+            <AppContent onLogout={handleLogout} />
         </BaseContex>
     );
 }

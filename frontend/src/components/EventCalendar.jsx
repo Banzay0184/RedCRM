@@ -12,9 +12,10 @@ import {
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit} from 'react-icons/fa';
-import {getWorkers} from "../api.js";
+import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
+import {getWorkers, updateEventAdvance} from "../api.js";
 import EditEventModal from "./EditEventModal.jsx";
+import AddAdvanceModal from "./AddAdvanceModal.jsx";
 import {GlobalContext} from "./BaseContex.jsx";
 
 const EventCalendar = ({
@@ -33,6 +34,8 @@ const EventCalendar = ({
     const [workersList, setWorkersList] = useState([]);
 
     const [editEvent, setEditEvent] = useState(null);
+    const [advanceEvent, setAdvanceEvent] = useState(null);
+    const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
@@ -126,6 +129,36 @@ const EventCalendar = ({
         setEditEvent(null);
     };
 
+    const openAdvanceModal = (event) => {
+        setAdvanceEvent(event);
+        setIsAdvanceModalOpen(true);
+        setModalOpen(false);
+        setSelectedDevice(null);
+    };
+
+    const closeAdvanceModal = () => {
+        setAdvanceEvent(null);
+        setIsAdvanceModalOpen(false);
+    };
+
+    const handleAdvanceUpdate = async (updatedEvent) => {
+        try {
+            // Отправляем запрос на обновление аванса
+            await updateEventAdvance(updatedEvent.id, {
+                advance: updatedEvent.advance,
+                advance_money: updatedEvent.advance_money
+            });
+            
+            // Обновляем событие в родительском компоненте
+            onUpdateEvent(updatedEvent);
+            
+        } catch (error) {
+            console.error('Ошибка при обновлении аванса:', error);
+            setErrorMessage('Ошибка при обновлении аванса. Попробуйте еще раз.');
+            throw error; // Пробрасываем ошибку для обработки в модальном окне
+        }
+    };
+
     const renderDays = () => {
         const days = [];
         let day = startDate;
@@ -145,40 +178,50 @@ const EventCalendar = ({
             days.push(
                 <div
                     key={formattedDate}
-                    className={`h-[100%] border rounded-lg ${notCurrentMonthClass} ${todayClass}`}
+                    className={`min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] border rounded-lg ${notCurrentMonthClass} ${todayClass} flex flex-col`}
                 >
-                    <div className="text-sm sm:text-base md:text-lg font-bold">
+                    <div className="text-xs sm:text-sm md:text-base font-bold p-1">
                         {format(day, 'd')}
                     </div>
                     {dayDevices.length > 0 && (
-                        <div className="flex-col flex gap-2">
+                        <div className="flex-1 flex flex-col gap-1 p-1">
                             {dayDevices.map(({device, event, serviceColor}, index) => (
-                                <div key={index} className='flex gap-2 items-start' >
+                                <div key={index} className='flex gap-1 items-start' >
                                     <div onClick={() => openModal(device, event)}
-                                         className='flex gap-2 items-start p-2 border border-l-4 rounded-lg hover:opacity-50 transition duration-300 cursor-pointer'
-                                         style={{borderColor: serviceColor}} key={index}>
-                                        <p className='text-sm text-blue-300'>{device.restaurant_name || ''}</p>
-                                        <div className="flex ">
-                                            <p className='text-[10px]'>
-                                                {device.workers && device.workers.length > 0
-                                                    ? device.workers.map((workerId) => (
-                                                        <span key={workerId}>
-                                                        {workersMap[workerId] || `ID: ${workerId}`}<br/>
-                                                    </span>
-                                                    )) : ''
-                                                }
-                                            </p>
+                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded hover:opacity-70 transition duration-300 cursor-pointer bg-white bg-opacity-10'
+                                         style={{borderColor: serviceColor}}>
+                                        <p className='text-xs font-semibold text-white truncate'>{device.restaurant_name || 'Без названия'}</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {device.workers && device.workers.length > 0 && (
+                                                <div className='text-[8px] sm:text-[10px] text-gray-200'>
+                                                    {device.workers.map((workerId, workerIndex) => (
+                                                        <span key={workerId} className="inline-block mr-1">
+                                                            {workersMap[workerId] || `ID: ${workerId}`}
+                                                            {workerIndex < device.workers.length - 1 && ','}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    {user.username === 'Rizo' && 'Rizo' ? (
+                                    <div className="flex flex-col gap-1">
+                                        {user.username === 'Rizo' && (
+                                            <button
+                                                className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition duration-200"
+                                                onClick={() => openEditModal(event)}
+                                                title="Редактировать"
+                                            >
+                                                <FaEdit className="text-white text-[10px] sm:text-xs"/>
+                                            </button>
+                                        )}
                                         <button
-                                            className=""
-                                            onClick={() => openEditModal(event)}
-                                            title="Редактировать"
+                                            className="p-1 bg-green-600 hover:bg-green-700 rounded transition duration-200"
+                                            onClick={() => openAdvanceModal(event)}
+                                            title="Добавить аванс"
                                         >
-                                            <FaEdit className="text-white"/>
+                                            <FaMoneyBillWave className="text-white text-[10px] sm:text-xs"/>
                                         </button>
-                                    ) : ''}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -209,7 +252,7 @@ const EventCalendar = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-2 md:gap-4">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3 lg:gap-4">
                 {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((dayName, index) => (
                     <div
                         key={index}
@@ -302,6 +345,15 @@ const EventCalendar = ({
                     services={services}
                     onClose={closeEditModal}
                     onUpdate={onUpdateEvent}
+                    setErrorMessage={setErrorMessage}
+                />
+            )}
+
+            {isAdvanceModalOpen && advanceEvent && (
+                <AddAdvanceModal
+                    event={advanceEvent}
+                    onClose={closeAdvanceModal}
+                    onUpdate={handleAdvanceUpdate}
                     setErrorMessage={setErrorMessage}
                 />
             )}

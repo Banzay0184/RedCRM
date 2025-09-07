@@ -94,11 +94,9 @@
         overflow: visible !important;
     }
 
-    .print
-
-/:hidden {
-    display: none !important;
-}
+    .print-hidden {
+        display: none !important;
+    }
 
     @page {
         size: A4;

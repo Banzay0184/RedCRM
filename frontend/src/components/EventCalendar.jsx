@@ -17,6 +17,7 @@ import {getWorkers, updateEventAdvance} from "../api.js";
 import EditEventModal from "./EditEventModal.jsx";
 import AddAdvanceModal from "./AddAdvanceModal.jsx";
 import {GlobalContext} from "./BaseContex.jsx";
+import {canManageEvents, isAdmin} from "../utils/roles.js";
 
 const EventCalendar = ({
                            events,
@@ -143,13 +144,8 @@ const EventCalendar = ({
 
     const handleAdvanceUpdate = async (updatedEvent) => {
         try {
-            // Отправляем запрос на обновление аванса
-            await updateEventAdvance(updatedEvent.id, {
-                advance: updatedEvent.advance,
-                advance_money: updatedEvent.advance_money
-            });
-            
             // Обновляем событие в родительском компоненте
+            // Запрос к API уже выполнен в AddAdvanceModal
             onUpdateEvent(updatedEvent);
             
         } catch (error) {
@@ -205,7 +201,7 @@ const EventCalendar = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        {user.username === 'Rizo' && (
+                                        {isAdmin(user) && (
                                             <button
                                                 className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition duration-200"
                                                 onClick={() => openEditModal(event)}
@@ -214,13 +210,15 @@ const EventCalendar = ({
                                                 <FaEdit className="text-white text-[10px] sm:text-xs"/>
                                             </button>
                                         )}
-                                        <button
-                                            className="p-1 bg-green-600 hover:bg-green-700 rounded transition duration-200"
-                                            onClick={() => openAdvanceModal(event)}
-                                            title="Добавить аванс"
-                                        >
-                                            <FaMoneyBillWave className="text-white text-[10px] sm:text-xs"/>
-                                        </button>
+                                        {canManageEvents(user) && (
+                                            <button
+                                                className="p-1 bg-green-600 hover:bg-green-700 rounded transition duration-200"
+                                                onClick={() => openAdvanceModal(event)}
+                                                title="Добавить аванс"
+                                            >
+                                                <FaMoneyBillWave className="text-white text-[10px] sm:text-xs"/>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

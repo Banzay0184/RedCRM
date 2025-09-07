@@ -96,12 +96,16 @@ class Event(BaseModel):
     computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
 
-    def update_advance(self, amount, change_type):
+    def update_advance(self, amount, change_type, advance_money=None):
         """Метод обновления аванса с сохранением истории."""
         if change_type == 'add':
             self.advance += amount
         elif change_type == 'subtract':
             self.advance -= amount
+
+        # Обновляем валюту аванса, если указана
+        if advance_money is not None:
+            self.advance_money = advance_money
 
         # Валидация
         if self.advance < 0:

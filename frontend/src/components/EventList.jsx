@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {deleteEvent, getServices, getWorkers} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
@@ -6,6 +6,8 @@ import AdvanceManager from './AdvanceManager';
 import {format, isToday, isTomorrow, isValid, isWithinInterval, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
 import {FaDollarSign, FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
+import {GlobalContext} from './BaseContex.jsx';
+import {canManageEvents, isAdmin} from '../utils/roles.js';
 
 const EventList = ({
     events,
@@ -27,6 +29,8 @@ const EventList = ({
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [advanceManagerOpen, setAdvanceManagerOpen] = useState(false);
     const [currentEventId, setCurrentEventId] = useState(null);
+
+    const {user} = useContext(GlobalContext);
 
     useEffect(() => {
         fetchServices();
@@ -256,27 +260,33 @@ const EventList = ({
                                         >
                                             <FaInfoCircle className="text-white"/>
                                         </button>
-                                        <button
-                                            className="btn btn-sm btn-warning"
-                                            onClick={() => openEditModal(event)}
-                                            title="Редактировать"
-                                        >
-                                            <FaEdit className="text-white"/>
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-success"
-                                            onClick={() => openAdvanceManager(event.id)}
-                                            title="Управление авансами"
-                                        >
-                                            <FaDollarSign className="text-white"/>
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-error"
-                                            onClick={() => handleDelete(event)}
-                                            title="Удалить"
-                                        >
-                                            <FaTrash className="text-white"/>
-                                        </button>
+                                        {isAdmin(user) && (
+                                            <button
+                                                className="btn btn-sm btn-warning"
+                                                onClick={() => openEditModal(event)}
+                                                title="Редактировать"
+                                            >
+                                                <FaEdit className="text-white"/>
+                                            </button>
+                                        )}
+                                        {canManageEvents(user) && (
+                                            <button
+                                                className="btn btn-sm btn-success"
+                                                onClick={() => openAdvanceManager(event.id)}
+                                                title="Управление авансами"
+                                            >
+                                                <FaDollarSign className="text-white"/>
+                                            </button>
+                                        )}
+                                        {isAdmin(user) && (
+                                            <button
+                                                className="btn btn-sm btn-error"
+                                                onClick={() => handleDelete(event)}
+                                                title="Удалить"
+                                            >
+                                                <FaTrash className="text-white"/>
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

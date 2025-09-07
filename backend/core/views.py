@@ -125,6 +125,7 @@ def update_advance(request, pk):
     event = get_object_or_404(Event, pk=pk)
     amount = request.data.get('amount')
     change_type = request.data.get('change_type')
+    advance_money = request.data.get('advance_money')
 
     if amount is None or change_type not in ['add', 'subtract']:
         return Response({"error": "Некорректные данные"}, status=status.HTTP_400_BAD_REQUEST)
@@ -136,7 +137,7 @@ def update_advance(request, pk):
 
     try:
         # Используем метод из модели
-        event.update_advance(amount, change_type)
+        event.update_advance(amount, change_type, advance_money)
         
         # Возвращаем обновлённые данные
         serializer = EventSerializer(event)

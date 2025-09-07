@@ -28,6 +28,28 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// Добавляем интерцептор для обработки ответов и ошибок
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        // Если получили 401 Unauthorized, очищаем токены и перенаправляем на страницу входа
+        if (error.response?.status === 401) {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
+            localStorage.removeItem("user");
+            
+            // Перенаправляем на страницу входа только если мы не на ней и не на главной странице
+            if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
+                window.location.href = "/login";
+            } else if (window.location.pathname === "/") {
+                // Если мы на главной странице, просто перезагружаем страницу
+                window.location.reload();
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 // User
 export const login = (username, password) => api.post("/token/", {username, password});
 export const getUsers = () => api.get("/users/");

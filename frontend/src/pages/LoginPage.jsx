@@ -34,11 +34,11 @@ function LoginPage() {
             const response = await login(username, password);
             const token = response.data.access;
             
-            // Временно сохраняем токен в localStorage для получения данных пользователя
-            localStorage.setItem("token", token);
-            
             // Декодируем токен для получения user_id
             const decodedToken = jwtDecode(token);
+            
+            // Временно сохраняем токен для получения данных пользователя
+            localStorage.setItem("token", token);
             
             // Получаем данные пользователя
             const userResponse = await getUser(decodedToken.user_id);
@@ -47,12 +47,11 @@ function LoginPage() {
             // Сохраняем токен в правильное хранилище
             saveToken(token, user);
             
-            // Удаляем временный токен только если он был сохранен в другом хранилище
+            // Очищаем временный токен, если он был сохранен в другом хранилище
             const storage = getTokenStorage(user);
             if (storage === 'sessionStorage') {
                 localStorage.removeItem("token"); // Удаляем из localStorage, если токен в sessionStorage
             }
-            // Если токен в localStorage, не удаляем его
             
             // Сначала устанавливаем пользователя, затем аутентификацию
             setUser(user);
@@ -66,6 +65,10 @@ function LoginPage() {
             const serverMessage = error.response?.data?.detail || "Unknown error";
             setError(translateError(serverMessage));
             setPassword(""); // Сброс пароля при ошибке
+            
+            // Очищаем временный токен при ошибке
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
         } finally {
             setIsLoading(false); // Отключаем индикатор загрузки
         }

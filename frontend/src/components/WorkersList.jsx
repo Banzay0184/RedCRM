@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
+import {closestCenter, DndContext, PointerSensor, TouchSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {SortableItem} from './SortableItem'; // Создадим этот компонент ниже
 import {createWorker, deleteWorker, getWorkers, updateWorker, updateWorkersOrder} from '../api';
@@ -84,11 +84,24 @@ function WorkersList() {
     };
 
     const sensors = useSensors(
-        useSensor(PointerSensor)
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 10,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 150,
+                tolerance: 8,
+            },
+        })
     );
 
     const handleDragEnd = async (event) => {
         const {active, over} = event;
+        
+        // Сбрасываем курсор
+        document.body.style.cursor = '';
 
         // Проверяем, что over не null и active.id !== over.id
         if (!over || active.id === over.id) {
@@ -107,21 +120,65 @@ function WorkersList() {
 
         setWorkers(newWorkers);
 
-            // Обновляем порядок на бэкенде
+        // Обновляем порядок на бэкенде
+        try {
+            await updateWorkersOrder(newWorkers.map((worker, index) => ({
+                id: worker.id,
+                order: index
+            })));
+            toast.success('Порядок работников обновлен');
+        } catch (error) {
+            toast.error('Ошибка обновления порядка работников');
+            // Восстанавливаем исходный порядок при ошибке
+            fetchWorkers();
+        }
+    };
+
+    // Альтернативный способ переупорядочивания для мобильных устройств
+    const handleMoveUp = async (workerId) => {
+        const currentIndex = workers.findIndex(worker => worker.id === workerId);
+        if (currentIndex > 0) {
+            const newWorkers = arrayMove(workers, currentIndex, currentIndex - 1);
+            setWorkers(newWorkers);
+            
             try {
                 await updateWorkersOrder(newWorkers.map((worker, index) => ({
                     id: worker.id,
                     order: index
                 })));
-                toast.success('Порядок работников обновлен');
+                toast.success('Работник перемещен вверх');
             } catch (error) {
                 toast.error('Ошибка обновления порядка работников');
+                fetchWorkers();
             }
+        }
+    };
+
+    const handleMoveDown = async (workerId) => {
+        const currentIndex = workers.findIndex(worker => worker.id === workerId);
+        if (currentIndex < workers.length - 1) {
+            const newWorkers = arrayMove(workers, currentIndex, currentIndex + 1);
+            setWorkers(newWorkers);
+            
+            try {
+                await updateWorkersOrder(newWorkers.map((worker, index) => ({
+                    id: worker.id,
+                    order: index
+                })));
+                toast.success('Работник перемещен вниз');
+            } catch (error) {
+                toast.error('Ошибка обновления порядка работников');
+                fetchWorkers();
+            }
+        }
     };
 
     return (
         <div className="p-2 flex flex-col items-center">
             <h2 className="text-2xl font-semibold mb-3">Управление Работниками</h2>
+            <p className="text-sm text-gray-600 mb-4 text-center">
+                Перетащите работника или используйте стрелки ↑↓ для изменения порядка
+            </p>
 
             <button
                 className="bg-blue-600 text-white px-4 py-2 rounded-full mb-4 shadow-md hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
@@ -137,19 +194,30 @@ function WorkersList() {
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
+                onDragStart={() => {
+                    // Добавляем небольшую задержку для плавности
+                    document.body.style.cursor = 'grabbing';
+                }}
+                onDragCancel={() => {
+                    document.body.style.cursor = '';
+                }}
             >
                 <SortableContext
                     items={workers.map(worker => worker.id)}
                     strategy={verticalListSortingStrategy}
                 >
                     <div className="grid grid-cols-1 gap-6 w-full">
-                        {workers.map((worker) => (
+                        {workers.map((worker, index) => (
                             <SortableItem
                                 key={worker.id}
                                 id={worker.id}
                                 worker={worker}
                                 onEdit={() => handleEditWorker(worker)}
                                 onDelete={() => handleDeleteWorker(worker.id)}
+                                onMoveUp={() => handleMoveUp(worker.id)}
+                                onMoveDown={() => handleMoveDown(worker.id)}
+                                canMoveUp={index > 0}
+                                canMoveDown={index < workers.length - 1}
                             />
                         ))}
                     </div>

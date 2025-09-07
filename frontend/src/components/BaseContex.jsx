@@ -5,22 +5,8 @@ export const GlobalContext = React.createContext({});
 function BaseContex({children, setUser, user, checkTokenExpiration, saveToken, isAuthenticated, setIsAuthenticated}) {
     const [refresh, setRefresh] = useState(false)
 
-    // Восстанавливаем пользователя из localStorage при инициализации
-    useEffect(() => {
-        if (!user) {
-            try {
-                const savedUser = localStorage.getItem("user");
-                if (savedUser) {
-                    const parsedUser = JSON.parse(savedUser);
-                    setUser(parsedUser);
-                    setIsAuthenticated(true); // Если пользователь восстановлен, считаем его аутентифицированным
-                }
-            } catch (error) {
-                console.error("Ошибка при восстановлении пользователя:", error);
-                localStorage.removeItem("user");
-            }
-        }
-    }, [setUser, setIsAuthenticated]);
+    // Убираем автоматическое восстановление пользователя
+    // Аутентификация должна управляться только через токен в App.jsx
 
     useEffect(() => {
         if (!refresh){

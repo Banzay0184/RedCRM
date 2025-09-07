@@ -70,30 +70,59 @@ function App() {
                 if (decodedToken.exp < currentTime) {
                     handleLogout(); // Токен истек
                 } else {
-                    setIsAuthenticated(true); // Токен действителен
-                    await fetchUserProfile(decodedToken.user_id); // Получаем профиль пользователя
+                    // Сначала проверяем, есть ли пользователь в localStorage
+                    const savedUser = localStorage.getItem("user");
+                    if (savedUser && !user) {
+                        try {
+                            const parsedUser = JSON.parse(savedUser);
+                            setUser(parsedUser);
+                            setIsAuthenticated(true);
+                            setIsLoading(false);
+                            
+                            // Проверяем профиль в фоне для обновления данных
+                            fetchUserProfile(decodedToken.user_id, true);
+                            return;
+                        } catch (error) {
+                            localStorage.removeItem("user");
+                        }
+                    }
+                    
+                    // Если пользователя нет в localStorage или произошла ошибка, получаем с сервера
+                    await fetchUserProfile(decodedToken.user_id);
                 }
             } catch (error) {
-                console.error("Ошибка при декодировании токена:", error);
                 handleLogout(); // При ошибке выходим
             }
         } else {
             setIsAuthenticated(false);
+            setUser(null);
             setIsLoading(false); // Нет токена, завершаем загрузку
         }
     };
 
     // Получение профиля пользователя
-    const fetchUserProfile = async (userId) => {
+    const fetchUserProfile = async (userId, isBackgroundUpdate = false) => {
         try {
             const response = await getUser(userId);
             const userData = response.data;
+            
+            // Если это фоновое обновление и пользователь уже установлен, обновляем только если данные изменились
+            if (isBackgroundUpdate && user) {
+                const currentUserStr = JSON.stringify(user);
+                const newUserStr = JSON.stringify(userData);
+                if (currentUserStr === newUserStr) {
+                    return;
+                }
+            }
+            
             setUser(userData);
             setIsAuthenticated(true); // Устанавливаем аутентификацию после получения данных пользователя
             setIsLoading(false); // Завершаем загрузку при успешном получении профиля
         } catch (error) {
-            console.error("Ошибка при получении профиля пользователя:", error);
-            handleLogout();
+            // Если это фоновое обновление, не выходим из системы при ошибке
+            if (!isBackgroundUpdate) {
+                handleLogout();
+            }
         }
     };
 
@@ -112,26 +141,11 @@ function App() {
         return () => clearInterval(interval);
     }, []);
 
-    // Автоматическое удаление токена для админов при закрытии браузера
-    useEffect(() => {
-        if (isAdmin(user)) {
-            const handleBeforeUnload = () => {
-                sessionStorage.removeItem("token"); // Удаляем токен только из sessionStorage
-                localStorage.removeItem("token");
-            };
-
-            window.addEventListener("beforeunload", handleBeforeUnload);
-
-            return () => {
-                window.removeEventListener("beforeunload", handleBeforeUnload);
-            };
-        }
-    }, [user]);
-
     // Функция выхода
     const handleLogout = () => {
         sessionStorage.removeItem("token");
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
         setIsAuthenticated(false);
         setUser(null);
         setIsLoading(false);

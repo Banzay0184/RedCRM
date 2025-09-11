@@ -105,11 +105,16 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                         <p><strong>Комментарий:</strong> {device.comment}</p>
                                     )}
 
-                                    {device.workers && device.workers.map((workerId) => (
-                                        <p key={workerId}>
-                                            <strong>Работники:</strong> {workersMap[workerId] || 'Имя работника не найдено'}
+                                    {device.workers && device.workers.length > 0 && (
+                                        <p>
+                                            <strong>Работники:</strong> {device.workers
+                                                .map((workerId) => workersMap[workerId])
+                                                .filter(Boolean)
+                                                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                                                .map(worker => worker.name)
+                                                .join(', ')}
                                         </p>
-                                    ))}
+                                    )}
                                 </div>
                             ))}
                         </section>

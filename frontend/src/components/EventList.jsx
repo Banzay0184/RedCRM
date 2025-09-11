@@ -69,8 +69,8 @@ const EventList = ({
             const response = await getWorkers();
             const workersData = response.data;
             const workersMap = {};
-            workersData.forEach((service) => {
-                workersMap[service.id] = service.name;
+            workersData.forEach((worker) => {
+                workersMap[worker.id] = worker;
             });
             setWorker(workersMap);
         } catch (err) {

@@ -92,7 +92,7 @@ class WorkerAPIView(APIView):
     serializer_class = WorkersSerializer
 
     def get(self, request):
-        workers = Workers.objects.all()
+        workers = Workers.objects.all().order_by('order')
         serializer = WorkersSerializer(workers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

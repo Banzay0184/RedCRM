@@ -98,7 +98,7 @@ const EventCalendar = ({
 
     const workersMap = useMemo(() => {
         return workersList.reduce((map, worker) => {
-            map[worker.id] = worker.name;
+            map[worker.id] = worker;
             return map;
         }, {});
     }, [workersList]);
@@ -190,12 +190,16 @@ const EventCalendar = ({
                                         <div className="flex flex-wrap gap-1">
                                             {device.workers && device.workers.length > 0 && (
                                                 <div className='text-[8px] sm:text-[10px] text-gray-200'>
-                                                    {device.workers.map((workerId, workerIndex) => (
-                                                        <span key={workerId} className="inline-block mr-1">
-                                                            {workersMap[workerId] || `ID: ${workerId}`}
-                                                            {workerIndex < device.workers.length - 1 && ','}
-                                                        </span>
-                                                    ))}
+                                                    {device.workers
+                                                        .map((workerId) => workersMap[workerId])
+                                                        .filter(Boolean)
+                                                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                                                        .map((worker, workerIndex) => (
+                                                            <span key={worker.id} className="inline-block mr-1">
+                                                                {worker.name}
+                                                                {workerIndex < device.workers.length - 1 && ','}
+                                                            </span>
+                                                        ))}
                                                 </div>
                                             )}
                                         </div>
@@ -308,7 +312,10 @@ const EventCalendar = ({
                                     <strong>Работники: </strong>
                                     {selectedDevice.workers && selectedDevice.workers.length > 0
                                         ? selectedDevice.workers
-                                            .map((workerId) => workersMap[workerId] || `ID: ${workerId}`)
+                                            .map((workerId) => workersMap[workerId])
+                                            .filter(Boolean)
+                                            .sort((a, b) => (a.order || 0) - (b.order || 0))
+                                            .map(worker => worker.name)
                                             .join(', ')
                                         : 'Нет работников'}
                                 </p>

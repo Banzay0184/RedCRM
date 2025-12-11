@@ -1,16 +1,14 @@
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import {useEffect, useState, useContext} from "react";
-import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
-import ClientPage from "./pages/ClientPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import {jwtDecode} from "jwt-decode";
 import {getUser} from "./api";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import EventPage from "./pages/EventPage.jsx";
 import BaseContex, {GlobalContext} from "./components/BaseContex.jsx";
-import {getTokenStorage, isAdmin, canViewStatistics, getUserRole} from "./utils/roles.js";
+import {getTokenStorage, isAdmin, getUserRole} from "./utils/roles.js";
 
 function AppContent({onLogout}) {
     const {isAuthenticated, user} = useContext(GlobalContext);
@@ -20,16 +18,8 @@ function AppContent({onLogout}) {
             <Routes>
                 {isAuthenticated ? (
                     <Route path="/" element={<Layout user={user} onLogout={onLogout}/>}>
-                        {(() => {
-                            const canViewStats = canViewStatistics(user);
-                            return canViewStats ? (
-                                <Route index element={<HomePage/>}/>
-                            ) : (
-                                <Route index element={<EventPage/>}/>
-                            );
-                        })()}
+                        <Route index element={<EventPage/>}/>
                         {isAdmin(user) && <Route path="/settings" element={<SettingsPage/>}/>}
-                        {isAdmin(user) && <Route path="/clients" element={<ClientPage/>}/>}
                         <Route path="/profile" element={<ProfilePage user={user}/>}/>
                         <Route path="/events" element={<EventPage/>}/>
                         <Route path="*" element={<Navigate to="/" replace/>}/>

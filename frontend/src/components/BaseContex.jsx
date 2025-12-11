@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {getTokenStorage} from '../utils/roles.js';
 
 export const GlobalContext = React.createContext({});
 
@@ -13,9 +14,9 @@ function BaseContex({children, setUser, user, checkTokenExpiration, saveToken, i
             setRefresh(true)
         }
         if (user) {
-            localStorage.setItem("user", JSON.stringify(user))
-            // Не устанавливаем isAuthenticated здесь, чтобы избежать конфликтов
-            // isAuthenticated должен управляться только в App.jsx
+            const storage = getTokenStorage(user);
+            const targetStorage = storage === 'sessionStorage' ? sessionStorage : localStorage;
+            targetStorage.setItem("user", JSON.stringify(user));
         }
         // Убираем автоматический сброс isAuthenticated при отсутствии user
         // Это должно управляться только в App.jsx

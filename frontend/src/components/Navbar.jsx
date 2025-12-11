@@ -69,12 +69,6 @@ function Navbar({onLogout}) {
                 <div className="hidden lg:flex navbar-center">
                     <ul className="menu menu-horizontal px-4 space-x-4">
                         <li>
-                            <Link to="/clients" className="btn btn-outline btn-primary">
-                                Клиенты
-                            </Link>
-                        </li>
-
-                        <li>
                             <Link to="/events" className="btn btn-outline btn-primary">
                                 Мероприятия
                             </Link>
@@ -132,12 +126,6 @@ function Navbar({onLogout}) {
                         <div
                             className="lg:hidden absolute top-[10%] left-0 w-full bg-base-100 shadow-lg z-10 transition-all duration-300">
                             <ul className="flex flex-col items-center p-4 space-y-4">
-                                <li>
-                                    <Link to="/clients" className="btn btn-outline btn-primary">
-                                        Клиенты
-                                    </Link>
-                                </li>
-
                                 <li>
                                     <Link to="/events" className="hover:text-accent" onClick={toggleMobileMenu}>
                                         Мероприятия

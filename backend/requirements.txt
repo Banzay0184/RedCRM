@@ -36,16 +36,13 @@ kombu==5.4.2
 lsprotocol==2023.0.1
 mmh3==5.0.1
 mypy-extensions==1.0.0
-orjson==3.10.7
 packaging==23.1
 pathspec==0.12.1
 pbr==6.0.0
-pillow==11.0.0
 platformdirs==4.2.2
 ply==3.11
 prompt-toolkit==3.0.36
 protobuf==3.20.0
-psycopg2==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22

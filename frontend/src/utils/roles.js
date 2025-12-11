@@ -28,7 +28,7 @@ export const ROLE_PERMISSIONS = {
         canViewSettings: false,
         canManageSettings: false,
         canViewStatistics: true,
-        canUseSessionStorage: false,
+        canUseSessionStorage: true,
         canViewAllPages: false
     },
     [USER_ROLES.USER]: {

@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {deleteEvent, getServices, getWorkers} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
-import AdvanceManager from './AdvanceManager';
+import AddAdvanceModal from './AddAdvanceModal.jsx';
 import {format, isToday, isTomorrow, isValid, isWithinInterval, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
 import {FaDollarSign, FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
@@ -28,7 +28,7 @@ const EventList = ({
     const [editEvent, setEditEvent] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [advanceManagerOpen, setAdvanceManagerOpen] = useState(false);
-    const [currentEventId, setCurrentEventId] = useState(null);
+    const [advanceEvent, setAdvanceEvent] = useState(null);
 
     const {user} = useContext(GlobalContext);
 
@@ -117,14 +117,14 @@ const EventList = ({
         setConfirmDelete(null);
     };
 
-    const openAdvanceManager = (eventId) => {
-        setCurrentEventId(eventId);
+    const openAdvanceManager = (event) => {
+        setAdvanceEvent(event);
         setAdvanceManagerOpen(true);
     };
 
     const closeAdvanceManager = () => {
         setAdvanceManagerOpen(false);
-        setCurrentEventId(null);
+        setAdvanceEvent(null);
     };
 
     const sortEvents = (events) => {
@@ -194,7 +194,6 @@ const EventList = ({
                             <tr className="bg-primary text-white text-primary-content">
                                 <th>Клиент</th>
                                 <th>Телефон</th>
-                                <th>Ресторан</th>
                                 <th>Услуга и дата</th>
                                 <th className="text-center">Действия</th>
                             </tr>
@@ -211,7 +210,6 @@ const EventList = ({
                                             <div key={phone.id}>{phone.phone_number}</div>
                                         ))}
                                     </td>
-                                    <td>{event.restaurant_name}</td>
                                     <td>
                                         {event.devices.map((device) => {
                                             let dateClass = '';
@@ -272,7 +270,7 @@ const EventList = ({
                                         {canManageEvents(user) && (
                                             <button
                                                 className="btn btn-sm btn-success"
-                                                onClick={() => openAdvanceManager(event.id)}
+                                                onClick={() => openAdvanceManager(event)}
                                                 title="Управление авансами"
                                             >
                                                 <FaDollarSign className="text-white"/>
@@ -320,12 +318,12 @@ const EventList = ({
             )}
 
             {/* Модальное окно управления авансами */}
-            {advanceManagerOpen && (
-                <AdvanceManager
-                    eventId={currentEventId}
-                    isOpen={advanceManagerOpen}
+            {advanceManagerOpen && advanceEvent && (
+                <AddAdvanceModal
+                    event={advanceEvent}
                     onClose={closeAdvanceManager}
-                    onAdvanceUpdate={() => fetchServices()}
+                    onUpdate={onUpdateEvent}
+                    setErrorMessage={setErrorMessage}
                 />
             )}
 

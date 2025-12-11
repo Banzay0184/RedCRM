@@ -226,20 +226,7 @@ const EventPage = () => {
             ): ''}
 
             {/* Отображаем либо EventList, либо EventCalendar в зависимости от состояния viewMode */}
-            {viewMode === 'calendar' && canManageEvents(user) ? (
-                <EventList
-                    events={events}
-                    loading={loading}
-                    onDeleteEvent={handleDeleteEvent}
-                    onUpdateEvent={handleUpdateEvent}
-                    setErrorMessage={setErrorMessage}
-                    searchQuery={searchQuery}
-                    filterService={filterService}
-                    filterStartDate={filterStartDate}
-                    filterEndDate={filterEndDate}
-                />
-            ) : (
-
+            {viewMode === 'calendar' ? (
                 <EventCalendar
                     events={events}
                     loading={loading}
@@ -247,6 +234,18 @@ const EventPage = () => {
                     onUpdateEvent={handleUpdateEvent}
                     setErrorMessage={setErrorMessage}
                     services={services}
+                    searchQuery={searchQuery}
+                    filterService={filterService}
+                    filterStartDate={filterStartDate}
+                    filterEndDate={filterEndDate}
+                />
+            ) : (
+                <EventList
+                    events={events}
+                    loading={loading}
+                    onDeleteEvent={handleDeleteEvent}
+                    onUpdateEvent={handleUpdateEvent}
+                    setErrorMessage={setErrorMessage}
                     searchQuery={searchQuery}
                     filterService={filterService}
                     filterStartDate={filterStartDate}

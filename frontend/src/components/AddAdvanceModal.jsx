@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { FaMoneyBillWave, FaTimes, FaHistory, FaPlus, FaMinus, FaEdit } from 'react-icons/fa';
-import { updateEventAdvance, getEventById } from '../api.js';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FaMoneyBillWave, FaTimes, FaHistory, FaPlus, FaMinus, FaEdit, FaPaperPlane } from 'react-icons/fa';
+import { updateEventAdvance, getEventById, sendAdvanceNotification, getAdvanceNotificationLogs } from '../api.js';
+import { toast } from 'react-hot-toast';
+import { format, isValid, parseISO } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
     const [advanceAmount, setAdvanceAmount] = useState('');
@@ -11,11 +14,18 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
     const [currentEvent, setCurrentEvent] = useState(event);
     const [advanceHistory, setAdvanceHistory] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
+    const [sendingPhone, setSendingPhone] = useState(null);
+    const [sentStatus, setSentStatus] = useState({});
+    const [notificationHistory, setNotificationHistory] = useState([]);
+    const [showNotificationHistory, setShowNotificationHistory] = useState(false);
 
     // Загружаем актуальные данные события при открытии модального окна
     useEffect(() => {
         fetchEventData();
+        fetchNotificationHistory();
     }, []);
+
+    const phones = useMemo(() => currentEvent.client?.phones || [], [currentEvent.client?.phones]);
 
     const fetchEventData = async () => {
         try {
@@ -25,6 +35,58 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
             setAdvanceHistory(eventData.advance_history || []);
         } catch (error) {
             console.error('Ошибка при загрузке данных события:', error);
+        }
+    };
+
+    const fetchNotificationHistory = async () => {
+        try {
+            const response = await getAdvanceNotificationLogs(event.id);
+            setNotificationHistory(response.data || []);
+        } catch (error) {
+            console.error('Ошибка при загрузке истории отправок авансов:', error);
+        }
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return 'Дата не указана';
+        const date = parseISO(dateString);
+        if (!isValid(date)) return 'Дата не указана';
+        return format(date, 'dd.MM.yyyy HH:mm', { locale: ru });
+    };
+
+    const handleSendNotification = async (phoneNumber) => {
+        setSendingPhone(phoneNumber);
+        try {
+            const response = await sendAdvanceNotification(event.id, phoneNumber);
+            const status = response?.data?.status || 'success';
+            setSentStatus((prev) => ({ ...prev, [phoneNumber]: status }));
+            setNotificationHistory((prev) => [
+                {
+                    id: `local-${Date.now()}`,
+                    phone: phoneNumber,
+                    status,
+                    error: null,
+                    sent_at: new Date().toISOString(),
+                },
+                ...prev,
+            ]);
+            toast.success('Уведомление об авансе отправлено в Telegram');
+        } catch (error) {
+            const msg = error.response?.data?.detail || 'Не удалось отправить уведомление';
+            setSentStatus((prev) => ({ ...prev, [phoneNumber]: 'error' }));
+            setNotificationHistory((prev) => [
+                {
+                    id: `local-${Date.now()}`,
+                    phone: phoneNumber,
+                    status: 'error',
+                    error: msg,
+                    sent_at: new Date().toISOString(),
+                },
+                ...prev,
+            ]);
+            toast.error(msg);
+        } finally {
+            setSendingPhone(null);
         }
     };
 
@@ -249,10 +311,23 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                         <button
                             onClick={() => setShowHistory(!showHistory)}
                             className="btn btn-sm btn-outline border-gray-600 text-gray-300 hover:bg-gray-700"
-                            title="История авансов"
+                            title="История изменений авансов"
                         >
                             <FaHistory className="mr-1"/>
-                            История
+                            История изменений
+                        </button>
+                        <button
+                            onClick={() => {
+                                setShowNotificationHistory(!showNotificationHistory);
+                                if (!showNotificationHistory) {
+                                    fetchNotificationHistory();
+                                }
+                            }}
+                            className="btn btn-sm btn-outline border-gray-600 text-gray-300 hover:bg-gray-700"
+                            title="История отправок уведомлений"
+                        >
+                            <FaPaperPlane className="mr-1"/>
+                            История отправок
                         </button>
                 <button
                     onClick={onClose}
@@ -269,7 +344,37 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="bg-gray-800 border border-gray-700 p-3 rounded">
                             <p className="text-sm text-gray-400">Клиент</p>
-                            <p className="font-semibold text-white">{currentEvent.client.name}</p>
+                            <p className="font-semibold text-white">{currentEvent.client?.name || 'Не указан'}</p>
+                            {phones.length > 0 && (
+                                <div className="mt-2">
+                                    <p className="text-xs text-gray-500 mb-1">Телефоны:</p>
+                                    <div className="space-y-1">
+                                        {phones.map((phone) => (
+                                            <div key={phone.id} className="flex items-center gap-2 flex-wrap">
+                                                <span className="text-xs text-gray-300">+{phone.phone_number}</span>
+                                                <button
+                                                    className={`btn btn-xs ${sendingPhone === phone.phone_number ? 'loading' : 'btn-secondary'}`}
+                                                    onClick={() => handleSendNotification(phone.phone_number)}
+                                                    disabled={!!sendingPhone}
+                                                    title="Отправить уведомление об авансе"
+                                                >
+                                                    {sendingPhone === phone.phone_number ? (
+                                                        'Отправка...'
+                                                    ) : (
+                                                        <FaPaperPlane />
+                                                    )}
+                                                </button>
+                                                {sentStatus[phone.phone_number] === 'success' && (
+                                                    <span className="badge badge-success badge-xs text-white">Отправлено</span>
+                                                )}
+                                                {sentStatus[phone.phone_number] === 'error' && (
+                                                    <span className="badge badge-error badge-xs text-white">Ошибка</span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="bg-gray-800 border border-gray-700 p-3 rounded">
                             <p className="text-sm text-gray-400">Общая сумма</p>
@@ -285,10 +390,10 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                         </div>
                     </div>
 
-                    {/* История авансов */}
+                    {/* История изменений авансов */}
                     {showHistory && (
                         <div className="mb-4">
-                            <h4 className="text-lg font-semibold mb-2 text-white">История авансов</h4>
+                            <h4 className="text-lg font-semibold mb-2 text-white">История изменений авансов</h4>
                             <div className="max-h-40 overflow-y-auto border border-gray-700 rounded bg-gray-800">
                                 {advanceHistory.length > 0 ? (
                                     <div className="divide-y divide-gray-700">
@@ -312,7 +417,38 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                                     </div>
                                 ) : (
                                     <div className="p-4 text-center text-gray-400">
-                                        История авансов пуста
+                                        История изменений авансов пуста
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* История отправок уведомлений об авансе */}
+                    {showNotificationHistory && (
+                        <div className="mb-4">
+                            <h4 className="text-lg font-semibold mb-2 text-white">История отправок уведомлений об авансе</h4>
+                            <div className="max-h-40 overflow-y-auto border border-gray-700 rounded bg-gray-800">
+                                {notificationHistory.length > 0 ? (
+                                    <div className="divide-y divide-gray-700">
+                                        {notificationHistory.map((item) => (
+                                            <div key={item.id} className="p-3 flex flex-wrap gap-2 items-center text-sm hover:bg-gray-700">
+                                                <span className="font-semibold text-white">+{item.phone}</span>
+                                                <span
+                                                    className={`badge badge-xs ${item.status === 'success' ? 'badge-success' : 'badge-error'} text-white`}
+                                                >
+                                                    {item.status === 'success' ? 'Успех' : 'Ошибка'}
+                                                </span>
+                                                <span className="text-gray-400">
+                                                    {item.sent_at ? formatDateTime(item.sent_at) : ''}
+                                                </span>
+                                                {item.error && <span className="text-error text-xs">{item.error}</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center text-gray-400">
+                                        Отправок уведомлений об авансе ещё не было
                                     </div>
                                 )}
                             </div>

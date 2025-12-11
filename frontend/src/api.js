@@ -1,9 +1,11 @@
 import axios from "axios";
 
 // Базовый URL для всех запросов
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? "https://mukhammadrizo07.pythonanywhere.com/api" 
-    : "http://127.0.0.1:8000/api";
+// const API_BASE_URL = process.env.NODE_ENV === 'production' 
+//     ? "https://mukhammadrizo07.pythonanywhere.com/api" 
+//     : "http://127.0.0.1:8000/api";
+
+const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api" 
 
 
 // Создаём экземпляр axios с базовой конфигурацией
@@ -81,7 +83,23 @@ export const updateWorkersOrder = (data) => api.post("/workers/update_order/", d
 
 export const getServices = () => api.get("/services/");
 export const createService = (data) => api.post("/services/", data);
-export const deleteService = (id)=> api.delete(`/services/${id}/`);
-export const updateService = (id, data) => api.put(`/services/${id}/`, data);
+export const deleteService = (id)=> api.delete(`/service/${id}/`);
+export const updateService = (id, data) => api.put(`/service/${id}/`, data);
+
+// Telegram contract sending (backend endpoint ожидается как POST /events/{id}/send_contract/)
+export const sendEventContract = (eventId, phone) =>
+  api.post(`/events/${eventId}/send_contract/`, phone ? { phone } : {});
+
+// История отправок договора (GET /events/{id}/contract_logs/)
+export const getEventContractLogs = (eventId) =>
+  api.get(`/events/${eventId}/contract_logs/`);
+
+// Отправка уведомления об авансе в Telegram (POST /events/{id}/send_advance_notification/)
+export const sendAdvanceNotification = (eventId, phone) =>
+  api.post(`/events/${eventId}/send_advance_notification/`, phone ? { phone } : {});
+
+// История отправок уведомлений об авансе (GET /events/{id}/advance_notification_logs/)
+export const getAdvanceNotificationLogs = (eventId) =>
+  api.get(`/events/${eventId}/advance_notification_logs/`);
 
 export default api;

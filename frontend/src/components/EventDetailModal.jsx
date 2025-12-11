@@ -1,8 +1,15 @@
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {format, isValid, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
+import {getEventContractLogs, sendEventContract} from '../api';
+import {toast} from 'react-hot-toast';
 
 const EventDetailModal = ({event, services, servicesColor, workersMap, onClose}) => {
+    const [sendingPhone, setSendingPhone] = useState(null);
+    const [sentStatus, setSentStatus] = useState({});
+    const [history, setHistory] = useState(() => event.telegram_logs || event.telegram_history || []);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
     const formatCurrency = (number, isUSD) =>
         new Intl.NumberFormat('ru-RU', {
             style: 'currency',
@@ -36,6 +43,60 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
         window.print();
     };
 
+    useEffect(() => {
+        const loadHistory = async () => {
+            setHistoryLoading(true);
+            try {
+                const res = await getEventContractLogs(event.id);
+                setHistory(res.data || []);
+            } catch (error) {
+                // Логируем, но не мешаем UI
+                console.error('Не удалось загрузить историю отправок', error);
+            } finally {
+                setHistoryLoading(false);
+            }
+        };
+        loadHistory();
+    }, [event.id]);
+
+    const phones = useMemo(() => event.client.phones || [], [event.client.phones]);
+
+    const handleSendContract = async (phoneNumber) => {
+        setSendingPhone(phoneNumber);
+        try {
+            const response = await sendEventContract(event.id, phoneNumber);
+            const status = response?.data?.status || 'success';
+            setSentStatus((prev) => ({...prev, [phoneNumber]: status}));
+            setHistory((prev) => [
+                {
+                    id: `local-${Date.now()}`,
+                    phone: phoneNumber,
+                    status,
+                    error: null,
+                    sent_at: new Date().toISOString(),
+                },
+                ...prev,
+            ]);
+            toast.success('Договор отправлен в Telegram');
+        } catch (error) {
+            const msg = error.response?.data?.detail || 'Не удалось отправить договор';
+            setSentStatus((prev) => ({...prev, [phoneNumber]: 'error'}));
+            setHistory((prev) => [
+                {
+                    id: `local-${Date.now()}`,
+                    phone: phoneNumber,
+                    status: 'error',
+                    error: msg,
+                    sent_at: new Date().toISOString(),
+                },
+                ...prev,
+            ]);
+            toast.error(msg);
+        } finally {
+            setSendingPhone(null);
+        }
+    };
+
     // Текущая дата для печатной версии
     const currentDate = format(new Date(), 'dd MMMM yyyy', {locale: ru});
 
@@ -64,12 +125,53 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                             <p className="text-lg ml-4">{event.client.name}</p>
                             <div className="mt-2">
                                 <p className="font-semibold">Телефоны:</p>
-                                <ul className="ml-4">
-                                    {event.client.phones.map((phone) => (
-                                        <li key={phone.id}>+{phone.phone_number}</li>
+                                <ul className="ml-4 space-y-2">
+                                    {phones.map((phone) => (
+                                        <li key={phone.id} className="flex items-center gap-3 flex-wrap">
+                                            <span className="font-medium">+{phone.phone_number}</span>
+                                            <button
+                                                className={`btn btn-sm btn-secondary ${sendingPhone === phone.phone_number ? 'loading' : ''}`}
+                                                onClick={() => handleSendContract(phone.phone_number)}
+                                                disabled={!!sendingPhone}
+                                            >
+                                                {sendingPhone === phone.phone_number ? 'Отправка...' : 'Отправить в Telegram'}
+                                            </button>
+                                            {sentStatus[phone.phone_number] === 'success' && (
+                                                <span className="badge badge-success text-white">Отправлено</span>
+                                            )}
+                                            {sentStatus[phone.phone_number] === 'error' && (
+                                                <span className="badge badge-error text-white">Ошибка</span>
+                                            )}
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
+                        </section>
+
+                        <section className="border-b pb-4">
+                            <h4 className="text-xl font-semibold">История отправок</h4>
+                            {historyLoading ? (
+                                <p className="text-sm text-gray-500 mt-2">Загрузка...</p>
+                            ) : history?.length ? (
+                                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                                    {history.map((item) => (
+                                        <div key={item.id} className="flex flex-wrap gap-3 items-center text-sm">
+                                            <span className="font-semibold">+{item.phone}</span>
+                                            <span
+                                                className={`badge ${item.status === 'success' ? 'badge-success' : 'badge-error'} text-white`}
+                                            >
+                                                {item.status === 'success' ? 'Успех' : 'Ошибка'}
+                                            </span>
+                                            <span className="text-gray-600">
+                                                {item.sent_at ? formatDateTime(item.sent_at) : ''}
+                                            </span>
+                                            {item.error && <span className="text-error">{item.error}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500 mt-2">Отправок ещё не было</p>
+                            )}
                         </section>
 
                         <section className="border-b pb-4">
@@ -138,12 +240,14 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Кнопка печати */}
-                    <button
-                        className="btn btn-primary w-full mt-6 print:hidden"
-                        onClick={handlePrint}
-                    >
-                        Печать
-                    </button>
+                    <div className="flex flex-col gap-3 mt-6 print:hidden">
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={handlePrint}
+                        >
+                            Печать
+                        </button>
+                    </div>
                 </div>
 
                 {/* Печатный макет */}

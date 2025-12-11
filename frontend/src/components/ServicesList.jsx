@@ -1,6 +1,119 @@
 import React, {useEffect, useState} from 'react';
+import {closestCenter, DndContext, PointerSensor, TouchSensor, useSensor, useSensors} from '@dnd-kit/core';
+import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import {useSortable} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 import {createService, deleteService, getServices, updateService} from '../api';
 import {toast} from 'react-hot-toast';
+
+// Визуал карточки услуги с поддержкой drag & drop и стрелок
+function SortableServiceItem({
+    id,
+    service,
+    onEdit,
+    onDelete,
+    onMoveUp,
+    onMoveDown,
+    canMoveUp,
+    canMoveDown,
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({id});
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition: transition || 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            className="sortable-item bg-white p-2 rounded-xl shadow-lg flex items-center justify-between touch-manipulation"
+            data-draggable="true"
+        >
+            <div
+                {...listeners}
+                className="flex flex-col drag-handle flex-grow"
+            >
+                <div className="flex items-center space-x-2">
+                    <span
+                        className="inline-block w-4 h-4 rounded-full border"
+                        style={{backgroundColor: service.color}}
+                    />
+                    <span className="text-lg font-semibold text-gray-800">{service.name}</span>
+                    <span className="drag-indicator text-gray-400 text-sm select-none">⋮⋮</span>
+                </div>
+                <span className="text-gray-600 text-sm">
+                    Камера активна: {service.is_active_camera ? 'Да' : 'Нет'}
+                </span>
+            </div>
+            <div className="flex space-x-2 items-center">
+                <div className="flex flex-col space-y-1">
+                    <button
+                        className={`move-button w-8 h-8 flex items-center justify-center rounded-full text-gray-500 touch-manipulation ${
+                            !canMoveUp
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100'
+                                : 'hover:text-white hover:bg-blue-500 hover:shadow-md active:scale-95'
+                        }`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (canMoveUp) onMoveUp();
+                        }}
+                        disabled={!canMoveUp}
+                        title="Переместить вверх"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                    </button>
+                    <button
+                        className={`move-button w-8 h-8 flex items-center justify-center rounded-full text-gray-500 touch-manipulation ${
+                            !canMoveDown
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100'
+                                : 'hover:text-white hover:bg-blue-500 hover:shadow-md active:scale-95'
+                        }`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (canMoveDown) onMoveDown();
+                        }}
+                        disabled={!canMoveDown}
+                        title="Переместить вниз"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <button
+                    className="text-blue-500 font-semibold hover:text-blue-700 transition duration-150 touch-manipulation"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit();
+                    }}
+                >
+                    ✏️
+                </button>
+                <button
+                    className="text-red-500 font-semibold hover:text-red-700 transition duration-150 touch-manipulation"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }}
+                >
+                    🗑️
+                </button>
+            </div>
+        </div>
+    );
+}
 
 function ServicesList() {
     const [services, setServices] = useState([]);
@@ -10,6 +123,15 @@ function ServicesList() {
     const [editingServiceId, setEditingServiceId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {distance: 10},
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {delay: 150, tolerance: 8},
+        }),
+    );
+
     useEffect(() => {
         fetchServices();
     }, []);
@@ -17,7 +139,8 @@ function ServicesList() {
     const fetchServices = async () => {
         try {
             const response = await getServices();
-            setServices(response.data);
+            const sorted = [...response.data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            setServices(sorted);
         } catch (error) {
             toast.error('Ошибка загрузки списка услуг');
         }
@@ -27,11 +150,16 @@ function ServicesList() {
         try {
             const serviceData = {name: currentService, is_active_camera: isActiveCamera, color: color};
             if (editingServiceId) {
-                await updateService(editingServiceId, serviceData);
-                setServices((prev) => prev.map((s) => (s.id === editingServiceId ? {...s, ...serviceData} : s)));
+                // сохраняем order текущей услуги
+                const existing = services.find((s) => s.id === editingServiceId);
+                const payload = {...serviceData, order: existing?.order ?? 0};
+                await updateService(editingServiceId, payload);
+                setServices((prev) => prev.map((s) => (s.id === editingServiceId ? {...s, ...payload} : s)));
                 toast.success('Услуга обновлена');
             } else {
-                const response = await createService(serviceData);
+                const maxOrder = services.length > 0 ? Math.max(...services.map((s) => s.order ?? 0)) : 0;
+                const payload = {...serviceData, order: maxOrder + 1};
+                const response = await createService(payload);
                 setServices([...services, response.data]);
                 toast.success('Услуга добавлена');
             }
@@ -67,9 +195,66 @@ function ServicesList() {
         setIsModalOpen(false);
     };
 
+    const persistOrder = async (newServices) => {
+        try {
+            await Promise.all(
+                newServices.map((service, index) =>
+                    updateService(service.id, {
+                        name: service.name,
+                        is_active_camera: service.is_active_camera,
+                        color: service.color,
+                        order: index,
+                    }),
+                ),
+            );
+            toast.success('Порядок услуг обновлен');
+        } catch (error) {
+            toast.error('Ошибка обновления порядка услуг');
+            fetchServices();
+        }
+    };
+
+    const handleDragEnd = async (event) => {
+        const {active, over} = event;
+        document.body.style.cursor = '';
+
+        if (!over || active.id === over.id) {
+            return;
+        }
+
+        const oldIndex = services.findIndex((s) => s.id === active.id);
+        const newIndex = services.findIndex((s) => s.id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const newServices = arrayMove(services, oldIndex, newIndex);
+        setServices(newServices);
+        await persistOrder(newServices);
+    };
+
+    const handleMoveUp = async (serviceId) => {
+        const currentIndex = services.findIndex((s) => s.id === serviceId);
+        if (currentIndex > 0) {
+            const newServices = arrayMove(services, currentIndex, currentIndex - 1);
+            setServices(newServices);
+            await persistOrder(newServices);
+        }
+    };
+
+    const handleMoveDown = async (serviceId) => {
+        const currentIndex = services.findIndex((s) => s.id === serviceId);
+        if (currentIndex < services.length - 1) {
+            const newServices = arrayMove(services, currentIndex, currentIndex + 1);
+            setServices(newServices);
+            await persistOrder(newServices);
+        }
+    };
+
     return (
         <div className="p-2 flex flex-col items-center">
             <h2 className="text-2xl font-semibold mb-3">Управление Услугами</h2>
+            <p className="text-sm text-gray-600 mb-4 text-center">
+                Перетащите услугу или используйте стрелки ↑↓ для изменения порядка
+            </p>
 
             <button
                 className="bg-blue-600 text-white px-4 py-2 rounded-full mb-4 shadow-md hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
@@ -81,34 +266,34 @@ function ServicesList() {
                 Добавить Услугу
             </button>
 
-            <div className="grid grid-cols-1 gap-6 w-full">
-                {services.map((service) => (
-                    <div
-                        key={service.id}
-                        className="bg-white p-2 rounded-xl shadow-lg flex items-center justify-between transition-transform duration-200 hover:scale-105"
-                        style={{borderLeft: `5px solid ${service.color}`}}
-                    >
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 rounded-full" style={{backgroundColor: service.color}}></div>
-                            <span className="text-lg font-semibold text-gray-800">{service.name}</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <button
-                                className="text-blue-500 font-semibold hover:text-blue-700 transition duration-150"
-                                onClick={() => handleEditService(service)}
-                            >
-                                ✏️
-                            </button>
-                            <button
-                                className="text-red-500 font-semibold hover:text-red-700 transition duration-150"
-                                onClick={() => handleDeleteService(service.id)}
-                            >
-                                🗑️
-                            </button>
-                        </div>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                onDragStart={() => { document.body.style.cursor = 'grabbing'; }}
+                onDragCancel={() => { document.body.style.cursor = ''; }}
+            >
+                <SortableContext
+                    items={services.map((s) => s.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="grid grid-cols-1 gap-6 w-full">
+                        {services.map((service, index) => (
+                            <SortableServiceItem
+                                key={service.id}
+                                id={service.id}
+                                service={service}
+                                onEdit={() => handleEditService(service)}
+                                onDelete={() => handleDeleteService(service.id)}
+                                onMoveUp={() => handleMoveUp(service.id)}
+                                onMoveDown={() => handleMoveDown(service.id)}
+                                canMoveUp={index > 0}
+                                canMoveDown={index < services.length - 1}
+                            />
+                        ))}
                     </div>
-                ))}
-            </div>
+                </SortableContext>
+            </DndContext>
 
             {isModalOpen && (
                 <div

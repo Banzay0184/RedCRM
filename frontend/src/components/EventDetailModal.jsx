@@ -62,6 +62,11 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
     const phones = useMemo(() => event.client.phones || [], [event.client.phones]);
 
     const handleSendContract = async (phoneNumber) => {
+        // Предотвращаем повторные вызовы
+        if (sendingPhone) {
+            return;
+        }
+        
         setSendingPhone(phoneNumber);
         try {
             const response = await sendEventContract(event.id, phoneNumber);

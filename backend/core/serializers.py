@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Client, PhoneClient, Workers, Service, Device, Event, EventLog, AdvanceHistory
+from .models import (
+    Client, PhoneClient, Workers, Service, Device, Event, EventLog, AdvanceHistory,
+    TelegramContractLog, TelegramAdvanceNotificationLog
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -202,3 +205,19 @@ class EventLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLog
         fields = ["id", "event", "message", "created_at"]
+
+
+class TelegramContractLogSerializer(serializers.ModelSerializer):
+    """Сериализатор для истории отправки договоров в Telegram."""
+
+    class Meta:
+        model = TelegramContractLog
+        fields = ["id", "phone", "status", "error", "message_text", "telegram_user_id", "sent_at"]
+
+
+class TelegramAdvanceNotificationLogSerializer(serializers.ModelSerializer):
+    """Сериализатор для истории отправки уведомлений об авансе в Telegram."""
+
+    class Meta:
+        model = TelegramAdvanceNotificationLog
+        fields = ["id", "phone", "status", "error", "message_text", "telegram_user_id", "sent_at"]

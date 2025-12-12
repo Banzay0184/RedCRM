@@ -1,16 +1,37 @@
+import asyncio
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, Workers, Service, Event, AdvanceHistory
+from .models import Client, Workers, Service, Event, AdvanceHistory, TelegramContractLog, TelegramAdvanceNotificationLog
 from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer, \
-    AdvanceHistorySerializer
+    AdvanceHistorySerializer, TelegramContractLogSerializer, TelegramAdvanceNotificationLogSerializer
+from .telegram_service import TelegramService
+from .message_templates import generate_contract_message, generate_advance_notification_message
+
+# Примечание: nest_asyncio не используется, так как Telegram операции выполняются в отдельном потоке
+
+
+def run_async_telegram(coro):
+    """Выполнить асинхронную функцию Telegram в отдельном потоке с event loop."""
+    import concurrent.futures
+    
+    def run_in_thread():
+        """Запустить coroutine используя asyncio.run в отдельном потоке."""
+        # asyncio.run создает новый event loop и правильно обрабатывает все задачи
+        # Это правильный способ запуска async функций, который поддерживает wait_for
+        return asyncio.run(coro)
+    
+    # Используем ThreadPoolExecutor для выполнения в отдельном потоке
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(run_in_thread)
+        return future.result()
 
 
 class ProtectedView(APIView):
@@ -229,3 +250,174 @@ class EventAPIView(APIView):
         return Response(
             {"detail": "Event and its related devices deleted successfully."}, status=status.HTTP_204_NO_CONTENT
         )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_event_contract(request, pk):
+    """Отправка договора в Telegram."""
+    
+    event = get_object_or_404(Event, pk=pk)
+    phone = request.data.get('phone')
+    
+    if not phone:
+        return Response(
+            {"detail": "Номер телефона обязателен"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Нормализация номера
+    phone = TelegramService.normalize_phone(phone)
+    
+    # Валидация номера
+    if not TelegramService.validate_phone_number(phone):
+        return Response(
+            {"detail": "Неверный формат номера телефона. Ожидается формат: +998XXXXXXXXX"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Генерация текста договора
+    message_text = generate_contract_message(event)
+    
+    # Отправка сообщения
+    try:
+        result = run_async_telegram(TelegramService.send_message(phone, message_text))
+        
+        # Сохранение лога
+        log = TelegramContractLog.objects.create(
+            event=event,
+            phone=phone,
+            status='success' if result.get('ok') else 'error',
+            error=result.get('error'),
+            message_text=message_text,
+            telegram_user_id=result.get('telegram_user_id')
+        )
+        
+        if result.get('ok'):
+            return Response({
+                "status": "success",
+                "message": "Договор успешно отправлен в Telegram",
+                "telegram_user_id": result.get('telegram_user_id')
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": "error",
+                "detail": result.get('error', 'Неизвестная ошибка')
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        # Сохранение лога с ошибкой
+        TelegramContractLog.objects.create(
+            event=event,
+            phone=phone,
+            status='error',
+            error=str(e),
+            message_text=message_text
+        )
+        return Response(
+            {"detail": f"Ошибка при отправке: {str(e)}"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_contract_logs(request, pk):
+    """Получение истории отправок договоров."""
+    
+    event = get_object_or_404(Event, pk=pk)
+    logs = TelegramContractLog.objects.filter(event=event).order_by('-sent_at')
+    serializer = TelegramContractLogSerializer(logs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_advance_notification(request, pk):
+    """Отправка уведомления об авансе в Telegram."""
+    
+    event = get_object_or_404(Event, pk=pk)
+    phone = request.data.get('phone')
+    
+    if not phone:
+        return Response(
+            {"detail": "Номер телефона обязателен"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Нормализация номера
+    phone = TelegramService.normalize_phone(phone)
+    
+    # Валидация номера
+    if not TelegramService.validate_phone_number(phone):
+        return Response(
+            {"detail": "Неверный формат номера телефона. Ожидается формат: +998XXXXXXXXX"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Получаем последнюю запись из истории аванса
+    last_advance_history = AdvanceHistory.objects.filter(event=event).order_by('-date').first()
+    
+    if not last_advance_history:
+        return Response(
+            {"detail": "История изменений аванса не найдена"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Генерация текста уведомления
+    message_text = generate_advance_notification_message(
+        event, 
+        last_advance_history.change_type, 
+        last_advance_history.amount
+    )
+    
+    # Отправка сообщения
+    try:
+        result = run_async_telegram(TelegramService.send_message(phone, message_text))
+        
+        # Сохранение лога
+        log = TelegramAdvanceNotificationLog.objects.create(
+            event=event,
+            phone=phone,
+            status='success' if result.get('ok') else 'error',
+            error=result.get('error'),
+            message_text=message_text,
+            telegram_user_id=result.get('telegram_user_id')
+        )
+        
+        if result.get('ok'):
+            return Response({
+                "status": "success",
+                "message": "Уведомление об авансе успешно отправлено в Telegram",
+                "telegram_user_id": result.get('telegram_user_id')
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": "error",
+                "detail": result.get('error', 'Неизвестная ошибка')
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        # Сохранение лога с ошибкой
+        TelegramAdvanceNotificationLog.objects.create(
+            event=event,
+            phone=phone,
+            status='error',
+            error=str(e),
+            message_text=message_text
+        )
+        return Response(
+            {"detail": f"Ошибка при отправке: {str(e)}"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_advance_notification_logs(request, pk):
+    """Получение истории отправок уведомлений об авансе."""
+    
+    event = get_object_or_404(Event, pk=pk)
+    logs = TelegramAdvanceNotificationLog.objects.filter(event=event).order_by('-sent_at')
+    serializer = TelegramAdvanceNotificationLogSerializer(logs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

@@ -12,7 +12,11 @@ from .views import (
     ServiceDetailView,
     WorkerDetailView,
     update_workers_order,
-    update_advance
+    update_advance,
+    send_event_contract,
+    get_contract_logs,
+    send_advance_notification,
+    get_advance_notification_logs
 )
 
 urlpatterns = [
@@ -32,5 +36,9 @@ urlpatterns = [
     path("service/<int:pk>/", ServiceDetailView.as_view(), name="service-detail"),
     path("events/", EventAPIView.as_view(), name="event-list"),
     path("events/<int:pk>/", EventAPIView.as_view(), name="event-detail"),
-path("events/<int:pk>/update_advance/", update_advance, name="update_advance"),
+    path("events/<int:pk>/update_advance/", update_advance, name="update_advance"),
+    path("events/<int:pk>/send_contract/", send_event_contract, name="send_contract"),
+    path("events/<int:pk>/contract_logs/", get_contract_logs, name="contract_logs"),
+    path("events/<int:pk>/send_advance_notification/", send_advance_notification, name="send_advance_notification"),
+    path("events/<int:pk>/advance_notification_logs/", get_advance_notification_logs, name="advance_notification_logs"),
 ]

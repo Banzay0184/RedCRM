@@ -48,8 +48,8 @@ function App() {
         return sessionStorage.getItem("token") || localStorage.getItem("token");
     };
 
-    // Проверка срока действия токена
-    const checkTokenExpiration = async () => {
+    // Проверка срока действия токена (только проверка, без запроса профиля)
+    const checkTokenExpiration = async (shouldFetchProfile = false) => {
         const token = getToken();
 
         if (token) {
@@ -60,25 +60,29 @@ function App() {
                 if (decodedToken.exp < currentTime) {
                     handleLogout(); // Токен истек
                 } else {
-                    // Сначала проверяем, есть ли пользователь в localStorage
-                    const savedUser = localStorage.getItem("user");
-                    if (savedUser && !user) {
-                        try {
-                            const parsedUser = JSON.parse(savedUser);
-                            setUser(parsedUser);
-                            setIsAuthenticated(true);
-                            setIsLoading(false);
-                            
-                            // Проверяем профиль в фоне для обновления данных
-                            fetchUserProfile(decodedToken.user_id, true);
-                            return;
-                        } catch (error) {
-                            localStorage.removeItem("user");
+                    // Если нужно получить профиль (только при первой загрузке)
+                    if (shouldFetchProfile) {
+                        // Сначала проверяем, есть ли пользователь в localStorage
+                        const savedUser = localStorage.getItem("user");
+                        if (savedUser && !user) {
+                            try {
+                                const parsedUser = JSON.parse(savedUser);
+                                setUser(parsedUser);
+                                setIsAuthenticated(true);
+                                setIsLoading(false);
+                                
+                                // Проверяем профиль в фоне для обновления данных
+                                fetchUserProfile(decodedToken.user_id, true);
+                                return;
+                            } catch (error) {
+                                localStorage.removeItem("user");
+                            }
                         }
+                        
+                        // Если пользователя нет в localStorage или произошла ошибка, получаем с сервера
+                        await fetchUserProfile(decodedToken.user_id);
                     }
-                    
-                    // Если пользователя нет в localStorage или произошла ошибка, получаем с сервера
-                    await fetchUserProfile(decodedToken.user_id);
+                    // Если профиль уже загружен, просто проверяем токен без запроса к серверу
                 }
             } catch (error) {
                 handleLogout(); // При ошибке выходим
@@ -118,15 +122,15 @@ function App() {
 
     useEffect(() => {
         const initializeAuth = async () => {
-            await checkTokenExpiration();
+            await checkTokenExpiration(true); // При первой загрузке получаем профиль
         };
         
         initializeAuth();
 
-        // Проверка токена каждые 60 секунд
+        // Проверка токена каждые 5 минут (только проверка без запроса профиля)
         const interval = setInterval(() => {
-            checkTokenExpiration();
-        }, 60000);
+            checkTokenExpiration(false); // Только проверка токена, без запроса профиля
+        }, 300000); // 5 минут вместо 1 минуты
 
         return () => clearInterval(interval);
     }, []);

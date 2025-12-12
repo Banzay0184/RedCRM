@@ -55,6 +55,11 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
     };
 
     const handleSendNotification = async (phoneNumber) => {
+        // Предотвращаем повторные вызовы
+        if (sendingPhone) {
+            return;
+        }
+        
         setSendingPhone(phoneNumber);
         try {
             const response = await sendAdvanceNotification(event.id, phoneNumber);

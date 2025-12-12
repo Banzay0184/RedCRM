@@ -156,3 +156,47 @@ class EventLog(BaseModel):
 
     def __str__(self):
         return f"Лог для {self.event}: {self.message}"
+
+
+class TelegramContractLog(BaseModel):
+    """История отправки договоров в Telegram."""
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_contract_logs")
+    phone = models.CharField(max_length=15)
+    status = models.CharField(
+        max_length=20,
+        choices=[('success', 'Успешно'), ('error', 'Ошибка')],
+        default='error'
+    )
+    error = models.TextField(null=True, blank=True)
+    message_text = models.TextField(null=True, blank=True)
+    telegram_user_id = models.BigIntegerField(null=True, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f"Договор для {self.event} на {self.phone} - {self.get_status_display()}"
+
+
+class TelegramAdvanceNotificationLog(BaseModel):
+    """История отправки уведомлений об авансе в Telegram."""
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_advance_notification_logs")
+    phone = models.CharField(max_length=15)
+    status = models.CharField(
+        max_length=20,
+        choices=[('success', 'Успешно'), ('error', 'Ошибка')],
+        default='error'
+    )
+    error = models.TextField(null=True, blank=True)
+    message_text = models.TextField(null=True, blank=True)
+    telegram_user_id = models.BigIntegerField(null=True, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f"Уведомление об авансе для {self.event} на {self.phone} - {self.get_status_display()}"

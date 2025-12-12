@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,6 +26,7 @@ SECRET_KEY = "django-insecure-2^39efq6=s5rt2#-5%ad8@i0&5+!jk3k@7pdizh1fan)oyax5g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 # ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
 ALLOWED_HOSTS = ['*']
 
@@ -93,12 +95,18 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'redcrm',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -166,3 +174,9 @@ SIMPLE_JWT = {
     "SIGNING_KEY": SECRET_KEY,  # Замените на свой секретный ключ
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+# Telegram settings
+TG_API_ID = int(os.getenv('TG_API_ID', '37698132'))
+TG_API_HASH = os.getenv('TG_API_HASH', 'b29f51e475722c2e938429041e2f2b79')
+TG_PHONE = os.getenv('TG_PHONE', '+998904140184')
+TG_SESSION_FILE = os.getenv('TG_SESSION_FILE', str(BASE_DIR / 'session_name'))

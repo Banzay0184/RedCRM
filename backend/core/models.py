@@ -35,9 +35,15 @@ class PhoneNumber(models.Model):
 class Client(BaseModel):
     """Модель клиента."""
 
-    name = models.CharField(max_length=255, null=True, blank=True)
-    is_vip = models.BooleanField(default=False)
-    is_archived = models.BooleanField(default=False)
+    name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    is_vip = models.BooleanField(default=False, db_index=True)
+    is_archived = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_archived', 'is_vip']),
+            models.Index(fields=['created_at']),
+        ]
 
     def __str__(self):
         return self.name or "Без имени"
@@ -46,7 +52,12 @@ class Client(BaseModel):
 class PhoneClient(PhoneNumber, BaseModel):
     """Модель для хранения телефонов клиента."""
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="phones")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="phones", db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['client', 'phone_number']),
+        ]
 
     def __str__(self):
         return self.phone_number
@@ -55,8 +66,14 @@ class PhoneClient(PhoneNumber, BaseModel):
 class Workers(PhoneNumber, BaseModel):
     """Модель сотрудников."""
 
-    name = models.CharField(max_length=255)
-    order = models.IntegerField(default=0, null=True, blank=True)
+    name = models.CharField(max_length=255, db_index=True)
+    order = models.IntegerField(default=0, null=True, blank=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['order']),
+        ]
+        ordering = ['order']
 
     def __str__(self):
         return self.name
@@ -88,13 +105,20 @@ class Device(BaseModel):
 class Event(BaseModel):
     """Модель мероприятий."""
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events")
-    amount = models.PositiveIntegerField(default=0)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="events", db_index=True)
+    amount = models.PositiveIntegerField(default=0, db_index=True)
     amount_money = models.BooleanField(default=False)
-    advance = models.PositiveIntegerField(default=0)
+    advance = models.PositiveIntegerField(default=0, db_index=True)
     advance_money = models.BooleanField(default=False)
     computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['client', 'created_at']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['amount']),
+        ]
 
     def update_advance(self, amount, change_type, advance_money=None):
         """Метод обновления аванса с сохранением истории."""
@@ -134,13 +158,20 @@ class Event(BaseModel):
 class AdvanceHistory(BaseModel):
     """История изменений аванса."""
 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="advance_history")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="advance_history", db_index=True)
     amount = models.IntegerField()  # Сумма изменения
     change_type = models.CharField(
         max_length=10,
         choices=[('add', 'Добавлено'), ('subtract', 'Убыло')]
     )
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['event', '-date']),
+            models.Index(fields=['-date']),
+        ]
+        ordering = ['-date']
 
     def __str__(self):
         return f"{self.amount} {self.get_change_type_display()} - {self.date}"
@@ -161,20 +192,25 @@ class EventLog(BaseModel):
 class TelegramContractLog(BaseModel):
     """История отправки договоров в Telegram."""
 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_contract_logs")
-    phone = models.CharField(max_length=15)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_contract_logs", db_index=True)
+    phone = models.CharField(max_length=15, db_index=True)
     status = models.CharField(
         max_length=20,
         choices=[('success', 'Успешно'), ('error', 'Ошибка')],
-        default='error'
+        default='error',
+        db_index=True
     )
     error = models.TextField(null=True, blank=True)
     message_text = models.TextField(null=True, blank=True)
     telegram_user_id = models.BigIntegerField(null=True, blank=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ['-sent_at']
+        indexes = [
+            models.Index(fields=['event', '-sent_at']),
+            models.Index(fields=['status', '-sent_at']),
+        ]
 
     def __str__(self):
         return f"Договор для {self.event} на {self.phone} - {self.get_status_display()}"
@@ -183,20 +219,113 @@ class TelegramContractLog(BaseModel):
 class TelegramAdvanceNotificationLog(BaseModel):
     """История отправки уведомлений об авансе в Telegram."""
 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_advance_notification_logs")
-    phone = models.CharField(max_length=15)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="telegram_advance_notification_logs", db_index=True)
+    phone = models.CharField(max_length=15, db_index=True)
     status = models.CharField(
         max_length=20,
         choices=[('success', 'Успешно'), ('error', 'Ошибка')],
-        default='error'
+        default='error',
+        db_index=True
     )
     error = models.TextField(null=True, blank=True)
     message_text = models.TextField(null=True, blank=True)
     telegram_user_id = models.BigIntegerField(null=True, blank=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ['-sent_at']
+        indexes = [
+            models.Index(fields=['event', '-sent_at']),
+            models.Index(fields=['status', '-sent_at']),
+        ]
 
     def __str__(self):
         return f"Уведомление об авансе для {self.event} на {self.phone} - {self.get_status_display()}"
+
+
+class WorkerNotificationSettings(BaseModel):
+    """Настройки времени отправки уведомлений работникам о мероприятиях."""
+    
+    notification_time = models.TimeField(
+        help_text="Время отправки уведомлений (например, 09:00)"
+    )
+    enabled = models.BooleanField(
+        default=True,
+        help_text="Включены ли автоматические уведомления"
+    )
+    
+    class Meta:
+        verbose_name = "Настройка уведомлений работникам"
+        verbose_name_plural = "Настройки уведомлений работникам"
+    
+    def __str__(self):
+        status = "включено" if self.enabled else "выключено"
+        return f"Уведомления работникам: {self.notification_time.strftime('%H:%M')} ({status})"
+
+
+class WorkerNotificationLog(BaseModel):
+    """История отправки уведомлений работникам о мероприятиях."""
+    
+    worker = models.ForeignKey(
+        Workers, 
+        on_delete=models.CASCADE, 
+        related_name="notification_logs",
+        db_index=True,
+        help_text="Работник, которому отправлено уведомление"
+    )
+    phone = models.CharField(
+        max_length=15, 
+        db_index=True,
+        help_text="Номер телефона работника"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[('success', 'Успешно'), ('error', 'Ошибка')],
+        default='error',
+        db_index=True,
+        help_text="Статус отправки"
+    )
+    error = models.TextField(
+        null=True, 
+        blank=True,
+        help_text="Текст ошибки, если отправка не удалась"
+    )
+    message_text = models.TextField(
+        null=True, 
+        blank=True,
+        help_text="Текст отправленного сообщения"
+    )
+    telegram_user_id = models.BigIntegerField(
+        null=True, 
+        blank=True,
+        help_text="ID пользователя в Telegram"
+    )
+    event_date = models.DateField(
+        db_index=True,
+        help_text="Дата мероприятия, о котором отправлено уведомление"
+    )
+    notification_type = models.CharField(
+        max_length=20,
+        choices=[('today', 'Сегодня'), ('tomorrow', 'Завтра')],
+        db_index=True,
+        help_text="Тип уведомления: сегодня или завтра"
+    )
+    sent_at = models.DateTimeField(
+        auto_now_add=True, 
+        db_index=True,
+        help_text="Время отправки уведомления"
+    )
+    
+    class Meta:
+        ordering = ['-sent_at']
+        indexes = [
+            models.Index(fields=['worker', '-sent_at']),
+            models.Index(fields=['status', '-sent_at']),
+            models.Index(fields=['event_date', '-sent_at']),
+            models.Index(fields=['notification_type', '-sent_at']),
+        ]
+        verbose_name = "Лог уведомления работнику"
+        verbose_name_plural = "Логи уведомлений работникам"
+    
+    def __str__(self):
+        return f"Уведомление для {self.worker.name} ({self.event_date}) - {self.get_status_display()}"

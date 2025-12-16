@@ -71,9 +71,6 @@ def generate_contract_message(event: Event) -> str:
 
 """
 
-    if event.comment:
-        message += f"\n\n💬 Комментарий: {event.comment}"
-
     return message
 
 

@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,18 +24,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-2^39efq6=s5rt2#-5%ad8@i0&5+!jk3k@7pdizh1fan)oyax5g"
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-# ALLOWED_HOSTS = ['mukhammadrizo07.pythonanywhere.com']
-ALLOWED_HOSTS = ['*']
+
+# Безопасность: ALLOWED_HOSTS из переменных окружения
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173'
-    # "https://red-crm-beta.vercel.app",
+    'http://localhost:5173',
+    "https://red-crm-beta.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -42,7 +46,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS только в режиме разработки
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 # Application definition
 
@@ -99,11 +104,16 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'redcrm',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'redcrm_db'),
+        'USER': os.getenv('DB_USER', 'redcrm'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres123'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'options': '-c timezone=Asia/Tashkent',
+        },
+        'CONN_MAX_AGE': 600,  # Переиспользование соединений (10 минут)
     }
 }
 
@@ -135,7 +145,8 @@ TIME_ZONE = "Asia/Tashkent"
 
 USE_I18N = True
 
-USE_TZ = True
+# Храним и возвращаем время в часовом поясе Ташкента (без UTC-смещения)
+USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -152,9 +163,13 @@ CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_TIMEZONE = "Asia/Tashkent"
+CELERY_ENABLE_UTC = False
+
 
 REST_FRAMEWORK = {
-    "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO 8601
+    # Без Z и смещения, чтобы фронт получал локальное время сервера (Asia/Tashkent)
+    "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S",
     "DATE_FORMAT": "%Y-%m-%d",
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": (
@@ -175,8 +190,83 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+# Telegram / Telethon
+TG_API_ID = os.getenv('TG_API_ID')
+TG_API_HASH = os.getenv('TG_API_HASH')
+TG_PHONE = os.getenv('TG_PHONE')
+# StringSession для Telethon (предпочтительно вместо файла session_name.session)
+TG_SESSION_STRING = os.getenv('TG_SESSION_STRING')
+
+# Кэширование
+# Используем простой локальный кэш, если Redis недоступен
+# Для production рекомендуется использовать django-redis
+try:
+    import redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.getenv('CACHE_URL', 'redis://localhost:6379/1'),  # DB 1 для кэша
+            'KEY_PREFIX': 'redcrm',
+            'TIMEOUT': 300,  # 5 минут по умолчанию
+        }
+    }
+except ImportError:
+    # Fallback на локальный кэш, если redis не установлен
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'KEY_PREFIX': 'redcrm',
+            'TIMEOUT': 300,
+        }
+    }
+
+# Логирование
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
 # Telegram settings
-TG_API_ID = int(os.getenv('TG_API_ID', '37698132'))
-TG_API_HASH = os.getenv('TG_API_HASH', 'b29f51e475722c2e938429041e2f2b79')
-TG_PHONE = os.getenv('TG_PHONE', '+998904140184')
+TG_API_ID = int(os.getenv('TG_API_ID',))
+TG_API_HASH = os.getenv('TG_API_HASH', )
+TG_PHONE = os.getenv('TG_PHONE', )
 TG_SESSION_FILE = os.getenv('TG_SESSION_FILE', str(BASE_DIR / 'session_name'))

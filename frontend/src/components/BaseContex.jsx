@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {getTokenStorage} from '../utils/roles.js';
 
 export const GlobalContext = React.createContext({});
@@ -22,7 +22,16 @@ function BaseContex({children, setUser, user, checkTokenExpiration, saveToken, i
         // Это должно управляться только в App.jsx
     }, [user, refresh]);
 
-    const value = {user, setUser, checkTokenExpiration, isAuthenticated, setIsAuthenticated, saveToken}
+    // Мемоизация контекста для предотвращения лишних ререндеров
+    const value = useMemo(() => ({
+        user, 
+        setUser, 
+        checkTokenExpiration, 
+        isAuthenticated, 
+        setIsAuthenticated, 
+        saveToken
+    }), [user, setUser, checkTokenExpiration, isAuthenticated, setIsAuthenticated, saveToken]);
+    
     return (
         <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>
     );

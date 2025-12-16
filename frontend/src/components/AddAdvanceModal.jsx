@@ -319,7 +319,7 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                             title="История изменений авансов"
                         >
                             <FaHistory className="mr-1"/>
-                            История изменений
+                            изменений
                         </button>
                         <button
                             onClick={() => {
@@ -332,7 +332,7 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                             title="История отправок уведомлений"
                         >
                             <FaPaperPlane className="mr-1"/>
-                            История отправок
+                            отправок
                         </button>
                 <button
                     onClick={onClose}

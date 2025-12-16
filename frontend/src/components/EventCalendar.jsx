@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {
     addDays,
     addMonths,
@@ -8,35 +8,42 @@ import {
     isSameMonth,
     isToday,
     parse,
+    parseISO,
+    isWithinInterval,
+    isValid,
     startOfMonth,
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
 import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
-import {getWorkers, updateEventAdvance} from "../api.js";
+import {updateEventAdvance} from "../api.js";
 import EditEventModal from "./EditEventModal.jsx";
 import AddAdvanceModal from "./AddAdvanceModal.jsx";
 import {GlobalContext} from "./BaseContex.jsx";
 import {canManageEvents, isAdmin} from "../utils/roles.js";
+import {useWorkers} from '../hooks/useWorkers';
 
 const EventCalendar = ({
-                           events,
-                           services,
+                           events = [],
+                           services = [],
+                           loading = false,
                            onUpdateEvent,
                            setErrorMessage,
-                           searchQuery,
-                           filterService,
-                           filterStartDate,
-                           filterEndDate,
+                           searchQuery = '',
+                           filterService = '',
+                           filterStartDate = '',
+                           filterEndDate = '',
                        }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [isModalOpen, setModalOpen] = useState(false);
-    const [workersList, setWorkersList] = useState([]);
 
     const [editEvent, setEditEvent] = useState(null);
     const [advanceEvent, setAdvanceEvent] = useState(null);
     const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+
+    // Используем React Query для получения работников
+    const { data: workersList = [] } = useWorkers();
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
@@ -61,8 +68,61 @@ const EventCalendar = ({
             maximumFractionDigits: isUSD ? 2 : 0,
         }).format(number);
 
+    // Фильтрация событий (такая же логика как в EventList)
+    const filteredEvents = useMemo(() => {
+        if (!events || events.length === 0) {
+            return [];
+        }
+        
+        const searchLower = searchQuery ? searchQuery.toLowerCase() : '';
+        
+        return events.filter((event) => {
+            // Фильтр по поисковому запросу
+            const matchesSearchQuery =
+                !searchQuery ||
+                event.client?.name?.toLowerCase().includes(searchLower) ||
+                event.client?.phones?.some((phone) =>
+                    phone.phone_number.includes(searchQuery)
+                );
+
+            // Фильтр по услуге
+            const matchesService =
+                !filterService ||
+                event.devices?.some((device) => device.service.toString() === filterService);
+
+            // Фильтр по дате
+            const matchesDate =
+                (!filterStartDate && !filterEndDate) ||
+                event.devices?.some((device) => {
+                    if (!device.event_service_date) return false;
+                    const serviceDate = parseISO(device.event_service_date);
+                    const startDate = filterStartDate ? parseISO(filterStartDate) : null;
+                    const endDate = filterEndDate ? parseISO(filterEndDate) : null;
+
+                    if (!isValid(serviceDate)) return false;
+
+                    if (startDate && endDate) {
+                        return isWithinInterval(serviceDate, {
+                            start: startDate,
+                            end: endDate,
+                        });
+                    } else if (startDate) {
+                        return serviceDate >= startDate;
+                    } else if (endDate) {
+                        return serviceDate <= endDate;
+                    }
+                    return true;
+                });
+
+            return matchesSearchQuery && matchesService && matchesDate;
+        });
+    }, [events, searchQuery, filterService, filterStartDate, filterEndDate]);
+
     const devicesWithDate = useMemo(() => {
-        return events.reduce((acc, event) => {
+        return filteredEvents.reduce((acc, event) => {
+            if (!event.devices || !Array.isArray(event.devices)) {
+                return acc;
+            }
             event.devices.forEach((device) => {
                 if (device.event_service_date) {
                     let deviceDate = parse(device.event_service_date, 'yyyy-MM-dd', new Date());
@@ -81,20 +141,8 @@ const EventCalendar = ({
             });
             return acc;
         }, []);
-    }, [events, servicesMap]);
+    }, [filteredEvents, servicesMap]);
 
-    useEffect(() => {
-        const fetchWorkers = async () => {
-            try {
-                const response = await getWorkers();
-                const data = await response.data;
-                setWorkersList(data);
-            } catch (error) {
-                console.error('Ошибка при получении списка работников:', error);
-            }
-        };
-        fetchWorkers();
-    }, []);
 
     const workersMap = useMemo(() => {
         return workersList.reduce((map, worker) => {
@@ -103,44 +151,49 @@ const EventCalendar = ({
         }, {});
     }, [workersList]);
 
-    const handleMonthChange = (direction) => {
+    // Мемоизация функций для оптимизации
+    const handleMonthChange = React.useCallback((direction) => {
         const newDate = addMonths(currentMonth, direction);
         setCurrentMonth(newDate);
-    };
+    }, [currentMonth]);
 
-    const openModal = (device, event) => {
+    const openModal = React.useCallback((device, event) => {
         const deviceWithEvent = {...device, event};
         setSelectedDevice(deviceWithEvent);
         setModalOpen(true);
-    };
+    }, []);
 
-    const closeModal = () => {
+    const closeModal = React.useCallback(() => {
         setModalOpen(false);
         setSelectedDevice(null);
-    };
+    }, []);
 
-    const openEditModal = (event) => {
+    const openEditModal = React.useCallback((event) => {
         // Открываем модальное окно редактирования только при действии пользователя
         setEditEvent(event);
         setModalOpen(false);
         setSelectedDevice(null);
-    };
+    }, []);
 
-    const closeEditModal = () => {
+    const closeEditModal = React.useCallback(() => {
         setEditEvent(null);
-    };
+    }, []);
 
-    const openAdvanceModal = (event) => {
+    const openAdvanceModal = React.useCallback((event) => {
         setAdvanceEvent(event);
         setIsAdvanceModalOpen(true);
         setModalOpen(false);
         setSelectedDevice(null);
-    };
+    }, []);
 
-    const closeAdvanceModal = () => {
+    const closeAdvanceModal = React.useCallback(() => {
         setAdvanceEvent(null);
         setIsAdvanceModalOpen(false);
-    };
+    }, []);
+
+    // Мемоизация проверок прав доступа
+    const userIsAdmin = useMemo(() => isAdmin(user), [user]);
+    const userCanManage = useMemo(() => canManageEvents(user), [user]);
 
     const handleAdvanceUpdate = async (updatedEvent) => {
         try {
@@ -164,8 +217,8 @@ const EventCalendar = ({
             const dayDevices = devicesWithDate.filter(({date}) => date === formattedDate);
 
             const todayClass = isToday(day)
-                ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full p-2 shadow-lg transition duration-300'
-                : 'hover:bg-gradient-to-r hover:from-indigo-100 p-2 hover:to-purple-100 transition duration-300';
+                ? 'bg-gradient-to-r bg-indigo-500 text-white rounded-full p-2 shadow-lg transition duration-300'
+                : 'hover:bg-gradient-to-r hover:from-indigo-600 p-2 transition duration-300';
 
             const notCurrentMonthClass = !isSameMonth(day, currentMonth)
                 ? 'text-gray-400'
@@ -205,7 +258,7 @@ const EventCalendar = ({
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        {isAdmin(user) && (
+                                        {userIsAdmin && (
                                             <button
                                                 className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition duration-200"
                                                 onClick={() => openEditModal(event)}
@@ -214,7 +267,7 @@ const EventCalendar = ({
                                                 <FaEdit className="text-white text-[10px] sm:text-xs"/>
                                             </button>
                                         )}
-                                        {canManageEvents(user) && (
+                                        {userCanManage && (
                                             <button
                                                 className="p-1 bg-green-600 hover:bg-green-700 rounded transition duration-200"
                                                 onClick={() => openAdvanceModal(event)}
@@ -234,6 +287,24 @@ const EventCalendar = ({
         }
         return days;
     };
+
+    // Показываем загрузку
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-full min-h-[400px]">
+                <span className="loading loading-spinner loading-lg"></span>
+            </div>
+        );
+    }
+
+    // Показываем сообщение, если нет событий
+    if (!events || events.length === 0) {
+        return (
+            <div className="p-4 text-center">
+                <p className="text-lg text-gray-500">События не найдены</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-2 sm:p-4">

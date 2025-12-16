@@ -16,7 +16,10 @@ from .views import (
     send_event_contract,
     get_contract_logs,
     send_advance_notification,
-    get_advance_notification_logs
+    get_advance_notification_logs,
+    worker_notification_settings,
+    get_worker_notification_logs,
+    send_worker_notifications_manual
 )
 
 urlpatterns = [
@@ -41,4 +44,7 @@ urlpatterns = [
     path("events/<int:pk>/contract_logs/", get_contract_logs, name="contract_logs"),
     path("events/<int:pk>/send_advance_notification/", send_advance_notification, name="send_advance_notification"),
     path("events/<int:pk>/advance_notification_logs/", get_advance_notification_logs, name="advance_notification_logs"),
+    path("worker-notification-settings/", worker_notification_settings, name="worker_notification_settings"),
+    path("worker-notification-logs/", get_worker_notification_logs, name="worker_notification_logs"),
+    path("worker-notifications/send-manual/", send_worker_notifications_manual, name="send_worker_notifications_manual"),
 ]

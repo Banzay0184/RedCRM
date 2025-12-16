@@ -1,42 +1,69 @@
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import {useEffect, useState, useContext} from "react";
-import LoginPage from "./pages/LoginPage";
-import Layout from "./components/Layout";
-import ProfilePage from "./pages/ProfilePage.jsx";
+import {useEffect, useState, useContext, lazy, Suspense} from "react";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {jwtDecode} from "jwt-decode";
 import {getUser} from "./api";
-import SettingsPage from "./pages/SettingsPage.jsx";
-import EventPage from "./pages/EventPage.jsx";
 import BaseContex, {GlobalContext} from "./components/BaseContex.jsx";
 import {getTokenStorage, isAdmin, getUserRole} from "./utils/roles.js";
+
+
+// Lazy loading для оптимизации bundle size
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const Layout = lazy(() => import("./components/Layout"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
+const EventPage = lazy(() => import("./pages/EventPage.jsx"));
+const WorkerPage = lazy(() => import("./pages/WorkerPage.jsx"));
 
 function AppContent({onLogout}) {
     const {isAuthenticated, user} = useContext(GlobalContext);
     
+    // Компонент загрузки
+    const LoadingFallback = () => (
+        <div className="flex items-center justify-center h-screen">
+            <span className="loading loading-spinner loading-lg"></span>
+        </div>
+    );
+    
     return (
         <Router>
-            <Routes>
-                {isAuthenticated ? (
-                    <Route path="/" element={<Layout user={user} onLogout={onLogout}/>}>
-                        <Route index element={<EventPage/>}/>
-                        {isAdmin(user) && <Route path="/settings" element={<SettingsPage/>}/>}
-                        <Route path="/profile" element={<ProfilePage user={user}/>}/>
-                        <Route path="/events" element={<EventPage/>}/>
-                        <Route path="*" element={<Navigate to="/" replace/>}/>
-                    </Route>
-                ) : (
-                    <>
-                        <Route
-                            path="/login"
-                            element={<LoginPage />}
-                        />
-                        <Route path="*" element={<Navigate to="/login" replace/>}/>
-                    </>
-                )}
-            </Routes>
+            <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                    {isAuthenticated ? (
+                        <Route path="/" element={<Layout user={user} onLogout={onLogout}/>}>
+                            <Route index element={<EventPage/>}/>
+                            {isAdmin(user) && <Route path="/settings" element={<SettingsPage/>}/>}
+                            {isAdmin(user) && <Route path="/workers" element={<WorkerPage/>}/>}
+                            <Route path="/profile" element={<ProfilePage user={user}/>}/>
+                            <Route path="/events" element={<EventPage/>}/>
+                            <Route path="*" element={<Navigate to="/" replace/>}/>
+                        </Route>
+                    ) : (
+                        <>
+                            <Route
+                                path="/login"
+                                element={<LoginPage />}
+                            />
+                            <Route path="*" element={<Navigate to="/login" replace/>}/>
+                        </>
+                    )}
+                </Routes>
+            </Suspense>
         </Router>
     );
 }
+
+// Создаем QueryClient с настройками кэширования
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 5 * 60 * 1000, // 5 минут - данные считаются свежими
+            cacheTime: 10 * 60 * 1000, // 10 минут - время хранения в кэше
+            refetchOnWindowFocus: false, // Не обновлять при фокусе окна
+            retry: 1, // Количество повторных попыток при ошибке
+        },
+    },
+});
 
 function App() {
     const [isLoading, setIsLoading] = useState(true);
@@ -166,9 +193,11 @@ function App() {
     }
     
     return (
-        <BaseContex user={user} setUser={setUser} checkTokenExpiration={checkTokenExpiration} saveToken={saveToken} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}>
-            <AppContent onLogout={handleLogout} />
-        </BaseContex>
+        <QueryClientProvider client={queryClient}>
+            <BaseContex user={user} setUser={setUser} checkTokenExpiration={checkTokenExpiration} saveToken={saveToken} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}>
+                <AppContent onLogout={handleLogout} />
+            </BaseContex>
+        </QueryClientProvider>
     );
 }
 

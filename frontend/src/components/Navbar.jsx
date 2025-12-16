@@ -74,6 +74,11 @@ function Navbar({onLogout}) {
                             </Link>
                         </li>
                         <li>
+                            <Link to="/workers" className="btn btn-outline btn-primary">
+                                Работники
+                            </Link>
+                        </li>
+                        <li>
                             <Link to="/settings" className="btn btn-outline btn-primary">
                                 Настройка
                             </Link>
@@ -129,6 +134,11 @@ function Navbar({onLogout}) {
                                 <li>
                                     <Link to="/events" className="hover:text-accent" onClick={toggleMobileMenu}>
                                         Мероприятия
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/workers" className="hover:text-accent" onClick={toggleMobileMenu}>
+                                        Работники
                                     </Link>
                                 </li>
                                 <li>

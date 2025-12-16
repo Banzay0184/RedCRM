@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import (
     Client, PhoneClient, Workers, Service, Device, Event, EventLog, AdvanceHistory,
-    TelegramContractLog, TelegramAdvanceNotificationLog
+    TelegramContractLog, TelegramAdvanceNotificationLog, WorkerNotificationSettings, WorkerNotificationLog
 )
 
 
@@ -36,7 +36,11 @@ class ClientSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         phones_data = validated_data.pop("phones", [])
         client = Client.objects.create(**validated_data)
-        PhoneClient.objects.bulk_create([PhoneClient(client=client, **phone) for phone in phones_data])
+        # Оптимизация: bulk_create вместо цикла
+        if phones_data:
+            PhoneClient.objects.bulk_create([
+                PhoneClient(client=client, **phone) for phone in phones_data
+            ])
         return client
 
     def update(self, instance, validated_data):
@@ -66,9 +70,25 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class WorkersSerializer(serializers.ModelSerializer):
+    has_event_today = serializers.SerializerMethodField()
+    has_event_tomorrow = serializers.SerializerMethodField()
+    
     class Meta:
         model = Workers
-        fields = ["id", "name", "phone_number",'order']
+        fields = ["id", "name", "phone_number",'order', "has_event_today", "has_event_tomorrow"]
+
+    def get_has_event_today(self, obj):
+        """Проверяет, есть ли у работника мероприятие сегодня."""
+        from django.utils import timezone
+        from datetime import date
+        today = date.today()
+        return obj.devices.filter(event_service_date=today).exists()
+    
+    def get_has_event_tomorrow(self, obj):
+        """Проверяет, есть ли у работника мероприятие завтра."""
+        from datetime import date, timedelta
+        tomorrow = date.today() + timedelta(days=1)
+        return obj.devices.filter(event_service_date=tomorrow).exists()
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
@@ -99,6 +119,41 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ["id", "name", "color", "is_active_camera"]
 
+
+class DeviceWithEventSerializer(serializers.ModelSerializer):
+    """Сериализатор для устройства с информацией о мероприятии."""
+    service = ServiceSerializer(read_only=True)
+    event_id = serializers.IntegerField(source='event.id', read_only=True)
+    event_client_name = serializers.CharField(source='event.client.name', read_only=True)
+    event_amount = serializers.IntegerField(source='event.amount', read_only=True)
+    event_created_at = serializers.DateTimeField(source='event.created_at', read_only=True)
+    
+    class Meta:
+        model = Device
+        fields = ["id", "service", "camera_count", "comment", "restaurant_name", "event_service_date", 
+                  "event_id", "event_client_name", "event_amount", "event_created_at"]
+
+
+class WorkerDetailSerializer(serializers.ModelSerializer):
+    """Сериализатор для детальной информации о работнике с его задачами и мероприятиями."""
+    devices = DeviceWithEventSerializer(many=True, read_only=True, source='devices.all')
+    total_devices = serializers.SerializerMethodField()
+    total_events = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Workers
+        fields = ["id", "name", "phone_number", "order", "devices", "total_devices", "total_events", "created_at", "updated_at"]
+    
+    def get_total_devices(self, obj):
+        """Количество устройств, где участвует работник."""
+        return obj.devices.count()
+    
+    def get_total_events(self, obj):
+        """Количество уникальных мероприятий, где участвует работник."""
+        from .models import Event
+        return Event.objects.filter(devices__workers=obj).distinct().count()
+
+
 class AdvanceHistorySerializer(serializers.ModelSerializer):
     """Сериализатор для истории аванса."""
 
@@ -120,17 +175,31 @@ class EventSerializer(serializers.ModelSerializer):
 
         # Создаём клиента
         client = Client.objects.create(**client_data)
-        for phone in phones:
-            client.phones.create(**phone)
+        # Оптимизация: bulk_create для телефонов
+        if phones:
+            PhoneClient.objects.bulk_create([
+                PhoneClient(client=client, **phone) for phone in phones
+            ])
         validated_data["client"] = client
 
         # Создаём событие
         event = Event.objects.create(**validated_data)
 
-        # Создаём устройства и добавляем работников
+        # Оптимизация: bulk_create для устройств
+        devices = []
+        workers_data = []  # Сохраняем workers для каждого устройства
+        
         for device_data in devices_data:
             workers = device_data.pop("workers", [])
-            device = Device.objects.create(event=event, **device_data)
+            device = Device(event=event, **device_data)
+            devices.append(device)
+            workers_data.append(workers)
+        
+        # Создаём все устройства одним запросом
+        Device.objects.bulk_create(devices)
+        
+        # Устанавливаем workers после создания (нужно получить ID)
+        for device, workers in zip(devices, workers_data):
             if workers:
                 device.workers.set(workers)
 
@@ -221,3 +290,24 @@ class TelegramAdvanceNotificationLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = TelegramAdvanceNotificationLog
         fields = ["id", "phone", "status", "error", "message_text", "telegram_user_id", "sent_at"]
+
+
+class WorkerNotificationSettingsSerializer(serializers.ModelSerializer):
+    """Сериализатор для настроек уведомлений работникам."""
+    
+    class Meta:
+        model = WorkerNotificationSettings
+        fields = ["id", "notification_time", "enabled", "created_at", "updated_at"]
+
+
+class WorkerNotificationLogSerializer(serializers.ModelSerializer):
+    """Сериализатор для истории отправки уведомлений работникам."""
+    worker_name = serializers.CharField(source='worker.name', read_only=True)
+    
+    class Meta:
+        model = WorkerNotificationLog
+        fields = [
+            "id", "worker", "worker_name", "phone", "status", "error", 
+            "message_text", "telegram_user_id", "event_date", "notification_type", 
+            "sent_at", "created_at", "updated_at"
+        ]

@@ -1,89 +1,138 @@
 // EventPage.js
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useState, useMemo, useCallback, useEffect} from 'react';
 import AddEventModal from '../components/AddEventModal';
 import EventCalendar from '../components/EventCalendar';
-import {getEvents, getServices} from '../api';
 import {GlobalContext} from "../components/BaseContex.jsx";
 import EventList from "../components/EventList.jsx";
 import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch} from "react-icons/fa";
 import {canManageEvents} from "../utils/roles.js";
+import {useDebounce} from "../utils/debounce.js";
+import {useEvents, useCreateEvent, useDeleteEvent, useUpdateEvent} from '../hooks/useEvents';
+import {useServices} from '../hooks/useServices';
+import {toast} from 'react-hot-toast';
+import Pagination from '../components/Pagination';
 
 const EventPage = () => {
-    // Ваши состояния и функции остаются без изменений
+    // Состояние для пагинации
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    // Состояние для переключения между списком и календарем (должно быть объявлено до использования)
+    const [viewMode, setViewMode] = useState('calendar');
+
+    // Состояния
     const [modalVisible, setModalVisible] = useState(false);
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
+
+    console.log(successMessage, errorMessage);
 
     // Состояния для поиска и фильтров
     const [searchQuery, setSearchQuery] = useState('');
     const [filterService, setFilterService] = useState('');
     const [filterStartDate, setFilterStartDate] = useState('');
     const [filterEndDate, setFilterEndDate] = useState('');
-    const [services, setServices] = useState([]);
 
-    // Состояние для переключения между списком и календарем
-    const [viewMode, setViewMode] = useState('calendar');
+    // Debounce для поиска (оптимизация производительности)
+    const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-    const {user} = useContext(GlobalContext)
+    // Определяем, есть ли активные фильтры
+    const hasActiveFilters = useMemo(() => {
+        return !!(
+            debouncedSearchQuery.trim() || 
+            filterService || 
+            filterStartDate || 
+            filterEndDate
+        );
+    }, [debouncedSearchQuery, filterService, filterStartDate, filterEndDate]);
 
+    // Для календаря всегда отключаем пагинацию, для списка - только при фильтрах
+    const shouldUsePagination = viewMode === 'list' && !hasActiveFilters;
+
+    // Используем React Query хуки с пагинацией
+    const { data: eventsData, isLoading: loading, error: eventsError } = useEvents(
+        currentPage, 
+        pageSize, 
+        shouldUsePagination // Пагинация только для списка без фильтров
+    );
+    const { data: services = [] } = useServices();
+    
+    // Извлекаем данные и пагинацию
+    let events = eventsData?.data || [];
+    
+    // Сортируем события по дате создания (сначала новые)
+    events = useMemo(() => {
+        return [...events].sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+            const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+            return dateB - dateA; // Сначала новые
+        });
+    }, [events]);
+    
+    const pagination = shouldUsePagination ? eventsData?.pagination : null;
+    
+    const createEventMutation = useCreateEvent();
+    const updateEventMutation = useUpdateEvent();
+    const deleteEventMutation = useDeleteEvent();
+
+    const {user} = useContext(GlobalContext);
+
+    // Обработка ошибок
     useEffect(() => {
-        fetchEvents();
-        fetchServices();
+        if (eventsError) {
+            setErrorMessage('Ошибка при загрузке событий');
+            toast.error('Ошибка при загрузке событий');
+        }
+    }, [eventsError]);
+
+    // Мемоизация функций для предотвращения лишних ререндеров
+    const handleAdd = useCallback(() => {
+        setModalVisible(true);
     }, []);
 
-    const fetchEvents = async () => {
+    const handleCreate = useCallback(async (newEventData) => {
         try {
-            const response = await getEvents();
-            setEvents(response.data);
+            const response = await createEventMutation.mutateAsync(newEventData);
+            setModalVisible(false);
+            setSuccessMessage('Событие успешно добавлено');
+            toast.success('Событие успешно добавлено');
         } catch (error) {
-            console.error('Ошибка при загрузке событий:', error);
-            setErrorMessage('Ошибка при загрузке событий');
-        } finally {
-            setLoading(false);
+            console.error('Ошибка при создании события:', error);
+            setErrorMessage('Ошибка при создании события');
+            toast.error('Ошибка при создании события');
         }
-    };
+    }, [createEventMutation]);
 
-    const fetchServices = async () => {
+    const handleCancel = useCallback(() => {
+        setModalVisible(false);
+    }, []);
+
+    const handleDeleteEvent = useCallback(async (eventId) => {
         try {
-            const response = await getServices();
-            setServices(response.data);
+            await deleteEventMutation.mutateAsync(eventId);
+            setSuccessMessage('Событие успешно удалено');
+            toast.success('Событие успешно удалено');
         } catch (error) {
-            console.error('Ошибка при загрузке услуг:', error);
-            setErrorMessage('Ошибка при загрузке услуг');
+            console.error('Ошибка при удалении события:', error);
+            setErrorMessage('Ошибка при удалении события');
+            toast.error('Ошибка при удалении события');
         }
-    };
+    }, [deleteEventMutation]);
 
-    const handleAdd = () => {
-        setModalVisible(true);
-    };
-
-    const handleCreate = (newEvent) => {
-        setEvents((prevEvents) => [newEvent, ...prevEvents]);
-        setModalVisible(false);
-        setSuccessMessage('Событие успешно добавлено');
-    };
-
-    const handleCancel = () => {
-        setModalVisible(false);
-    };
-
-    const handleDeleteEvent = (eventId) => {
-        setEvents((prevEvents) =>
-            prevEvents.filter((event) => event.id !== eventId)
-        );
-        setSuccessMessage('Событие успешно удалено');
-    };
-
-    const handleUpdateEvent = (updatedEvent) => {
-        setEvents((prevEvents) =>
-            prevEvents.map((event) =>
-                event.id === updatedEvent.id ? updatedEvent : event
-            )
-        );
-        setSuccessMessage('Событие успешно обновлено');
-    };
+    const handleUpdateEvent = useCallback(async (updatedEvent) => {
+        try {
+            await updateEventMutation.mutateAsync({
+                id: updatedEvent.id,
+                data: updatedEvent
+            });
+            setSuccessMessage('Событие успешно обновлено');
+            toast.success('Событие успешно обновлено');
+        } catch (error) {
+            console.error('Ошибка при обновлении события:', error);
+            setErrorMessage('Ошибка при обновлении события');
+            toast.error('Ошибка при обновлении события');
+        }
+    }, [updateEventMutation]);
 
     useEffect(() => {
         if (successMessage || errorMessage) {
@@ -95,9 +144,26 @@ const EventPage = () => {
         }
     }, [successMessage, errorMessage]);
 
-    const toggleViewMode = () => {
+    const toggleViewMode = useCallback(() => {
         setViewMode((prevMode) => (prevMode === 'list' ? 'calendar' : 'list'));
-    };
+    }, []);
+
+    // Обработчик изменения страницы
+    const handlePageChange = useCallback((page) => {
+        setCurrentPage(page);
+        // Прокручиваем вверх при смене страницы
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+
+    // Сброс на первую страницу при изменении фильтров
+    useEffect(() => {
+        if (hasActiveFilters) {
+            setCurrentPage(1);
+        }
+    }, [hasActiveFilters]);
+
+    // Мемоизация для предотвращения лишних ререндеров дочерних компонентов
+    const canManage = useMemo(() => canManageEvents(user), [user]);
     return (
         <div className="p-4 relative">
             {/* Сообщения об ошибке и успехе */}
@@ -196,7 +262,7 @@ const EventPage = () => {
                                 onChange={(e) => setFilterService(e.target.value)}
                             >
                                 <option value="">Все услуги</option>
-                                {services.map((service) => (
+                                {services && services.map((service) => (
                                     <option key={service.id} value={service.id}>
                                         {service.name}
                                     </option>
@@ -234,23 +300,39 @@ const EventPage = () => {
                     onUpdateEvent={handleUpdateEvent}
                     setErrorMessage={setErrorMessage}
                     services={services}
-                    searchQuery={searchQuery}
+                    searchQuery={debouncedSearchQuery}
                     filterService={filterService}
                     filterStartDate={filterStartDate}
                     filterEndDate={filterEndDate}
                 />
             ) : (
-                <EventList
-                    events={events}
-                    loading={loading}
-                    onDeleteEvent={handleDeleteEvent}
-                    onUpdateEvent={handleUpdateEvent}
-                    setErrorMessage={setErrorMessage}
-                    searchQuery={searchQuery}
-                    filterService={filterService}
-                    filterStartDate={filterStartDate}
-                    filterEndDate={filterEndDate}
-                />
+                <>
+                    <EventList
+                        events={events}
+                        loading={loading}
+                        onDeleteEvent={handleDeleteEvent}
+                        onUpdateEvent={handleUpdateEvent}
+                        setErrorMessage={setErrorMessage}
+                        searchQuery={debouncedSearchQuery}
+                        filterService={filterService}
+                        filterStartDate={filterStartDate}
+                        filterEndDate={filterEndDate}
+                    />
+                    {/* Компонент пагинации - показываем только если нет активных фильтров */}
+                    {pagination && !hasActiveFilters && (
+                        <Pagination
+                            pagination={pagination}
+                            onPageChange={handlePageChange}
+                        />
+                    )}
+                    
+                    {/* Информация о количестве результатов при фильтрации */}
+                    {hasActiveFilters && events.length > 0 && (
+                        <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                            Найдено событий: {events.length}
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Модальное окно добавления события */}

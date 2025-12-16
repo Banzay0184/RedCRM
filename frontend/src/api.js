@@ -14,6 +14,7 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 10000, // 10 секунд timeout для запросов
 });
 
 // Добавляем интерцептор для добавления токена в заголовок запроса
@@ -61,13 +62,21 @@ export const updateUser = (id, data) => api.put(`/users/${id}/`, data);
 export const deleteUser = id => api.delete(`/users/${id}/`);
 
 // Clients
-export const getClients = () => api.get("/clients/");
+export const getClients = (page = 1, pageSize = 10) => 
+    api.get("/clients/", { params: { page, page_size: pageSize } });
 export const createClient = (data) => api.post("/clients/", data);
 export const updateClient = (id, data) => api.put(`/clients/${id}/`, data);
 export const deleteClient = (id) => api.delete(`/clients/${id}/`);
 
 
-export const getEvents = () => api.get("/events/");
+export const getEvents = (page = 1, pageSize = 10, usePagination = true) => {
+    const params = {};
+    if (usePagination) {
+        params.page = page;
+        params.page_size = pageSize;
+    }
+    return api.get("/events/", { params });
+};
 export const getEventById = (id) => api.get(`/events/${id}/`);
 export const createEvent = (data) => api.post("/events/", data);
 export const updateEvent = (id, data) => api.put(`/events/${id}/`, data);
@@ -75,6 +84,7 @@ export const updateEventAdvance = (id, advanceData) => api.post(`/events/${id}/u
 export const deleteEvent = (id) => api.delete(`/events/${id}/`);
 
 export const getWorkers = () => api.get("/workers/");
+export const getWorkerById = (id) => api.get(`/workers/${id}/`);
 export const createWorker = (data) => api.post("/workers/", data);
 export const deleteWorker = (id)=> api.delete(`/workers/${id}/`);
 export const updateWorker = (id, data) => api.put(`/workers/${id}/`, data);
@@ -101,5 +111,19 @@ export const sendAdvanceNotification = (eventId, phone) =>
 // История отправок уведомлений об авансе (GET /events/{id}/advance_notification_logs/)
 export const getAdvanceNotificationLogs = (eventId) =>
   api.get(`/events/${eventId}/advance_notification_logs/`);
+
+// Настройки уведомлений работникам
+export const getWorkerNotificationSettings = () =>
+  api.get("/worker-notification-settings/");
+export const updateWorkerNotificationSettings = (data) =>
+  api.put("/worker-notification-settings/", data);
+
+// История уведомлений работникам
+export const getWorkerNotificationLogs = (params = {}) =>
+  api.get("/worker-notification-logs/", { params });
+
+// Ручная отправка уведомлений работникам (для тестирования)
+export const sendWorkerNotificationsManual = () =>
+  api.post("/worker-notifications/send-manual/");
 
 export default api;

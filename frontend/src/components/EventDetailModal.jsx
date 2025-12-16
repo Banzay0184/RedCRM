@@ -350,12 +350,12 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Подписи сторон */}
-                    <div className="flex justify-end gap-1 text-gray-700">
+                    <div className="flex justify-end gap-1 text-gray-700 mt-5">
                         <p>Подпись заказчика</p>
                         <p>_________________</p>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-5">
                         <div className="grid grid-cols-2 gap-2">
                             <div className="p-4 border border-black border-dashed">
                                 <p className="text-sm text-gray-700">
@@ -370,21 +370,6 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                 </p>
                                 <p className="text-sm">
                                     <strong>Долг:</strong> ______________
-                                </p>
-                            </div>
-                            <div className="p-4 flex flex-col items-end border border-black border-dashed">
-                                <h3 className="text-sm font-bold">
-                                    _________ Монтажёр
-                                </h3>
-                                <p className="text-sm text-gray-700">
-                                    <strong>Дата услуги:</strong>
-                                    {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Клиент:</strong> {event.client.name}
-                                </p>
-                                <p className="text-sm">
-                                    {event.computer_numbers || '_________'} <strong>Номер компьютера</strong>
                                 </p>
                             </div>
                         </div>

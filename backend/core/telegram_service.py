@@ -2,19 +2,24 @@ import asyncio
 import re
 import logging
 import threading
-from typing import Optional, Dict
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Tuple
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 from telethon.errors import (
     PhoneNumberInvalidError,
     PeerIdInvalidError,
     FloodWaitError,
     SessionPasswordNeededError,
 )
+from dotenv import load_dotenv
 from telethon.tl.functions.contacts import ImportContactsRequest, GetContactsRequest, DeleteContactsRequest
 from telethon.tl.types import InputPhoneContact
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 
 class TelegramService:
@@ -24,10 +29,12 @@ class TelegramService:
     _client_started: bool = False
     _thread_lock = threading.Lock()  # Thread-safe lock для синхронизации между разными event loops
     _init_lock = threading.Lock()  # Lock для инициализации клиента
-    _phone_cache: Dict[str, int] = {}  # Кэш номеров телефонов -> user_id
+    _phone_cache: Dict[str, Tuple[int, datetime]] = {}  # Кэш номеров телефонов -> (user_id, timestamp) с TTL
+    _phone_cache_ttl = timedelta(hours=1)  # TTL для кэша номеров телефонов
     _sending_locks: Dict[str, threading.Lock] = {}  # Блокировки для предотвращения повторной отправки
     _sending_lock = threading.Lock()  # Lock для управления _sending_locks
     _thread_local = threading.local()  # Thread-local storage для клиентов в разных потоках
+    _session_lock = threading.Lock()  # Глобальный lock для операций с sqlite-сессией Telethon
 
     @classmethod
     def _get_client(cls) -> TelegramClient:
@@ -56,7 +63,7 @@ class TelegramService:
         # Создаем новый клиент
         api_id = getattr(settings, 'TG_API_ID', None)
         api_hash = getattr(settings, 'TG_API_HASH', None)
-        session_file = getattr(settings, 'TG_SESSION_FILE', 'session_name')
+        session_string = getattr(settings, 'TG_SESSION_STRING', None)
 
         if not api_id or not api_hash:
             raise ValueError("TG_API_ID и TG_API_HASH должны быть установлены в settings.py")
@@ -75,7 +82,16 @@ class TelegramService:
             raise RuntimeError("Event loop закрыт. Невозможно создать Telegram клиент.")
 
         # Создаем клиент с текущим event loop
-        cls._thread_local.client = TelegramClient(session_file, api_id, api_hash, loop=loop)
+        if session_string:
+            # Используем StringSession (сессия в строке, без sqlite-файла)
+            session = StringSession(session_string)
+            cls._thread_local.client = TelegramClient(session, api_id, api_hash, loop=loop)
+            logger.info("Telegram клиент создан с использованием StringSession")
+        else:
+            # Fallback: старый способ с файловой сессией (можно удалить, когда StringSession будет настроен)
+            session_file = getattr(settings, 'TG_SESSION_FILE', 'session_name')
+            cls._thread_local.client = TelegramClient(session_file, api_id, api_hash, loop=loop)
+            logger.warning("TG_SESSION_STRING не задан. Используется файловая сессия (sqlite).")
         cls._thread_local.client_started = False
         logger.info(f"Telegram клиент создан для потока {threading.current_thread().name}")
         
@@ -203,18 +219,23 @@ class TelegramService:
         """
         client = cls._get_client()
         
-        # Проверяем кэш
+        # Проверяем кэш с TTL
         if phone in cls._phone_cache:
-            user_id = cls._phone_cache[phone]
-            try:
-                # Проверяем, что пользователь все еще доступен
-                user = await client.get_entity(user_id)
-                return {
-                    'user_id': user_id,
-                    'username': user.username or user.first_name or ""
-                }
-            except Exception:
-                # Если пользователь недоступен, удаляем из кэша
+            user_id, timestamp = cls._phone_cache[phone]
+            # Проверяем, не истек ли TTL
+            if datetime.now() - timestamp < cls._phone_cache_ttl:
+                try:
+                    # Проверяем, что пользователь все еще доступен
+                    user = await client.get_entity(user_id)
+                    return {
+                        'user_id': user_id,
+                        'username': user.username or user.first_name or ""
+                    }
+                except Exception:
+                    # Если пользователь недоступен, удаляем из кэша
+                    del cls._phone_cache[phone]
+            else:
+                # TTL истек, удаляем из кэша
                 del cls._phone_cache[phone]
         
         # Пытаемся найти в существующих контактах (пропускаем, если есть проблемы с event loop)
@@ -238,8 +259,8 @@ class TelegramService:
             telegram_user_id = user.id
             username = user.username or user.first_name or ""
             
-            # Сохраняем в кэш
-            cls._phone_cache[phone] = telegram_user_id
+            # Сохраняем в кэш с timestamp
+            cls._phone_cache[phone] = (telegram_user_id, datetime.now())
             
             # Удаляем временный контакт, если он был создан
             # (если контакт уже существовал, он не будет удален)
@@ -304,62 +325,64 @@ class TelegramService:
                 'error': 'Отправка сообщения на этот номер уже выполняется. Пожалуйста, подождите.'
             }
 
-        try:
-            # Убеждаемся, что клиент запущен
-            await cls._ensure_client()
-            
-            # Находим пользователя без изменения контактов
-            user_info = await cls._find_user_by_phone(phone)
-            
-            if not user_info:
+        # Глобальный lock, чтобы исключить одновременный доступ к sqlite-сессии Telethon
+        with cls._session_lock:
+            try:
+                # Убеждаемся, что клиент запущен
+                await cls._ensure_client()
+                
+                # Находим пользователя без изменения контактов
+                user_info = await cls._find_user_by_phone(phone)
+                
+                if not user_info:
+                    return {
+                        'ok': False,
+                        'error': 'Клиент не найден в Telegram. Убедитесь, что номер зарегистрирован в Telegram.'
+                    }
+
+                telegram_user_id = user_info['user_id']
+                username = user_info['username']
+
+                # Отправляем сообщение только один раз
+                await cls._get_client().send_message(telegram_user_id, text)
+
+                logger.info(f"Сообщение успешно отправлено на {phone} (user_id: {telegram_user_id})")
+
                 return {
-                    'ok': False,
-                    'error': 'Клиент не найден в Telegram. Убедитесь, что номер зарегистрирован в Telegram.'
+                    'ok': True,
+                    'telegram_user_id': telegram_user_id,
+                    'username': username,
+                    'error': None
                 }
 
-            telegram_user_id = user_info['user_id']
-            username = user_info['username']
+            except PhoneNumberInvalidError:
+                error_msg = 'Неверный формат номера телефона'
+                logger.error(f"{error_msg}: {phone}")
+                return {'ok': False, 'error': error_msg}
 
-            # Отправляем сообщение только один раз
-            await cls._get_client().send_message(telegram_user_id, text)
+            except PeerIdInvalidError:
+                error_msg = 'Номер скрыт в настройках приватности Telegram и его нельзя найти'
+                logger.error(f"{error_msg}: {phone}")
+                return {'ok': False, 'error': error_msg}
 
-            logger.info(f"Сообщение успешно отправлено на {phone} (user_id: {telegram_user_id})")
+            except FloodWaitError as e:
+                error_msg = f'Превышен лимит запросов. Попробуйте через {e.seconds} секунд'
+                logger.error(f"{error_msg}: {phone}")
+                return {'ok': False, 'error': error_msg}
 
-            return {
-                'ok': True,
-                'telegram_user_id': telegram_user_id,
-                'username': username,
-                'error': None
-            }
+            except SessionPasswordNeededError:
+                error_msg = 'Требуется двухфакторная аутентификация для сессии Telegram'
+                logger.error(f"{error_msg}: {phone}")
+                return {'ok': False, 'error': error_msg}
 
-        except PhoneNumberInvalidError:
-            error_msg = 'Неверный формат номера телефона'
-            logger.error(f"{error_msg}: {phone}")
-            return {'ok': False, 'error': error_msg}
-
-        except PeerIdInvalidError:
-            error_msg = 'Номер скрыт в настройках приватности Telegram и его нельзя найти'
-            logger.error(f"{error_msg}: {phone}")
-            return {'ok': False, 'error': error_msg}
-
-        except FloodWaitError as e:
-            error_msg = f'Превышен лимит запросов. Попробуйте через {e.seconds} секунд'
-            logger.error(f"{error_msg}: {phone}")
-            return {'ok': False, 'error': error_msg}
-
-        except SessionPasswordNeededError:
-            error_msg = 'Требуется двухфакторная аутентификация для сессии Telegram'
-            logger.error(f"{error_msg}: {phone}")
-            return {'ok': False, 'error': error_msg}
-
-        except Exception as e:
-            error_msg = f'Ошибка при отправке сообщения: {str(e)}'
-            logger.error(f"{error_msg}: {phone}", exc_info=True)
-            return {'ok': False, 'error': error_msg}
-            
-        finally:
-            # Освобождаем lock в любом случае
-            sending_lock.release()
+            except Exception as e:
+                error_msg = f'Ошибка при отправке сообщения: {str(e)}'
+                logger.error(f"{error_msg}: {phone}", exc_info=True)
+                return {'ok': False, 'error': error_msg}
+                
+            finally:
+                # Освобождаем lock в любом случае
+                sending_lock.release()
 
     @classmethod
     async def disconnect(cls):

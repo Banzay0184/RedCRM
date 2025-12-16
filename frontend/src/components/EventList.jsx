@@ -1,5 +1,5 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {deleteEvent, getServices, getWorkers} from '../api';
+import React, {useContext, useState, useMemo, useCallback} from 'react';
+import {deleteEvent} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
 import AddAdvanceModal from './AddAdvanceModal.jsx';
@@ -8,6 +8,8 @@ import {ru} from 'date-fns/locale';
 import {FaDollarSign, FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
 import {GlobalContext} from './BaseContex.jsx';
 import {canManageEvents, isAdmin} from '../utils/roles.js';
+import {useServices} from '../hooks/useServices';
+import {useWorkers} from '../hooks/useWorkers';
 
 const EventList = ({
     events,
@@ -20,10 +22,29 @@ const EventList = ({
     filterStartDate,
     filterEndDate,
 }) => {
-    const [services, setServices] = useState({});
-    const [servicesColor, setServicesColor] = useState({});
+    // Используем React Query хуки
+    const { data: servicesData = [] } = useServices();
+    const { data: workersData = [] } = useWorkers();
 
-    const [worker, setWorker] = useState({});
+    // Мемоизация данных услуг и работников
+    const { services, servicesColor } = useMemo(() => {
+        const servicesMap = {};
+        const servicesMapColor = {};
+        servicesData.forEach((service) => {
+            servicesMap[service.id] = service.name;
+            servicesMapColor[service.id] = service.color;
+        });
+        return { services: servicesMap, servicesColor: servicesMapColor };
+    }, [servicesData]);
+
+    const worker = useMemo(() => {
+        const workersMap = {};
+        workersData.forEach((worker) => {
+            workersMap[worker.id] = worker;
+        });
+        return workersMap;
+    }, [workersData]);
+
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
@@ -32,74 +53,33 @@ const EventList = ({
 
     const {user} = useContext(GlobalContext);
 
-    useEffect(() => {
-        fetchServices();
-        fetchWorker();
-    }, []);
-
-    const formatDate = (dateValue, dateFormat = 'dd MMMM yyyy', localeObj = ru) => {
+    const formatDate = useCallback((dateValue, dateFormat = 'dd MMMM yyyy', localeObj = ru) => {
         if (!dateValue || !isValid(dateValue)) return 'Дата не указана';
         return format(dateValue, dateFormat, {locale: localeObj});
-    };
+    }, []);
 
-    const fetchServices = async () => {
-        try {
-            const response = await getServices();
-            const servicesData = response.data;
-            const servicesMap = {};
-            const servicesMapColor = {};
-            servicesData.forEach((service) => {
-                servicesMap[service.id] = service.name;
-            });
-
-            servicesData.forEach((service) => {
-                servicesMapColor[service.id] = service.color;
-            });
-
-            setServicesColor(servicesMapColor);
-            setServices(servicesMap);
-        } catch (err) {
-            console.error('Ошибка при загрузке услуг:', err);
-            setErrorMessage('Ошибка при загрузке услуг');
-        }
-    };
-
-    const fetchWorker = async () => {
-        try {
-            const response = await getWorkers();
-            const workersData = response.data;
-            const workersMap = {};
-            workersData.forEach((worker) => {
-                workersMap[worker.id] = worker;
-            });
-            setWorker(workersMap);
-        } catch (err) {
-            console.error('Ошибка при загрузке работников:', err);
-            setErrorMessage('Ошибка при загрузке работников');
-        }
-    };
-
-    const openModal = (event) => {
+    // Мемоизация функций для предотвращения лишних ререндеров
+    const openModal = useCallback((event) => {
         setSelectedEvent(event);
-    };
+    }, []);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setSelectedEvent(null);
-    };
+    }, []);
 
-    const openEditModal = (event) => {
+    const openEditModal = useCallback((event) => {
         setEditEvent(event);
-    };
+    }, []);
 
-    const closeEditModal = () => {
+    const closeEditModal = useCallback(() => {
         setEditEvent(null);
-    };
+    }, []);
 
-    const handleDelete = (event) => {
+    const handleDelete = useCallback((event) => {
         setConfirmDelete(event);
-    };
+    }, []);
 
-    const confirmDeleteEvent = async () => {
+    const confirmDeleteEvent = useCallback(async () => {
         if (confirmDelete) {
             try {
                 await deleteEvent(confirmDelete.id);
@@ -111,36 +91,41 @@ const EventList = ({
                 setConfirmDelete(null);
             }
         }
-    };
+    }, [confirmDelete, onDeleteEvent, setErrorMessage]);
 
-    const cancelDelete = () => {
+    const cancelDelete = useCallback(() => {
         setConfirmDelete(null);
-    };
+    }, []);
 
-    const openAdvanceManager = (event) => {
+    const openAdvanceManager = useCallback((event) => {
         setAdvanceEvent(event);
         setAdvanceManagerOpen(true);
-    };
+    }, []);
 
-    const closeAdvanceManager = () => {
+    const closeAdvanceManager = useCallback(() => {
         setAdvanceManagerOpen(false);
         setAdvanceEvent(null);
-    };
+    }, []);
 
-    const sortEvents = (events) => {
-        return events.sort((a, b) => {
+    // Мемоизация проверок прав доступа
+    const userIsAdmin = useMemo(() => isAdmin(user), [user]);
+    const userCanManage = useMemo(() => canManageEvents(user), [user]);
+
+    // Мемоизация фильтрации для оптимизации производительности
+    const filteredEvents = useMemo(() => {
+        // Создаем копию массива для сортировки (не мутируем оригинал)
+        const sortedEvents = [...events].sort((a, b) => {
             if (a.created_at && b.created_at) {
                 return new Date(b.created_at) - new Date(a.created_at);
             }
             return b.id - a.id;
         });
-    };
 
-    const filterEvents = () => {
-        const sortedEvents = sortEvents(events);
+        const searchLower = searchQuery.toLowerCase();
+        
         return sortedEvents.filter((event) => {
             const matchesSearchQuery =
-                event.client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                event.client.name.toLowerCase().includes(searchLower) ||
                 event.client.phones.some((phone) =>
                     phone.phone_number.includes(searchQuery)
                 );
@@ -174,9 +159,7 @@ const EventList = ({
 
             return matchesSearchQuery && matchesService && matchesDate;
         });
-    };
-
-    const filteredEvents = filterEvents();
+    }, [events, searchQuery, filterService, filterStartDate, filterEndDate]);
 
     if (loading)
         return (
@@ -258,7 +241,7 @@ const EventList = ({
                                         >
                                             <FaInfoCircle className="text-white"/>
                                         </button>
-                                        {isAdmin(user) && (
+                                        {userIsAdmin && (
                                             <button
                                                 className="btn btn-sm btn-warning"
                                                 onClick={() => openEditModal(event)}
@@ -267,7 +250,7 @@ const EventList = ({
                                                 <FaEdit className="text-white"/>
                                             </button>
                                         )}
-                                        {canManageEvents(user) && (
+                                        {userCanManage && (
                                             <button
                                                 className="btn btn-sm btn-success"
                                                 onClick={() => openAdvanceManager(event)}
@@ -276,7 +259,7 @@ const EventList = ({
                                                 <FaDollarSign className="text-white"/>
                                             </button>
                                         )}
-                                        {isAdmin(user) && (
+                                        {userIsAdmin && (
                                             <button
                                                 className="btn btn-sm btn-error"
                                                 onClick={() => handleDelete(event)}
@@ -353,4 +336,5 @@ const EventList = ({
     );
 };
 
-export default EventList;
+// Мемоизация компонента для предотвращения лишних ререндеров
+export default React.memo(EventList);

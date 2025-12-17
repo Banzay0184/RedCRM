@@ -1,9 +1,7 @@
 import axios from "axios";
 
 // Базовый URL для всех запросов
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? "https://mukhammadrizo07.pythonanywhere.com/api" 
-    : "http://127.0.0.1:8000/api";
+const API_BASE_URL = 'http://178.18.243.236:8000/api'
 
 // const API_BASE_URL = "https://mukhammadrizo07.pythonanywhere.com/api" 
 

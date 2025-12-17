@@ -45,6 +45,11 @@ ALLOWED_HOSTS = [
     'api.redcrm.uz',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.redcrm.uz",
+]
+
+
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',

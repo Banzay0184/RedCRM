@@ -41,7 +41,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 # Безопасность: ALLOWED_HOSTS из переменных окружения
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'api.redcrm.uz').split(',')
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',

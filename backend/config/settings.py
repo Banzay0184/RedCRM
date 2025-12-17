@@ -18,7 +18,8 @@ import os
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -270,3 +271,10 @@ TG_API_ID = int(os.getenv('TG_API_ID',))
 TG_API_HASH = os.getenv('TG_API_HASH', )
 TG_PHONE = os.getenv('TG_PHONE', )
 TG_SESSION_FILE = os.getenv('TG_SESSION_FILE', str(BASE_DIR / 'session_name'))
+
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # для collectstatic
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')    # для загруженных файлов

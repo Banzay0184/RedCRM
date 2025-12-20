@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TG_API_ID = os.getenv("TG_API_ID")
-TG_API_HASH = os.getenv("TG_API_HASH")
+TG_API_ID = '21819507'
+TG_API_HASH = '55bb35193fc5eaee8aaec20c34e62dcc'
 
 if not TG_API_ID or not TG_API_HASH:
     raise RuntimeError("TG_API_ID и TG_API_HASH должны быть заданы в .env")

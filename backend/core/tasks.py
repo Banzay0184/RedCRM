@@ -65,48 +65,10 @@ def send_worker_event_notifications():
         today = date.today()
         tomorrow = today + timedelta(days=1)
         
-        # Находим работников с мероприятиями сегодня
-        workers_today = Workers.objects.filter(
-            devices__event_service_date=today
-        ).distinct()
-        
         # Находим работников с мероприятиями завтра
         workers_tomorrow = Workers.objects.filter(
             devices__event_service_date=tomorrow
         ).distinct()
-        
-        # Отправляем уведомления работникам с мероприятиями сегодня
-        workers_today_count = 0
-        for worker in workers_today:
-            if worker.phone_number:
-                # Получаем устройства работника на сегодня
-                devices_today = Device.objects.filter(
-                    workers=worker,
-                    event_service_date=today
-                ).select_related('event', 'event__client', 'service')
-                
-                if devices_today.exists():
-                    logger.info(f"Отправляем уведомление работнику {worker.name} о мероприятиях сегодня")
-                    message = generate_worker_notification_message(worker, devices_today, today, "сегодня")
-                    result = send_telegram_message(worker.phone_number, message)
-                    workers_today_count += 1
-                    
-                    # Сохраняем историю отправки
-                    WorkerNotificationLog.objects.create(
-                        worker=worker,
-                        phone=worker.phone_number,
-                        status='success' if result.get('ok') else 'error',
-                        error=result.get('error'),
-                        message_text=message,
-                        telegram_user_id=result.get('telegram_user_id'),
-                        event_date=today,
-                        notification_type='today'
-                    )
-                    
-                    if result.get('ok'):
-                        logger.info(f"Уведомление успешно отправлено работнику {worker.name}")
-                    else:
-                        logger.error(f"Ошибка при отправке уведомления работнику {worker.name}: {result.get('error')}")
         
         # Отправляем уведомления работникам с мероприятиями завтра
         workers_tomorrow_count = 0

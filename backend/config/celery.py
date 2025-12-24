@@ -13,6 +13,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'check-and-send-worker-notifications': {
         'task': 'core.tasks.send_worker_event_notifications',
-        'schedule': crontab(minute=35, hour=16),  # каждый день в 21:30
+        'schedule': crontab(minute=30, hour=21),  # каждый день в 21:30
     },
 }

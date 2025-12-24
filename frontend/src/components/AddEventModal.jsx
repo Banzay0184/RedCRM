@@ -331,10 +331,10 @@ const AddEventModal = ({onClose, onSave}) => {
         console.log(parseInt(convertedAmount.replace(/\s/g, '')));
 
         try {
-            const response = await createEvent(eventData);
-            const createdEvent = response.data;
+            // const response = await createEvent(eventData);
+            // const createdEvent = 
 
-            onSave(createdEvent);
+            onSave(eventData);
             onClose();
             toast.success('Событие успешно создано!', {
                 style: {
@@ -571,54 +571,6 @@ const AddEventModal = ({onClose, onSave}) => {
                                                 </button>
                                             </div>
                                         )}
-
-                                        {/*<div className="flex flex-col gap-2">*/}
-                                        {/*    {selectedServices.find(s => s.service === service.id)?.workers.map((workerId) => {*/}
-                                        {/*        const worker = workers.find(w => w.id === workerId);*/}
-                                        {/*        return (*/}
-                                        {/*            <div key={workerId}*/}
-                                        {/*                 className="flex items-center text-w justify-between">*/}
-                                        {/*                <span>{worker?.name || 'Неизвестный работник'}</span>*/}
-                                        {/*                <button*/}
-                                        {/*                    className="btn btn-xs btn-error ml-1"*/}
-                                        {/*                    onClick={() => handleWorkerChange(service.id, workerId)}*/}
-                                        {/*                >*/}
-                                        {/*                    Удалить*/}
-                                        {/*                </button>*/}
-                                        {/*            </div>*/}
-                                        {/*        );*/}
-                                        {/*    })}*/}
-                                        {/*</div>*/}
-
-
-                                        {/* Выбор работников для конкретного сервиса */}
-                                        {/*{service.is_active_camera && (*/}
-                                        {/*    <div className="form-control">*/}
-                                        {/*        <div className="dropdown">*/}
-                                        {/*            <label tabIndex={0} className="btn btn-outline btn-primary w-full">*/}
-                                        {/*                Выберите работников*/}
-                                        {/*                ({selectedServices.find(s => s.service === service.id)?.workers.length || 0})*/}
-                                        {/*            </label>*/}
-                                        {/*            <ul tabIndex={0}*/}
-                                        {/*                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">*/}
-                                        {/*                {workers.map((worker) => (*/}
-                                        {/*                    <li key={worker.id} className="flex gap-2 items-center">*/}
-                                        {/*                        <label*/}
-                                        {/*                            className="cursor-pointer flex items-center gap-2">*/}
-                                        {/*                            <input*/}
-                                        {/*                                type="checkbox"*/}
-                                        {/*                                className="checkbox checkbox-primary"*/}
-                                        {/*                                checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}*/}
-                                        {/*                                onChange={() => handleWorkerChange(service.id, worker.id)}*/}
-                                        {/*                            />*/}
-                                        {/*                            <span>{worker.name}</span>*/}
-                                        {/*                        </label>*/}
-                                        {/*                    </li>*/}
-                                        {/*                ))}*/}
-                                        {/*            </ul>*/}
-                                        {/*        </div>*/}
-                                        {/*    </div>*/}
-                                        {/*)}*/}
                                     </div>
                                 )}
                             </div>

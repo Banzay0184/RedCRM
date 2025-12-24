@@ -32,8 +32,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
     const [convertedAdvance, setConvertedAdvance] = useState('');
     const [computerNumbers, setComputerNumbers] = useState('');
     const [exchangeRate, setExchangeRate] = useState(null);
-
-    // Загружаем данные при монтировании компонента
+    
     useEffect(() => {
         async function fetchData() {
             try {

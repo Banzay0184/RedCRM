@@ -7,7 +7,7 @@ import EventList from "../components/EventList.jsx";
 import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch} from "react-icons/fa";
 import {canManageEvents} from "../utils/roles.js";
 import {useDebounce} from "../utils/debounce.js";
-import {useEvents, useCreateEvent, useDeleteEvent, useUpdateEvent} from '../hooks/useEvents';
+import {useEvents, useCreateEvent,useDeleteEvent, useUpdateEvent} from '../hooks/useEvents';
 import {useServices} from '../hooks/useServices';
 import {toast} from 'react-hot-toast';
 import Pagination from '../components/Pagination';

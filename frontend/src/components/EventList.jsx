@@ -79,10 +79,12 @@ const EventList = ({
         setConfirmDelete(event);
     }, []);
 
+    
+
     const confirmDeleteEvent = useCallback(async () => {
         if (confirmDelete) {
             try {
-                await deleteEvent(confirmDelete.id);
+                // await deleteEvent(confirmDelete.id);
                 onDeleteEvent(confirmDelete.id);
                 setConfirmDelete(null);
             } catch (err) {
@@ -91,7 +93,7 @@ const EventList = ({
                 setConfirmDelete(null);
             }
         }
-    }, [confirmDelete, onDeleteEvent, setErrorMessage]);
+    }, [confirmDelete,onDeleteEvent, setErrorMessage]);
 
     const cancelDelete = useCallback(() => {
         setConfirmDelete(null);

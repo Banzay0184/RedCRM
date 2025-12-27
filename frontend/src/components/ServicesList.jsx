@@ -157,10 +157,11 @@ function ServicesList() {
                 setServices((prev) => prev.map((s) => (s.id === editingServiceId ? {...s, ...payload} : s)));
                 toast.success('Услуга обновлена');
             } else {
-                const maxOrder = services.length > 0 ? Math.max(...services.map((s) => s.order ?? 0)) : 0;
-                const payload = {...serviceData, order: maxOrder + 1};
+                // Используем длину массива как порядок для новой услуги
+                const payload = {...serviceData, order: services.length};
                 const response = await createService(payload);
-                setServices([...services, response.data]);
+                const newServices = [...services, response.data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                setServices(newServices);
                 toast.success('Услуга добавлена');
             }
             resetModal();

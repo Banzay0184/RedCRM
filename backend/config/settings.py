@@ -43,6 +43,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 # Безопасность: ALLOWED_HOSTS из переменных окружения
 ALLOWED_HOSTS = [
     'api.redcrm.uz',
+    # 'http://127.0.0.1:8000',
+    # '127.0.0.1:8000',
+    # '127.0.0.1',
 ]
 
 CSRF_TRUSTED_ORIGINS = [

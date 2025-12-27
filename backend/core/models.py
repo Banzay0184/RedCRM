@@ -85,6 +85,13 @@ class Service(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     is_active_camera = models.BooleanField(default=False)
     color = ColorField(default="#FFFFFF")
+    order = models.IntegerField(default=0, null=True, blank=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['order']),
+        ]
+        ordering = ['order']
 
     def __str__(self):
         return self.name

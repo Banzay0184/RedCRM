@@ -117,7 +117,7 @@ class DeviceSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ["id", "name", "color", "is_active_camera"]
+        fields = ["id", "name", "color", "is_active_camera", "order"]
 
 
 class DeviceWithEventSerializer(serializers.ModelSerializer):

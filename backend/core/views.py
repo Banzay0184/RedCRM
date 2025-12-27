@@ -234,7 +234,8 @@ class ServiceAPIView(APIView):
         cached_data = cache.get(cache_key)
         
         if cached_data is None:
-            services = Service.objects.all()
+            # Явно сортируем по полю order, чтобы порядок всегда был правильным
+            services = Service.objects.all().order_by('order', 'id')
             serializer = ServiceSerializer(services, many=True)
             cached_data = serializer.data
             cache.set(cache_key, cached_data, 300)  # Кэш на 5 минут

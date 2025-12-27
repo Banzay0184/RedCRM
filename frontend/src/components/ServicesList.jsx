@@ -3,7 +3,7 @@ import {closestCenter, DndContext, PointerSensor, TouchSensor, useSensor, useSen
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import {createService, deleteService, getServices, updateService} from '../api';
+import {createService, deleteService, getServices, updateService, updateServicesOrder} from '../api';
 import {toast} from 'react-hot-toast';
 
 // Визуал карточки услуги с поддержкой drag & drop и стрелок
@@ -198,22 +198,19 @@ function ServicesList() {
 
     const persistOrder = async (newServices) => {
         try {
-            await Promise.all(
-                newServices.map((service, index) =>
-                    updateService(service.id, {
-                        name: service.name,
-                        is_active_camera: service.is_active_camera,
-                        color: service.color,
-                        order: index,
-                    }),
-                ),
+            // Используем специальный endpoint для обновления порядка, как в WorkersList
+            await updateServicesOrder(
+                newServices.map((service, index) => ({
+                    id: service.id,
+                    order: index
+                }))
             );
             // Перезагружаем данные с сервера после успешного обновления
-            // чтобы убедиться, что локальное состояние синхронизировано
             await fetchServices();
             toast.success('Порядок услуг обновлен');
         } catch (error) {
             toast.error('Ошибка обновления порядка услуг');
+            // Восстанавливаем исходный порядок при ошибке
             fetchServices();
         }
     };

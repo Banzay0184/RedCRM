@@ -92,6 +92,7 @@ export const getServices = () => api.get("/services/");
 export const createService = (data) => api.post("/services/", data);
 export const deleteService = (id)=> api.delete(`/service/${id}/`);
 export const updateService = (id, data) => api.put(`/service/${id}/`, data);
+export const updateServicesOrder = (data) => api.post("/services/update_order/", data);
 
 // Telegram contract sending (backend endpoint ожидается как POST /events/{id}/send_contract/)
 export const sendEventContract = (eventId, phone) =>

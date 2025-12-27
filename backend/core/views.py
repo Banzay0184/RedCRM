@@ -175,6 +175,37 @@ def update_workers_order(request):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+def update_services_order(request):
+    """Оптимизированное обновление порядка услуг через bulk_update."""
+    services_order = request.data  # Ожидаем список словарей с 'id' и 'order'
+
+    try:
+        # Получаем все ID для обновления
+        service_ids = [item['id'] for item in services_order]
+        
+        # Получаем все объекты одним запросом
+        services = {s.id: s for s in Service.objects.filter(id__in=service_ids)}
+        
+        # Обновляем порядок
+        services_to_update = []
+        for service_data in services_order:
+            service_id = service_data['id']
+            if service_id in services:
+                service = services[service_id]
+                service.order = service_data['order']
+                services_to_update.append(service)
+        
+        # Bulk update - один запрос вместо N
+        Service.objects.bulk_update(services_to_update, ['order'])
+        
+        # Инвалидация кэша после обновления порядка
+        cache.delete('services_list')
+        
+        return Response({'message': 'Порядок услуг обновлен'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
 def update_advance(request, pk):
     """Обновление аванса с сохранением истории."""
     # Получаем событие по ID

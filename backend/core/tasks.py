@@ -123,9 +123,11 @@ def generate_worker_notification_message(worker, devices, event_date, date_text)
         
         device_info = f"• {service_name} - {client_name}"
         if device.restaurant_name:
-            device_info += f" ({device.restaurant_name})"
+            device_info += f"\n  📍 Адрес: {device.restaurant_name}"
         if device.camera_count > 0:
             device_info += f" - {device.camera_count} камер"
+        if device.comment:
+            device_info += f"\n  💬 Комментарий: {device.comment}"
         devices_info.append(device_info)
     
     devices_block = '\n'.join(devices_info) if devices_info else "Нет мероприятий"

@@ -55,6 +55,7 @@ class PhoneClient(PhoneNumber, BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="phones", db_index=True)
 
     class Meta:
+        ordering = ["id"]  # Порядок как при вводе: первый введённый — первый в списке
         indexes = [
             models.Index(fields=['client', 'phone_number']),
         ]

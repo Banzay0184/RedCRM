@@ -1,4 +1,5 @@
 from colorfield.fields import ColorField
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -62,6 +63,28 @@ class PhoneClient(PhoneNumber, BaseModel):
 
     def __str__(self):
         return self.phone_number
+
+
+class ClientHistory(BaseModel):
+    """История изменений полей клиента (имя, телефоны)."""
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="history", db_index=True)
+    field_name = models.CharField(max_length=50)
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField(null=True, blank=True)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['client', '-changed_at']),
+        ]
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f"{self.client}: {self.field_name} {self.old_value!r} -> {self.new_value!r}"
 
 
 class Workers(PhoneNumber, BaseModel):
@@ -184,6 +207,28 @@ class AdvanceHistory(BaseModel):
     def __str__(self):
         return f"{self.amount} {self.get_change_type_display()} - {self.date}"
 
+
+
+class EventHistory(BaseModel):
+    """История изменений полей договора (мероприятия)."""
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="history", db_index=True)
+    field_name = models.CharField(max_length=50)
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField(null=True, blank=True)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['event', '-changed_at']),
+        ]
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f"{self.event}: {self.field_name} {self.old_value!r} -> {self.new_value!r}"
 
 
 class EventLog(BaseModel):

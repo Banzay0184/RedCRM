@@ -8,3 +8,5 @@ class CoreConfig(AppConfig):
     def ready(self):
         # Импортируем сигналы из tasks.py
         import core.tasks
+        # Сигналы для истории изменений договора (Event/Client)
+        import core.signals

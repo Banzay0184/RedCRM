@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import (
-    Client, PhoneClient, Workers, Service, Device, Event, EventLog, AdvanceHistory,
+    Client, ClientHistory, PhoneClient, Workers, Service, Device, Event, EventHistory, EventLog, AdvanceHistory,
     TelegramContractLog, TelegramAdvanceNotificationLog, WorkerNotificationSettings, WorkerNotificationLog
 )
 
@@ -21,6 +21,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PhoneClientSerializer(serializers.ModelSerializer):
+    # По умолчанию DRF помечает id как read_only, из-за чего id, присланный клиентом
+    # для обновления существующего телефона, молча отбрасывался при валидации —
+    # ClientSerializer.update() считал такой телефон новым и пересоздавал его.
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = PhoneClient
         fields = ["id", "phone_number"]
@@ -161,6 +166,34 @@ class AdvanceHistorySerializer(serializers.ModelSerializer):
         model = AdvanceHistory
         fields = ["id", "amount", "change_type", "date"]
 
+
+
+class EventHistorySerializer(serializers.ModelSerializer):
+    """Сериализатор для истории изменений договора."""
+
+    changed_by_name = serializers.CharField(source="changed_by.username", default=None, read_only=True)
+    source = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EventHistory
+        fields = ["id", "field_name", "old_value", "new_value", "changed_by_name", "changed_at", "source"]
+
+    def get_source(self, obj):
+        return "event"
+
+
+class ClientHistorySerializer(serializers.ModelSerializer):
+    """Сериализатор для истории изменений клиента."""
+
+    changed_by_name = serializers.CharField(source="changed_by.username", default=None, read_only=True)
+    source = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClientHistory
+        fields = ["id", "field_name", "old_value", "new_value", "changed_by_name", "changed_at", "source"]
+
+    def get_source(self, obj):
+        return "client"
 
 
 class EventSerializer(serializers.ModelSerializer):

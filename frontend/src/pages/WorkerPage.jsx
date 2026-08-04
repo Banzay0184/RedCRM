@@ -1,8 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useWorkers, useWorkerDetail } from '../hooks/useWorkers';
 import { format, parseISO, isToday, isTomorrow, isPast, isFuture, isValid, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { FaUser, FaPhone, FaTasks, FaCalendarAlt, FaChevronRight, FaCircle } from 'react-icons/fa';
+import { FaUser, FaPhone, FaTasks, FaCalendarAlt, FaChevronRight, FaCircle, FaCog } from 'react-icons/fa';
+
+const PAST_EVENTS_PAGE_SIZE = 10;
 
 const WorkerPage = () => {
     const [selectedWorkerId, setSelectedWorkerId] = useState(null);
@@ -30,6 +33,12 @@ const WorkerPage = () => {
 
     // Выбранные услуги (тип работ) для фильтрации внутри карточки работника
     const [selectedServiceIds, setSelectedServiceIds] = useState([]);
+
+    // Постраничный показ прошедших мероприятий (список может быть очень длинным)
+    const [pastVisibleCount, setPastVisibleCount] = useState(PAST_EVENTS_PAGE_SIZE);
+    useEffect(() => {
+        setPastVisibleCount(PAST_EVENTS_PAGE_SIZE);
+    }, [selectedWorkerId, filterStartDate, filterEndDate, selectedServiceIds]);
 
     // Услуги, с которыми работал выбранный работник (для списка фильтров)
     const workerServices = useMemo(() => {
@@ -250,7 +259,13 @@ const WorkerPage = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">Управление работниками</h1>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h1 className="text-3xl font-bold">Работники</h1>
+                <Link to="/settings" className="btn btn-sm btn-outline gap-2">
+                    <FaCog />
+                    Добавить / изменить состав — в Настройках
+                </Link>
+            </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Список работников */}
@@ -381,7 +396,7 @@ const WorkerPage = () => {
                                                     </label>
                                                     <input
                                                         type="date"
-                                                        className="input input-sm input-bordered"
+                                                        className="input input-sm input-bordered [color-scheme:dark]"
                                                         value={filterStartDate}
                                                         onChange={(e) => {
                                                             setFilterMode('range');
@@ -395,7 +410,7 @@ const WorkerPage = () => {
                                                     </label>
                                                     <input
                                                         type="date"
-                                                        className="input input-sm input-bordered"
+                                                        className="input input-sm input-bordered [color-scheme:dark]"
                                                         value={filterEndDate}
                                                         onChange={(e) => {
                                                             setFilterMode('range');
@@ -548,9 +563,10 @@ const WorkerPage = () => {
                                             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                                                 <FaCalendarAlt className="text-gray-500" />
                                                 Прошедшие мероприятия
+                                                <span className="text-sm font-normal text-gray-500">({pastEvents.length})</span>
                                             </h3>
                                             <div className="space-y-4">
-                                                {pastEvents.map((event) => (
+                                                {pastEvents.slice(0, pastVisibleCount).map((event) => (
                                                     <div
                                                         key={event.event_id}
                                                         className="bg-base-100 rounded-lg p-4 border-l-4 border-gray-400 opacity-75"
@@ -626,6 +642,17 @@ const WorkerPage = () => {
                                                     </div>
                                                 ))}
                                             </div>
+                                            {pastVisibleCount < pastEvents.length && (
+                                                <div className="flex justify-center mt-4">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline btn-sm"
+                                                        onClick={() => setPastVisibleCount((prev) => prev + PAST_EVENTS_PAGE_SIZE)}
+                                                    >
+                                                        Показать ещё ({pastEvents.length - pastVisibleCount})
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

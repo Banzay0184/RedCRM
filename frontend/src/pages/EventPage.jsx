@@ -7,7 +7,8 @@ import EventList from "../components/EventList.jsx";
 import {FaCalendarAlt, FaFilter, FaListUl, FaPlus, FaSearch} from "react-icons/fa";
 import {canManageEvents} from "../utils/roles.js";
 import {useDebounce} from "../utils/debounce.js";
-import {useEvents, useCreateEvent,useDeleteEvent, useUpdateEvent} from '../hooks/useEvents';
+import {useQueryClient} from '@tanstack/react-query';
+import {useEvents, useCreateEvent, useDeleteEvent, eventKeys} from '../hooks/useEvents';
 import {useServices} from '../hooks/useServices';
 import {toast} from 'react-hot-toast';
 import Pagination from '../components/Pagination';
@@ -24,8 +25,6 @@ const EventPage = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [successMessage, setSuccessMessage] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
-
-    console.log(successMessage, errorMessage);
 
     // Состояния для поиска и фильтров
     const [searchQuery, setSearchQuery] = useState('');
@@ -71,8 +70,8 @@ const EventPage = () => {
     
     const pagination = shouldUsePagination ? eventsData?.pagination : null;
     
+    const queryClient = useQueryClient();
     const createEventMutation = useCreateEvent();
-    const updateEventMutation = useUpdateEvent();
     const deleteEventMutation = useDeleteEvent();
 
     const {user} = useContext(GlobalContext);
@@ -119,20 +118,15 @@ const EventPage = () => {
         }
     }, [deleteEventMutation]);
 
-    const handleUpdateEvent = useCallback(async (updatedEvent) => {
-        try {
-            await updateEventMutation.mutateAsync({
-                id: updatedEvent.id,
-                data: updatedEvent
-            });
-            setSuccessMessage('Событие успешно обновлено');
-            toast.success('Событие успешно обновлено');
-        } catch (error) {
-            console.error('Ошибка при обновлении события:', error);
-            setErrorMessage('Ошибка при обновлении события');
-            toast.error('Ошибка при обновлении события');
-        }
-    }, [updateEventMutation]);
+    const handleUpdateEvent = useCallback((updatedEvent) => {
+        // Запрос к API уже выполнен вызывающей стороной (EditEventModal, AddAdvanceModal) —
+        // здесь только синхронизируем кэш React Query, повторный PUT не нужен и раньше
+        // приводил к двойной отправке формы (в т.ч. лишнему пересозданию телефонов клиента).
+        queryClient.setQueryData(eventKeys.detail(updatedEvent.id), updatedEvent);
+        queryClient.invalidateQueries({queryKey: eventKeys.lists()});
+        setSuccessMessage('Событие успешно обновлено');
+        toast.success('Событие успешно обновлено');
+    }, [queryClient]);
 
     useEffect(() => {
         if (successMessage || errorMessage) {
@@ -275,14 +269,14 @@ const EventPage = () => {
                             className="group hover:border-green-400 flex items-center border rounded-lg px-3 py-2 w-full md:w-auto">
                             <input
                                 type="date"
-                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
+                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full [color-scheme:dark]"
                                 value={filterStartDate}
                                 onChange={(e) => setFilterStartDate(e.target.value)}
                             />
                             <span className="mx-2 text-gray-500 group-hover:text-green-400">-</span>
                             <input
                                 type="date"
-                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full"
+                                className="bg-transparent group-hover:text-green-400 focus:outline-none w-full [color-scheme:dark]"
                                 value={filterEndDate}
                                 onChange={(e) => setFilterEndDate(e.target.value)}
                             />

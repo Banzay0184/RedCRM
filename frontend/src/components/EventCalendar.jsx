@@ -15,13 +15,16 @@ import {
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
+import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit, FaHistory, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
 import {updateEventAdvance} from "../api.js";
 import EditEventModal from "./EditEventModal.jsx";
 import AddAdvanceModal from "./AddAdvanceModal.jsx";
+import ContractHistoryManager from "./ContractHistoryManager.jsx";
 import {GlobalContext} from "./BaseContex.jsx";
 import {canManageEvents, isAdmin} from "../utils/roles.js";
 import {useWorkers} from '../hooks/useWorkers';
+
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const EventCalendar = ({
                            events = [],
@@ -41,6 +44,7 @@ const EventCalendar = ({
     const [editEvent, setEditEvent] = useState(null);
     const [advanceEvent, setAdvanceEvent] = useState(null);
     const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+    const [historyEvent, setHistoryEvent] = useState(null);
 
     // Используем React Query для получения работников
     const { data: workersList = [] } = useWorkers();
@@ -191,6 +195,14 @@ const EventCalendar = ({
         setIsAdvanceModalOpen(false);
     }, []);
 
+    const openHistoryModal = React.useCallback((event) => {
+        setHistoryEvent(event);
+    }, []);
+
+    const closeHistoryModal = React.useCallback(() => {
+        setHistoryEvent(null);
+    }, []);
+
     // Мемоизация проверок прав доступа
     const userIsAdmin = useMemo(() => isAdmin(user), [user]);
     const userCanManage = useMemo(() => canManageEvents(user), [user]);
@@ -218,7 +230,7 @@ const EventCalendar = ({
 
             const todayClass = isToday(day)
                 ? 'bg-gradient-to-r bg-indigo-500 text-white rounded-full p-2 shadow-lg transition duration-300'
-                : 'hover:bg-gradient-to-r hover:from-indigo-600 p-2 transition duration-300';
+                : 'hover:bg-indigo-600/20 p-2 transition duration-300';
 
             const notCurrentMonthClass = !isSameMonth(day, currentMonth)
                 ? 'text-gray-400'
@@ -308,21 +320,19 @@ const EventCalendar = ({
 
     return (
         <div className="p-2 sm:p-4">
-            <div className="flex flex-col md:flex-row md:justify-between items-center mb-4 sm:mb-6">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <FaArrowLeft
+                    className="text-indigo-500 text-xl sm:text-2xl cursor-pointer hover:text-indigo-700 transition duration-200"
+                    onClick={() => handleMonthChange(-1)}
+                />
                 <div
-                    className="text-lg sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 mb-2 md:mb-0">
-                    {format(currentMonth, 'MMMM yyyy', {locale: ru})}
+                    className="text-lg sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 text-center min-w-[10ch] sm:min-w-[14ch]">
+                    {capitalize(format(currentMonth, 'LLLL yyyy', {locale: ru}))}
                 </div>
-                <div className="flex space-x-2 sm:space-x-3">
-                    <FaArrowLeft
-                        className="text-indigo-500 text-xl sm:text-2xl cursor-pointer hover:text-indigo-700 transition duration-200"
-                        onClick={() => handleMonthChange(-1)}
-                    />
-                    <FaArrowRight
-                        className="text-indigo-500 text-xl sm:text-2xl cursor-pointer hover:text-indigo-700 transition duration-200"
-                        onClick={() => handleMonthChange(1)}
-                    />
-                </div>
+                <FaArrowRight
+                    className="text-indigo-500 text-xl sm:text-2xl cursor-pointer hover:text-indigo-700 transition duration-200"
+                    onClick={() => handleMonthChange(1)}
+                />
             </div>
 
             <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3 lg:gap-4">
@@ -411,6 +421,13 @@ const EventCalendar = ({
                                 </p>
                             )}
                         </div>
+                        <button
+                            onClick={() => openHistoryModal(selectedDevice.event)}
+                            className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 transition duration-200 text-white text-sm sm:text-base py-2 rounded-lg"
+                        >
+                            <FaHistory/>
+                            История изменений договора
+                        </button>
                     </div>
                 </div>
             )}
@@ -431,6 +448,14 @@ const EventCalendar = ({
                     onClose={closeAdvanceModal}
                     onUpdate={handleAdvanceUpdate}
                     setErrorMessage={setErrorMessage}
+                />
+            )}
+
+            {historyEvent && (
+                <ContractHistoryManager
+                    eventId={historyEvent.id}
+                    isOpen={!!historyEvent}
+                    onClose={closeHistoryModal}
                 />
             )}
         </div>

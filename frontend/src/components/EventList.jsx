@@ -3,9 +3,10 @@ import {deleteEvent} from '../api';
 import EventDetailModal from './EventDetailModal';
 import EditEventModal from './EditEventModal';
 import AddAdvanceModal from './AddAdvanceModal.jsx';
+import ContractHistoryManager from './ContractHistoryManager.jsx';
 import {format, isToday, isTomorrow, isValid, isWithinInterval, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaDollarSign, FaEdit, FaInfoCircle, FaTrash} from 'react-icons/fa';
+import {FaDollarSign, FaEdit, FaHistory, FaInfoCircle, FaTrash} from 'react-icons/fa';
 import {GlobalContext} from './BaseContex.jsx';
 import {canManageEvents, isAdmin} from '../utils/roles.js';
 import {useServices} from '../hooks/useServices';
@@ -50,6 +51,7 @@ const EventList = ({
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [advanceManagerOpen, setAdvanceManagerOpen] = useState(false);
     const [advanceEvent, setAdvanceEvent] = useState(null);
+    const [historyEvent, setHistoryEvent] = useState(null);
 
     const {user} = useContext(GlobalContext);
 
@@ -102,6 +104,14 @@ const EventList = ({
     const openAdvanceManager = useCallback((event) => {
         setAdvanceEvent(event);
         setAdvanceManagerOpen(true);
+    }, []);
+
+    const openHistoryManager = useCallback((event) => {
+        setHistoryEvent(event);
+    }, []);
+
+    const closeHistoryManager = useCallback(() => {
+        setHistoryEvent(null);
     }, []);
 
     const closeAdvanceManager = useCallback(() => {
@@ -196,6 +206,10 @@ const EventList = ({
                                         ))}
                                     </td>
                                     <td>
+                                        {event.devices.length === 0 && (
+                                            <span className="text-sm text-gray-500">Нет услуг</span>
+                                        )}
+                                        <div className="max-h-[110px] overflow-y-auto pr-1">
                                         {event.devices.map((device) => {
                                             let dateClass = '';
                                             let serviceDateText = 'Дата не указана';
@@ -234,8 +248,9 @@ const EventList = ({
                                                 </div>
                                             );
                                         })}
+                                        </div>
                                     </td>
-                                    <td className="flex justify-center space-x-2">
+                                    <td className="flex items-center justify-center space-x-2">
                                         <button
                                             className="btn btn-sm btn-info"
                                             onClick={() => openModal(event)}
@@ -261,6 +276,13 @@ const EventList = ({
                                                 <FaDollarSign className="text-white"/>
                                             </button>
                                         )}
+                                        <button
+                                            className="btn btn-sm btn-neutral"
+                                            onClick={() => openHistoryManager(event)}
+                                            title="История изменений договора"
+                                        >
+                                            <FaHistory className="text-white"/>
+                                        </button>
                                         {userIsAdmin && (
                                             <button
                                                 className="btn btn-sm btn-error"
@@ -312,13 +334,22 @@ const EventList = ({
                 />
             )}
 
+            {/* Модальное окно истории изменений договора */}
+            {historyEvent && (
+                <ContractHistoryManager
+                    eventId={historyEvent.id}
+                    isOpen={!!historyEvent}
+                    onClose={closeHistoryManager}
+                />
+            )}
+
             {/* Модальное окно подтверждения удаления */}
             {confirmDelete && (
                 <div className="modal modal-open">
                     <div className="modal-box">
                         <h3 className="font-bold text-lg">Подтверждение удаления</h3>
                         <p className="py-4">
-                            Вы уверены, что хотите удалить это событие?
+                            Вы уверены, что хотите удалить событие клиента «{confirmDelete.client?.name || 'без имени'}»? Это действие необратимо.
                         </p>
                         <div className="modal-action">
                             <button className="btn" onClick={cancelDelete}>

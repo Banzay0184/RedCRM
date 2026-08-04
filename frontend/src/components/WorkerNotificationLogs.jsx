@@ -71,7 +71,7 @@ const WorkerNotificationLogs = () => {
                         </label>
                         <input
                             type="date"
-                            className="input input-bordered w-full"
+                            className="input input-bordered w-full [color-scheme:dark]"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                         />

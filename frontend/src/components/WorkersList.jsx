@@ -174,7 +174,7 @@ function WorkersList() {
     };
 
     return (
-        <div className="p-2 flex flex-col items-center">
+        <div className="p-2 flex flex-col items-center self-start w-full">
             <h2 className="text-2xl font-semibold mb-3">Управление Работниками</h2>
             <p className="text-sm text-gray-600 mb-4 text-center">
                 Перетащите работника или используйте стрелки ↑↓ для изменения порядка
@@ -206,7 +206,7 @@ function WorkersList() {
                     items={workers.map(worker => worker.id)}
                     strategy={verticalListSortingStrategy}
                 >
-                    <div className="grid grid-cols-1 gap-6 w-full">
+                    <div className="grid grid-cols-1 gap-6 w-full max-h-[70vh] overflow-y-auto pr-1">
                         {workers.map((worker, index) => (
                             <SortableItem
                                 key={worker.id}

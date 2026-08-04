@@ -490,7 +490,7 @@ const AddEventModal = ({onClose, onSave}) => {
                                         {/* Дата */}
                                         <input
                                             type="date"
-                                            className="input input-bordered"
+                                            className="input input-bordered [color-scheme:dark]"
                                             value={
                                                 selectedServices.find(
                                                     (s) => s.service === service.id

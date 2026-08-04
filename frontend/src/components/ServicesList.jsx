@@ -251,7 +251,7 @@ function ServicesList() {
     };
 
     return (
-        <div className="p-2 flex flex-col items-center">
+        <div className="p-2 flex flex-col items-center self-start w-full">
             <h2 className="text-2xl font-semibold mb-3">Управление Услугами</h2>
             <p className="text-sm text-gray-600 mb-4 text-center">
                 Перетащите услугу или используйте стрелки ↑↓ для изменения порядка
@@ -278,7 +278,7 @@ function ServicesList() {
                     items={services.map((s) => s.id)}
                     strategy={verticalListSortingStrategy}
                 >
-                    <div className="grid grid-cols-1 gap-6 w-full">
+                    <div className="grid grid-cols-1 gap-6 w-full max-h-[70vh] overflow-y-auto pr-1">
                         {services.map((service, index) => (
                             <SortableServiceItem
                                 key={service.id}

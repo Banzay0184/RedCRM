@@ -500,16 +500,13 @@ const AddAdvanceModal = ({ event, onClose, onUpdate, setErrorMessage }) => {
                                     <label className="block text-sm font-medium text-gray-300 mb-1">
                                         Валюта
                                     </label>
-                            <select
-                                value={advanceCurrency}
-                                onChange={(e) => setAdvanceCurrency(e.target.value)}
-                                        className="w-full select select-bordered select-sm bg-gray-700 border-gray-600 text-white"
-                                        disabled={isLoading || true}
-                            >
-                                <option value="UZS">UZS</option>
-                                <option value="USD">USD</option>
-                            </select>
-                        </div>
+                                    <div
+                                        className="w-full h-9 flex items-center px-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 text-sm cursor-not-allowed"
+                                        title="Валюта аванса фиксирована и не может быть изменена"
+                                    >
+                                        {advanceCurrency}
+                                    </div>
+                                </div>
                             </div>
                             
                             <div className="text-xs text-gray-400">

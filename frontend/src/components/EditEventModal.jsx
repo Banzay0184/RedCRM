@@ -24,6 +24,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
     const [loading, setLoading] = useState(true);
 
     const [isAdvanceManagerOpen, setIsAdvanceManagerOpen] = useState(false);
+    const [workerSelectionServiceId, setWorkerSelectionServiceId] = useState(null);
 
     // Состояния для валют и конвертации
     const [currency, setCurrency] = useState('UZS');
@@ -204,11 +205,18 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
 
     // Обновление телефонов
     const handlePhoneChange = (index, value) => {
-        const updatedPhones = [...phoneNumbers];
-        updatedPhones[index] = {
-            phone_number: value.replace(/\D/g, '').slice(0, 15),
-        };
-        setPhoneNumbers(updatedPhones);
+        // Функциональная форма обязательна: IMaskInput сам вызывает onAccept при программной
+        // смене value (например, когда телефоны подгрузились из API уже после монтирования) —
+        // без неё handlePhoneChange может сработать с устаревшим замыканием phoneNumbers
+        // (ещё без id) и затереть только что загруженные данные.
+        setPhoneNumbers((prev) => {
+            const updatedPhones = [...prev];
+            updatedPhones[index] = {
+                ...updatedPhones[index],
+                phone_number: value.replace(/\D/g, '').slice(0, 15),
+            };
+            return updatedPhones;
+        });
     };
 
     // Обновление состояния выбранных услуг
@@ -287,6 +295,14 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
             }
             return service;
         }));
+    };
+
+    const openWorkerSelection = (serviceId) => {
+        setWorkerSelectionServiceId(serviceId);
+    };
+
+    const closeWorkerSelection = () => {
+        setWorkerSelectionServiceId(null);
     };
 
 
@@ -545,7 +561,7 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                                         {/* Дата */}
                                         <input
                                             type="date"
-                                            className="input input-bordered"
+                                            className="input input-bordered [color-scheme:dark]"
                                             value={
                                                 selectedServices.find(
                                                     (s) => s.service === service.id
@@ -615,27 +631,14 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
 
                                         {/* Выбор работников для конкретного сервиса */}
                                         <div className="form-control">
-                                            <div className="dropdown">
-                                                <label tabIndex={0} className="btn btn-outline btn-primary w-full">
-                                                    Выберите работников
-                                                </label>
-                                                <ul tabIndex={0}
-                                                    className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
-                                                    {workers.map((worker) => (
-                                                        <li key={worker.id} className="flex gap-2 items-center">
-                                                            <label className="cursor-pointer flex items-center gap-2">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="checkbox checkbox-primary"
-                                                                    checked={selectedServices.find(s => s.service === service.id)?.workers.includes(worker.id) || false}
-                                                                    onChange={() => handleWorkerChange(service.id, worker.id)}
-                                                                />
-                                                                <span>{worker.name}</span>
-                                                            </label>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline btn-primary w-full"
+                                                onClick={() => openWorkerSelection(service.id)}
+                                            >
+                                                Работники
+                                                ({selectedServices.find(s => s.service === service.id)?.workers.length || 0})
+                                            </button>
                                         </div>
                                     </div>
                                 )}
@@ -751,6 +754,34 @@ const EditEventModal = ({event, onClose, onUpdate}) => {
                 onClose={() => setIsAdvanceManagerOpen(false)}
                 onAdvanceUpdate={handleAdvanceUpdate}
             />
+
+            {workerSelectionServiceId !== null && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Выберите работников</h3>
+                        <ul className="menu">
+                            {workers.map((worker) => (
+                                <li key={worker.id}>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-primary"
+                                            checked={
+                                                selectedServices.find(s => s.service === workerSelectionServiceId)?.workers.includes(worker.id) || false
+                                            }
+                                            onChange={() => handleWorkerChange(workerSelectionServiceId, worker.id)}
+                                        />
+                                        <span>{worker.name}</span>
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="modal-action">
+                            <button className="btn" onClick={closeWorkerSelection}>Готово</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Контейнер для уведомлений */}
             <Toaster
                 position="top-right"

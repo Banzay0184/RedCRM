@@ -18,7 +18,7 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Client, Workers, Service, Event, AdvanceHistory, TelegramContractLog, TelegramAdvanceNotificationLog, WorkerNotificationSettings, WorkerNotificationLog
 from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer, \
     AdvanceHistorySerializer, TelegramContractLogSerializer, TelegramAdvanceNotificationLogSerializer, WorkerDetailSerializer, \
-    WorkerNotificationSettingsSerializer, WorkerNotificationLogSerializer
+    WorkerNotificationSettingsSerializer, WorkerNotificationLogSerializer, EventHistorySerializer, ClientHistorySerializer
 from .telegram_service import TelegramService
 from .message_templates import generate_contract_message, generate_advance_notification_message
 
@@ -204,6 +204,22 @@ def update_services_order(request):
         return Response({'message': 'Порядок услуг обновлен'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_contract_history(request, pk):
+    """История изменений договора: собственные поля Event + изменения его клиента (имя, телефоны)."""
+
+    event = get_object_or_404(Event, pk=pk)
+
+    event_history = event.history.select_related('changed_by').all()
+    client_history = event.client.history.select_related('changed_by').all()
+
+    entries = EventHistorySerializer(event_history, many=True).data + ClientHistorySerializer(client_history, many=True).data
+    entries.sort(key=lambda entry: entry['changed_at'], reverse=True)
+
+    return Response(entries, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 def update_advance(request, pk):

@@ -111,9 +111,10 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 {/* Основное содержимое модального окна */}
                 <div className="modal-content print:hidden">
                     <div
-                        className="btn btn-sm btn-circle absolute left-3 top-3 bg-info text-white print:hidden"
+                        className="badge badge-info text-white absolute left-3 top-3 gap-1 print:hidden"
+                        title="Количество компьютеров"
                     >
-                        {event.computer_numbers}
+                        Компьютеров: {event.computer_numbers}
                     </div>
                     <button
                         className="btn btn-sm btn-circle absolute right-3 top-3 bg-error text-white hover:bg-error-focus print:hidden"
@@ -182,7 +183,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                         <section className="border-b pb-4">
                             <h4 className="text-xl font-semibold">Детали заказа</h4>
                             <div className="ml-4 space-y-1">
-                                <p><strong>Комментарий:</strong> {event.comment}</p>
+                                <p><strong>Комментарий:</strong> {event.comment || 'Не указан'}</p>
                                 <p><strong>Сумма:</strong> {formatCurrency(event.amount, event.amount_money)}</p>
                                 <p><strong>Аванс:</strong> {formatCurrency(event.advance, event.advance_money)}</p>
                                 <p>
@@ -225,15 +226,6 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                 </div>
                             ))}
                         </section>
-
-                        {event.comment && (
-                            <section className="border-b pb-4">
-                                <h4 className="text-xl font-semibold">Дополнительная информация</h4>
-                                <div className="ml-4 space-y-1">
-                                    <p><strong>Комментарий:</strong> {event.comment}</p>
-                                </div>
-                            </section>
-                        )}
 
                         <section className="pb-4">
                             <h4 className="text-xl font-semibold">Временные метки</h4>

@@ -248,99 +248,83 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 </div>
 
                 {/* Печатный макет */}
-                <div className="print-content hidden">
-                    {/* Логотип и заголовок */}
-                    <div className="text-center mb-3">
-                        <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[160px]"/>
+                <div className="print-content hidden text-gray-900">
+                    {/* Шапка договора */}
+                    <div className="flex items-center justify-between border-b-2 border-red-600 pb-2 mb-3">
+                        <img src="/redlogo.png" alt="Логотип" className="w-[130px]"/>
+                        <div className="text-right">
+                            <p className="text-base font-bold text-red-600 leading-tight">
+                                ДОГОВОР № {event.id}
+                            </p>
+                            <p className="text-xs text-gray-600">от {currentDate}</p>
+                        </div>
                     </div>
 
-                    {/* Дата и информация о клиенте */}
-                    <div className="mb-3 flex items-start p-2 justify-between border-b border-gray-300 text-gray-700">
+                    {/* Информация о клиенте */}
+                    <div className="mb-3 flex items-start justify-between text-gray-800">
                         <div className="flex flex-col">
-                            <p className="text-base font-semibold">
+                            <p className="text-sm">
                                 <strong>Клиент:</strong> {event.client.name}
                             </p>
-                            <p className="text-base font-semibold">
+                            <p className="text-sm">
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
-                        <div>
-                            <p className="text-right text-xs">
-                                <strong>Дата:</strong> {currentDate}
-                            </p>
-                            <p className="text-xs">
-                                <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
-                            </p>
-                        </div>
+                        <p className="text-xs text-gray-600">
+                            <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
+                        </p>
                     </div>
 
                     {/* Услуги и устройства */}
                     <div className="mb-3">
-                        <h2 className="text-lg font-semibold mb-1.5 text-primary">Список услуг</h2>
-                        <div className="grid grid-cols-3 gap-1.5">
-                            {event.devices.map((device, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-gray-100 p-2 rounded-lg border border-gray-200"
-                                    style={{breakInside: 'avoid'}}
-                                >
-                                    <h3 className="text-sm font-semibold text-primary">
-                                        {services[device.service] || 'Услуга не найдена'}
-                                    </h3>
-                                    <p className="text-xs text-gray-700">
-                                        <strong>Дата услуги:</strong> {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
-                                    </p>
-                                    {device.restaurant_name && (
-                                        <p className="text-xs text-gray-700">
-                                            <strong>Ресторан:</strong> {device.restaurant_name}
-                                        </p>
-                                    )}
-                                    {device.camera_count && (
-                                        <p className="text-xs text-gray-700">
-                                            <strong>Количество камер:</strong> {device.camera_count}
-                                        </p>
-                                    )}
-                                    {device.comment && (
-                                        <p className="text-xs text-gray-700">
-                                            <strong>Комментарий:</strong> {device.comment}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Список услуг</h2>
+                        <table className="w-full text-xs border-collapse">
+                            <thead>
+                                <tr className="border-b-2 border-red-600 text-left text-gray-600">
+                                    <th className="py-1 pr-2 font-semibold">Услуга</th>
+                                    <th className="py-1 pr-2 font-semibold">Дата услуги</th>
+                                    <th className="py-1 pr-2 font-semibold">Ресторан</th>
+                                    <th className="py-1 pr-2 font-semibold">Камер</th>
+                                    <th className="py-1 font-semibold">Комментарий</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {event.devices.map((device, index) => (
+                                    <tr key={index} className="border-b border-gray-200" style={{breakInside: 'avoid'}}>
+                                        <td className="py-1 pr-2 font-semibold text-red-600 whitespace-nowrap">
+                                            {services[device.service] || 'Услуга не найдена'}
+                                        </td>
+                                        <td className="py-1 pr-2 text-gray-800 whitespace-nowrap">
+                                            {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
+                                        </td>
+                                        <td className="py-1 pr-2 text-gray-800">{device.restaurant_name || '—'}</td>
+                                        <td className="py-1 pr-2 text-gray-800">{device.camera_count || '—'}</td>
+                                        <td className="py-1 text-gray-800">{device.comment || '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
 
                     {/* Финансовая информация */}
                     <div className="mb-3">
-                        <h2 className="text-base font-semibold mb-1 text-primary">Финансовая информация</h2>
-                        <div className="flex text-gray-800 space-x-2">
-                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
-                                <p>
-                                    <strong>Общая сумма:</strong> {formatCurrency(event.amount, event.amount_money)}
-                                </p>
-                            </div>
-                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
-                                <p>
-                                    <strong>Аванс:</strong> {formatCurrency(event.advance, event.advance_money)}
-                                </p>
-                            </div>
-                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
-                                <p>
-                                    <strong>Остаток:</strong> {formatCurrency(event.amount - event.advance, event.amount_money)}
-                                </p>
-                            </div>
+                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Финансовая информация</h2>
+                        <div className="flex text-sm text-gray-800 gap-4 border border-gray-300 rounded px-3 py-1.5">
+                            <p><strong>Общая сумма:</strong> {formatCurrency(event.amount, event.amount_money)}</p>
+                            <p><strong>Аванс:</strong> {formatCurrency(event.advance, event.advance_money)}</p>
+                            <p><strong>Остаток:</strong> {formatCurrency(event.amount - event.advance, event.amount_money)}</p>
                         </div>
                     </div>
 
                     {/* Условия договора */}
                     <div className="mb-3">
-                        <h2 className="text-base font-semibold mb-1 text-primary">Условия договора</h2>
-                        <p className="text-justify text-sm text-gray-700 leading-snug mb-1.5">
+                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Условия договора</h2>
+                        <p className="text-justify text-xs text-gray-800 leading-tight mb-1">
                             Просим вас ознакомиться с описанием предоставляемых услуг, представленным выше.
                             Обращаем ваше внимание, что полная предоплата (100%) должна быть произведена до дня свадьбы.
                             Спасибо, что выбрали нас!
                         </p>
-                        <ol className="list-decimal list-outside pl-4 space-y-1 text-sm text-gray-700 leading-snug">
+                        <ol className="list-decimal list-outside pl-4 space-y-0.5 text-xs text-gray-800 leading-tight">
                             <li>
                                 Оплата услуг должна быть произведена в полном объёме (100%) не позднее дня проведения
                                 мероприятия.
@@ -358,9 +342,9 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Подписи сторон */}
-                    <div className="flex justify-end gap-1 text-gray-700 text-sm mt-4">
-                        <p>Подпись заказчика</p>
-                        <p>_________________</p>
+                    <div className="flex justify-between text-gray-800 text-xs mt-6 px-2">
+                        <p>Подпись исполнителя _________________</p>
+                        <p>Подпись заказчика _________________</p>
                     </div>
                 </div>
             </div>

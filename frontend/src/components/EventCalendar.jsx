@@ -330,9 +330,9 @@ const EventCalendar = ({
             </div>
 
             {isModalOpen && selectedDevice && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black bg-opacity-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black bg-opacity-50">
                     <div
-                        className="modal-box relative max-w-sm w-full bg-slate-800 border border-white/10 text-white p-8 sm:p-8 rounded-lg shadow-xl">
+                        className="modal-box relative max-w-sm w-full bg-slate-800 border border-white/10 text-white p-5 sm:p-8 rounded-lg shadow-xl">
                         {selectedDevice.event.computer_numbers > 0 && (
                             <span className="absolute top-3 left-4 text-sm text-white/80">
                                 Компьютеров: {selectedDevice.event.computer_numbers}
@@ -404,32 +404,35 @@ const EventCalendar = ({
                             )}
                         </div>
                         {(userIsAdmin || userCanManage) && (
-                            <div className="mt-4 sm:mt-6 flex gap-2">
+                            <div className="mt-4 sm:mt-6 flex gap-1.5 sm:gap-2">
                                 {userIsAdmin && (
                                     <button
                                         onClick={() => openEditModal(selectedDevice.event)}
-                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                        title="Редактировать"
+                                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs py-2 px-1 rounded-lg"
                                     >
                                         <FaEdit/>
-                                        Редактировать
+                                        <span className="hidden sm:inline truncate">Редактировать</span>
                                     </button>
                                 )}
                                 {userCanManage && (
                                     <button
                                         onClick={() => openAdvanceModal(selectedDevice.event)}
-                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                        title="Добавить аванс"
+                                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs py-2 px-1 rounded-lg"
                                     >
                                         <FaMoneyBillWave/>
-                                        Аванс
+                                        <span className="hidden sm:inline truncate">Аванс</span>
                                     </button>
                                 )}
                                 {userIsAdmin && (
                                     <button
                                         onClick={() => openHistoryModal(selectedDevice.event)}
-                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                        title="История изменений договора"
+                                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs py-2 px-1 rounded-lg"
                                     >
                                         <FaHistory/>
-                                        История
+                                        <span className="hidden sm:inline truncate">История</span>
                                     </button>
                                 )}
                             </div>

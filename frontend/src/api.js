@@ -38,12 +38,11 @@ api.interceptors.response.use(
             sessionStorage.removeItem("token");
             localStorage.removeItem("user");
             
-            // Перенаправляем на страницу входа только если мы не на ней и не на главной странице
-            if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
+            // Перенаправляем на страницу входа, если мы ещё не на ней
+            // (раньше на главной "/" делался window.location.reload(), из-за чего
+            // страница резко мигала полной перезагрузкой при истёкшем/невалидном токене)
+            if (window.location.pathname !== "/login") {
                 window.location.href = "/login";
-            } else if (window.location.pathname === "/") {
-                // Если мы на главной странице, просто перезагружаем страницу
-                window.location.reload();
             }
         }
         return Promise.reject(error);

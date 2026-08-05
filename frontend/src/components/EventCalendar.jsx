@@ -247,48 +247,30 @@ const EventCalendar = ({
                     {dayDevices.length > 0 && (
                         <div className="flex-1 flex flex-col gap-1 p-1">
                             {dayDevices.map(({device, event, serviceColor}, index) => (
-                                <div key={index} className='flex gap-1 items-start' >
-                                    <div onClick={() => openModal(device, event)}
-                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded cursor-pointer bg-white/10 hover:bg-white/20 transition-colors duration-150'
-                                         style={{borderColor: serviceColor}}>
+                                <div key={index}
+                                     onClick={() => openModal(device, event)}
+                                     className='flex flex-col gap-1 p-1 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-indigo-500/15 transition-colors duration-150'>
+                                    <div className="flex items-center gap-1.5">
+                                        <span
+                                            className="inline-block w-2.5 h-2.5 rounded-[3px] flex-shrink-0"
+                                            style={{backgroundColor: serviceColor}}
+                                        />
                                         <p className='text-xs font-semibold text-white truncate'>{device.restaurant_name || 'Без названия'}</p>
-                                        <div className="flex flex-wrap gap-1">
-                                            {device.workers && device.workers.length > 0 && (
-                                                <div className='text-[8px] sm:text-[10px] text-gray-200'>
-                                                    {device.workers
-                                                        .map((workerId) => workersMap[workerId])
-                                                        .filter(Boolean)
-                                                        .sort((a, b) => (a.order || 0) - (b.order || 0))
-                                                        .map((worker, workerIndex) => (
-                                                            <span key={worker.id} className="inline-block mr-1">
-                                                                {worker.name}
-                                                                {workerIndex < device.workers.length - 1 && ','}
-                                                            </span>
-                                                        ))}
-                                                </div>
-                                            )}
+                                    </div>
+                                    {device.workers && device.workers.length > 0 && (
+                                        <div className='text-[8px] sm:text-[10px] text-gray-300 pl-4'>
+                                            {device.workers
+                                                .map((workerId) => workersMap[workerId])
+                                                .filter(Boolean)
+                                                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                                                .map((worker, workerIndex) => (
+                                                    <span key={worker.id} className="inline-block mr-1">
+                                                        {worker.name}
+                                                        {workerIndex < device.workers.length - 1 && ','}
+                                                    </span>
+                                                ))}
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        {userIsAdmin && (
-                                            <button
-                                                className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition duration-200"
-                                                onClick={() => openEditModal(event)}
-                                                title="Редактировать"
-                                            >
-                                                <FaEdit className="text-white text-[10px] sm:text-xs"/>
-                                            </button>
-                                        )}
-                                        {userCanManage && (
-                                            <button
-                                                className="p-1 bg-green-600 hover:bg-green-700 rounded transition duration-200"
-                                                onClick={() => openAdvanceModal(event)}
-                                                title="Добавить аванс"
-                                            >
-                                                <FaMoneyBillWave className="text-white text-[10px] sm:text-xs"/>
-                                            </button>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -326,7 +308,7 @@ const EventCalendar = ({
                     onClick={() => handleMonthChange(-1)}
                 />
                 <div
-                    className="text-lg sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 text-center min-w-[10ch] sm:min-w-[14ch]">
+                    className="text-lg sm:text-2xl md:text-3xl font-bold text-indigo-400 text-center min-w-[10ch] sm:min-w-[14ch]">
                     {capitalize(format(currentMonth, 'LLLL yyyy', {locale: ru}))}
                 </div>
                 <FaArrowRight
@@ -350,7 +332,7 @@ const EventCalendar = ({
             {isModalOpen && selectedDevice && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black bg-opacity-50">
                     <div
-                        className="modal-box relative max-w-sm w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-8 sm:p-8 rounded-lg shadow-xl">
+                        className="modal-box relative max-w-sm w-full bg-slate-800 border border-white/10 text-white p-8 sm:p-8 rounded-lg shadow-xl">
                         {selectedDevice.event.computer_numbers > 0 && (
                             <span className="absolute top-3 left-4 text-sm text-white/80">
                                 Компьютеров: {selectedDevice.event.computer_numbers}
@@ -363,7 +345,7 @@ const EventCalendar = ({
                             ✕
                         </button>
                         <h3 className="flex items-center text-xl sm:text-2xl mt-4 font-bold mb-4 sm:mb-6">
-                            <FaCalendarAlt className="mr-2"/>
+                            <FaCalendarAlt className="mr-2 text-indigo-400"/>
                             {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
                         </h3>
                         <div className="space-y-2 sm:space-y-4">
@@ -421,14 +403,36 @@ const EventCalendar = ({
                                 </p>
                             )}
                         </div>
-                        {userIsAdmin && (
-                            <button
-                                onClick={() => openHistoryModal(selectedDevice.event)}
-                                className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 transition duration-200 text-white text-sm sm:text-base py-2 rounded-lg"
-                            >
-                                <FaHistory/>
-                                История изменений договора
-                            </button>
+                        {(userIsAdmin || userCanManage) && (
+                            <div className="mt-4 sm:mt-6 flex gap-2">
+                                {userIsAdmin && (
+                                    <button
+                                        onClick={() => openEditModal(selectedDevice.event)}
+                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                    >
+                                        <FaEdit/>
+                                        Редактировать
+                                    </button>
+                                )}
+                                {userCanManage && (
+                                    <button
+                                        onClick={() => openAdvanceModal(selectedDevice.event)}
+                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                    >
+                                        <FaMoneyBillWave/>
+                                        Аванс
+                                    </button>
+                                )}
+                                {userIsAdmin && (
+                                    <button
+                                        onClick={() => openHistoryModal(selectedDevice.event)}
+                                        className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-indigo-500/20 border border-white/10 transition-colors duration-150 text-white text-xs sm:text-sm py-2 rounded-lg"
+                                    >
+                                        <FaHistory/>
+                                        История
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

@@ -229,8 +229,8 @@ const EventCalendar = ({
             const dayDevices = devicesWithDate.filter(({date}) => date === formattedDate);
 
             const todayClass = isToday(day)
-                ? 'bg-gradient-to-r bg-indigo-500 text-white rounded-full p-2 shadow-lg transition duration-300'
-                : 'hover:bg-indigo-600/20 p-2 transition duration-300';
+                ? 'bg-gradient-to-r bg-indigo-500 text-white rounded-full p-2 shadow-lg'
+                : 'p-2';
 
             const notCurrentMonthClass = !isSameMonth(day, currentMonth)
                 ? 'text-gray-400'
@@ -249,7 +249,7 @@ const EventCalendar = ({
                             {dayDevices.map(({device, event, serviceColor}, index) => (
                                 <div key={index} className='flex gap-1 items-start' >
                                     <div onClick={() => openModal(device, event)}
-                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded hover:opacity-70 transition duration-300 cursor-pointer bg-white bg-opacity-10'
+                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded cursor-pointer bg-white bg-opacity-10'
                                          style={{borderColor: serviceColor}}>
                                         <p className='text-xs font-semibold text-white truncate'>{device.restaurant_name || 'Без названия'}</p>
                                         <div className="flex flex-wrap gap-1">

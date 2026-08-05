@@ -351,11 +351,11 @@ const EventCalendar = ({
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black bg-opacity-50">
                     <div
                         className="modal-box relative max-w-sm w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-8 sm:p-8 rounded-lg shadow-xl">
-                        <button
-                            className="absolute top-3 left-4 text-lg text-white"
-                        >
-                            {selectedDevice.event.computer_numbers}
-                        </button>
+                        {selectedDevice.event.computer_numbers > 0 && (
+                            <span className="absolute top-3 left-4 text-sm text-white/80">
+                                Компьютеров: {selectedDevice.event.computer_numbers}
+                            </span>
+                        )}
                         <button
                             onClick={closeModal}
                             className="absolute top-3 right-3 text-lg text-white hover:text-gray-300 focus:outline-none"

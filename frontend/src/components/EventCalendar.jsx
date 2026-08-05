@@ -249,7 +249,7 @@ const EventCalendar = ({
                             {dayDevices.map(({device, event, serviceColor}, index) => (
                                 <div key={index} className='flex gap-1 items-start' >
                                     <div onClick={() => openModal(device, event)}
-                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded cursor-pointer bg-white bg-opacity-10'
+                                         className='flex-1 flex flex-col gap-1 p-1 border border-l-2 rounded cursor-pointer bg-white/10 hover:bg-white/20 transition-colors duration-150'
                                          style={{borderColor: serviceColor}}>
                                         <p className='text-xs font-semibold text-white truncate'>{device.restaurant_name || 'Без названия'}</p>
                                         <div className="flex flex-wrap gap-1">

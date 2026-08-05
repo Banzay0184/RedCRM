@@ -36,13 +36,27 @@
 
 
 @media print {
-    .modal-content {
-        display: none !important;
+    /* Печатаем ТОЛЬКО .print-content и всё, что внутри неё -
+       остальная страница (список/календарь под модалкой, сама модалка) скрыта */
+    body * {
+        visibility: hidden;
+    }
+
+    .print-content,
+    .print-content * {
+        visibility: visible;
     }
 
     .print-content {
         display: block !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
 
+    .modal-content {
+        display: none !important;
     }
 
     .modal-box {
@@ -50,7 +64,7 @@
         box-shadow: none;
         max-width: 100%;
         width: 100%;
-        padding: 14px;
+        padding: 0;
         overflow: visible !important;
     }
 
@@ -60,7 +74,7 @@
 
     @page {
         size: A4;
-        margin: 5mm;
+        margin: 8mm;
     }
 
     body {
@@ -70,7 +84,7 @@
 
     html, body {
         height: 100%;
-        overflow: hidden;
+        overflow: visible;
     }
 
 }

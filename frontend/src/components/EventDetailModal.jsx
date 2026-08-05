@@ -250,57 +250,58 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                 {/* Печатный макет */}
                 <div className="print-content hidden">
                     {/* Логотип и заголовок */}
-                    <div className="text-center mb-8">
-                        <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[300px] mb-4"/>
+                    <div className="text-center mb-3">
+                        <img src="/redlogo.png" alt="Логотип" className="mx-auto w-[160px]"/>
                     </div>
 
                     {/* Дата и информация о клиенте */}
-                    <div className="mb-2 flex items-start p-2 justify-between border-b border-gray-300 text-gray-700">
+                    <div className="mb-3 flex items-start p-2 justify-between border-b border-gray-300 text-gray-700">
                         <div className="flex flex-col">
-                            <p className="text-lg font-semibold">
+                            <p className="text-base font-semibold">
                                 <strong>Клиент:</strong> {event.client.name}
                             </p>
-                            <p className="text-lg font-semibold">
+                            <p className="text-base font-semibold">
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
                         <div>
-                            <p className="text-right text-sm">
+                            <p className="text-right text-xs">
                                 <strong>Дата:</strong> {currentDate}
                             </p>
-                            <p className="text-sm">
+                            <p className="text-xs">
                                 <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
                             </p>
                         </div>
                     </div>
 
                     {/* Услуги и устройства */}
-                    <div className="mb-2">
-                        <h2 className="text-2xl font-semibold mb-2 text-primary">Список услуг</h2>
-                        <div className="grid grid-cols-3 gap-2">
+                    <div className="mb-3">
+                        <h2 className="text-lg font-semibold mb-1.5 text-primary">Список услуг</h2>
+                        <div className="grid grid-cols-3 gap-1.5">
                             {event.devices.map((device, index) => (
                                 <div
                                     key={index}
-                                    className="bg-gray-100 p-4 rounded-lg shadow-md border border-gray-200"
+                                    className="bg-gray-100 p-2 rounded-lg border border-gray-200"
+                                    style={{breakInside: 'avoid'}}
                                 >
-                                    <h3 className="text-lg font-semibold text-primary">
+                                    <h3 className="text-sm font-semibold text-primary">
                                         {services[device.service] || 'Услуга не найдена'}
                                     </h3>
-                                    <p className="text-sm text-gray-700">
+                                    <p className="text-xs text-gray-700">
                                         <strong>Дата услуги:</strong> {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
                                     </p>
                                     {device.restaurant_name && (
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs text-gray-700">
                                             <strong>Ресторан:</strong> {device.restaurant_name}
                                         </p>
                                     )}
                                     {device.camera_count && (
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs text-gray-700">
                                             <strong>Количество камер:</strong> {device.camera_count}
                                         </p>
                                     )}
                                     {device.comment && (
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs text-gray-700">
                                             <strong>Комментарий:</strong> {device.comment}
                                         </p>
                                     )}
@@ -310,20 +311,20 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Финансовая информация */}
-                    <div className="mb-1">
-                        <h2 className="text-xl font-semibold mb-1 text-primary">Финансовая информация</h2>
+                    <div className="mb-3">
+                        <h2 className="text-base font-semibold mb-1 text-primary">Финансовая информация</h2>
                         <div className="flex text-gray-800 space-x-2">
-                            <div className="bg-gray-100 p-4 rounded-lg">
+                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
                                 <p>
                                     <strong>Общая сумма:</strong> {formatCurrency(event.amount, event.amount_money)}
                                 </p>
                             </div>
-                            <div className="bg-gray-100 p-4 rounded-lg">
+                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
                                 <p>
                                     <strong>Аванс:</strong> {formatCurrency(event.advance, event.advance_money)}
                                 </p>
                             </div>
-                            <div className="bg-gray-100 p-4 rounded-lg">
+                            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm">
                                 <p>
                                     <strong>Остаток:</strong> {formatCurrency(event.amount - event.advance, event.amount_money)}
                                 </p>
@@ -332,41 +333,35 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Условия договора */}
-                    <div className="mb-1">
-                        <h2 className="text-xl font-semibold mb-2 text-primary">Условия договора</h2>
-                        <p className="text-justify text-gray-700 leading-relaxed">
+                    <div className="mb-3">
+                        <h2 className="text-base font-semibold mb-1 text-primary">Условия договора</h2>
+                        <p className="text-justify text-sm text-gray-700 leading-snug mb-1.5">
                             Просим вас ознакомиться с описанием предоставляемых услуг, представленным выше.
                             Обращаем ваше внимание, что полная предоплата (100%) должна быть произведена до дня свадьбы.
                             Спасибо, что выбрали нас!
                         </p>
+                        <ol className="list-decimal list-outside pl-4 space-y-1 text-sm text-gray-700 leading-snug">
+                            <li>
+                                Оплата услуг должна быть произведена в полном объёме (100%) не позднее дня проведения
+                                мероприятия.
+                            </li>
+                            <li>
+                                Готовый материал передаётся Заказчику на флеш-накопитель или внешний жёсткий диск,
+                                предоставленный самим Заказчиком. Носители информации Исполнителем не предоставляются.
+                            </li>
+                            <li>
+                                При отмене заказа в течение 3 (трёх) календарных дней с момента заключения договора
+                                предоплата возвращается в полном объёме (100%). При отмене заказа по истечении 3
+                                (трёх) календарных дней предоплата возвращается в размере 50%.
+                            </li>
+                        </ol>
                     </div>
 
                     {/* Подписи сторон */}
-                    <div className="flex justify-end gap-1 text-gray-700 mt-5">
+                    <div className="flex justify-end gap-1 text-gray-700 text-sm mt-4">
                         <p>Подпись заказчика</p>
                         <p>_________________</p>
                     </div>
-
-                    <div className="mt-5">
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="p-4 border border-black border-dashed">
-                                <p className="text-sm text-gray-700">
-                                    <strong>Дата услуги:</strong>
-                                    {event.devices[0] ? formatDate(event.devices[0].event_service_date) : 'Дата не указана'}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Клиент:</strong> {event.client.name}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Долг:</strong> ______________
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>

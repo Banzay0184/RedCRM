@@ -10,12 +10,13 @@ from rest_framework import status
 logger = logging.getLogger(__name__)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 
 from .models import Client, Workers, Service, Event, AdvanceHistory, TelegramContractLog, TelegramAdvanceNotificationLog, WorkerNotificationSettings, WorkerNotificationLog
+from .permissions import IsAdminOrReadOnly
 from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer, \
     AdvanceHistorySerializer, TelegramContractLogSerializer, TelegramAdvanceNotificationLogSerializer, WorkerDetailSerializer, \
     WorkerNotificationSettingsSerializer, WorkerNotificationLogSerializer, EventHistorySerializer, ClientHistorySerializer
@@ -49,7 +50,7 @@ class ProtectedView(APIView):
 
 
 class UserListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         users = User.objects.all()
@@ -58,14 +59,24 @@ class UserListView(APIView):
 
 
 class UserDetailView(APIView):
+    """Просмотр/редактирование пользователя.
+
+    Обычный пользователь может смотреть и редактировать только свою
+    собственную запись (нужно для загрузки профиля после логина).
+    Админ (is_staff) может работать с любым пользователем.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
+        if not request.user.is_staff and request.user.pk != pk:
+            return Response({"detail": "Недостаточно прав."}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
+        if not request.user.is_staff and request.user.pk != pk:
+            return Response({"detail": "Недостаточно прав."}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
@@ -76,6 +87,7 @@ class UserDetailView(APIView):
 
 class ClientAPIView(APIView):
     """API для создания и получения клиентов."""
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         start_date = request.query_params.get("start_date")
@@ -130,6 +142,7 @@ class ClientAPIView(APIView):
 
 class WorkerAPIView(APIView):
     serializer_class = WorkersSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request):
         # Оптимизация: используем отсортированный queryset
@@ -147,6 +160,7 @@ class WorkerAPIView(APIView):
 
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def update_workers_order(request):
     """Оптимизированное обновление порядка работников через bulk_update."""
     workers_order = request.data  # Ожидаем список словарей с 'id' и 'order'
@@ -175,6 +189,7 @@ def update_workers_order(request):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def update_services_order(request):
     """Оптимизированное обновление порядка услуг через bulk_update."""
     services_order = request.data  # Ожидаем список словарей с 'id' и 'order'
@@ -206,7 +221,7 @@ def update_services_order(request):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def get_contract_history(request, pk):
     """История изменений договора: собственные поля Event + изменения его клиента (имя, телефоны)."""
 
@@ -222,6 +237,7 @@ def get_contract_history(request, pk):
 
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def update_advance(request, pk):
     """Обновление аванса с сохранением истории."""
     # Получаем событие по ID
@@ -251,6 +267,7 @@ def update_advance(request, pk):
 class WorkerDetailView(UpdateAPIView):
     serializer_class = WorkersSerializer
     queryset = Workers.objects.all()
+    permission_classes = [IsAdminUser]
 
     def get(self, request, pk):
         """Получение детальной информации о работнике с его задачами и мероприятиями."""
@@ -274,6 +291,7 @@ class WorkerDetailView(UpdateAPIView):
 
 class ServiceAPIView(APIView):
     """API для создания и получения услуг."""
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request):
         # Оптимизация: кэширование списка услуг
@@ -302,6 +320,7 @@ class ServiceAPIView(APIView):
 class ServiceDetailView(UpdateAPIView):
     serializer_class = ServiceSerializer
     queryset = Service.objects.all()
+    permission_classes = [IsAdminUser]
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
@@ -319,6 +338,7 @@ class ServiceDetailView(UpdateAPIView):
 
 class EventAPIView(APIView):
     """API для работы с мероприятиями."""
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request, pk=None):
         start_date_str = request.query_params.get("start_date")
@@ -397,7 +417,7 @@ class EventAPIView(APIView):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def send_event_contract(request, pk):
     """Отправка договора в Telegram."""
     
@@ -475,7 +495,7 @@ def send_event_contract(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def get_contract_logs(request, pk):
     """Получение истории отправок договоров."""
     
@@ -487,7 +507,7 @@ def get_contract_logs(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def send_advance_notification(request, pk):
     """Отправка уведомления об авансе в Telegram."""
     
@@ -578,7 +598,7 @@ def send_advance_notification(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def get_advance_notification_logs(request, pk):
     """Получение истории отправок уведомлений об авансе."""
     
@@ -590,7 +610,7 @@ def get_advance_notification_logs(request, pk):
 
 
 @api_view(['GET', 'PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def worker_notification_settings(request):
     """Получение и обновление настроек уведомлений работникам."""
     
@@ -618,7 +638,7 @@ def worker_notification_settings(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def get_worker_notification_logs(request):
     """Получение истории отправки уведомлений работникам."""
     
@@ -658,7 +678,7 @@ def get_worker_notification_logs(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def send_worker_notifications_manual(request):
     """Ручная отправка уведомлений работникам (для тестирования)."""
     from .tasks import send_worker_event_notifications

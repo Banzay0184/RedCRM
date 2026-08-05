@@ -421,13 +421,15 @@ const EventCalendar = ({
                                 </p>
                             )}
                         </div>
-                        <button
-                            onClick={() => openHistoryModal(selectedDevice.event)}
-                            className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 transition duration-200 text-white text-sm sm:text-base py-2 rounded-lg"
-                        >
-                            <FaHistory/>
-                            История изменений договора
-                        </button>
+                        {userIsAdmin && (
+                            <button
+                                onClick={() => openHistoryModal(selectedDevice.event)}
+                                className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 transition duration-200 text-white text-sm sm:text-base py-2 rounded-lg"
+                            >
+                                <FaHistory/>
+                                История изменений договора
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

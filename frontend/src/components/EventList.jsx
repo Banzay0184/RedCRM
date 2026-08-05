@@ -276,13 +276,15 @@ const EventList = ({
                                                 <FaDollarSign className="text-white"/>
                                             </button>
                                         )}
-                                        <button
-                                            className="btn btn-sm btn-neutral"
-                                            onClick={() => openHistoryManager(event)}
-                                            title="История изменений договора"
-                                        >
-                                            <FaHistory className="text-white"/>
-                                        </button>
+                                        {userIsAdmin && (
+                                            <button
+                                                className="btn btn-sm btn-neutral"
+                                                onClick={() => openHistoryManager(event)}
+                                                title="История изменений договора"
+                                            >
+                                                <FaHistory className="text-white"/>
+                                            </button>
+                                        )}
                                         {userIsAdmin && (
                                             <button
                                                 className="btn btn-sm btn-error"

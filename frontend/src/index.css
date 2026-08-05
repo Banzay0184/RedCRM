@@ -47,11 +47,26 @@
         visibility: visible;
     }
 
+    /* Обёртка модалки в обычном режиме - fixed inset-0 на всю высоту
+       экрана с центрированием по флексу. visibility:hidden её из потока
+       не убирает (в отличие от display:none), поэтому она продолжает
+       резервировать место и сдвигает .print-content вниз, на 2-ю
+       страницу. Сбрасываем её в обычный блочный поток. */
+    .modal,
+    .modal-open {
+        position: static !important;
+        display: block !important;
+        inset: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
     .print-content {
         display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: static;
         width: 100%;
     }
 
@@ -60,11 +75,16 @@
     }
 
     .modal-box {
+        position: static !important;
         border: none;
         box-shadow: none;
         max-width: 100%;
         width: 100%;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
         padding: 0;
+        margin: 0;
         overflow: visible !important;
     }
 

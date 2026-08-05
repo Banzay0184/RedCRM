@@ -277,33 +277,39 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
 
                     {/* Услуги и устройства */}
                     <div className="mb-3">
-                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Список услуг</h2>
-                        <table className="w-full text-xs border-collapse">
-                            <thead>
-                                <tr className="border-b-2 border-red-600 text-left text-gray-600">
-                                    <th className="py-1 pr-2 font-semibold">Услуга</th>
-                                    <th className="py-1 pr-2 font-semibold">Дата услуги</th>
-                                    <th className="py-1 pr-2 font-semibold">Ресторан</th>
-                                    <th className="py-1 pr-2 font-semibold">Камер</th>
-                                    <th className="py-1 font-semibold">Комментарий</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {event.devices.map((device, index) => (
-                                    <tr key={index} className="border-b border-gray-200" style={{breakInside: 'avoid'}}>
-                                        <td className="py-1 pr-2 font-semibold text-red-600 whitespace-nowrap">
-                                            {services[device.service] || 'Услуга не найдена'}
-                                        </td>
-                                        <td className="py-1 pr-2 text-gray-800 whitespace-nowrap">
-                                            {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
-                                        </td>
-                                        <td className="py-1 pr-2 text-gray-800">{device.restaurant_name || '—'}</td>
-                                        <td className="py-1 pr-2 text-gray-800">{device.camera_count || '—'}</td>
-                                        <td className="py-1 text-gray-800">{device.comment || '—'}</td>
+                        <h2 className="text-base font-bold text-red-600 uppercase tracking-wide mb-2">Список услуг</h2>
+                        <div className="rounded-lg border border-gray-300 overflow-hidden">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="bg-red-600 text-white text-left">
+                                        <th className="py-2 px-3 font-semibold">Услуга</th>
+                                        <th className="py-2 px-3 font-semibold">Дата услуги</th>
+                                        <th className="py-2 px-3 font-semibold">Ресторан</th>
+                                        <th className="py-2 px-3 font-semibold">Камер</th>
+                                        <th className="py-2 px-3 font-semibold">Комментарий</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {event.devices.map((device, index) => (
+                                        <tr
+                                            key={index}
+                                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                                            style={{breakInside: 'avoid'}}
+                                        >
+                                            <td className="py-2 px-3 font-bold text-red-600 whitespace-nowrap">
+                                                {services[device.service] || 'Услуга не найдена'}
+                                            </td>
+                                            <td className="py-2 px-3 text-gray-800 whitespace-nowrap">
+                                                {device.event_service_date ? formatDate(device.event_service_date) : 'Дата не указана'}
+                                            </td>
+                                            <td className="py-2 px-3 text-gray-800">{device.restaurant_name || '—'}</td>
+                                            <td className="py-2 px-3 text-gray-800">{device.camera_count || '—'}</td>
+                                            <td className="py-2 px-3 text-gray-800">{device.comment || '—'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {/* Финансовая информация */}

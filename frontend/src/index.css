@@ -47,26 +47,30 @@
         visibility: visible;
     }
 
-    /* Обёртка модалки в обычном режиме - fixed inset-0 на всю высоту
-       экрана с центрированием по флексу. visibility:hidden её из потока
-       не убирает (в отличие от display:none), поэтому она продолжает
-       резервировать место и сдвигает .print-content вниз, на 2-ю
-       страницу. Сбрасываем её в обычный блочный поток. */
+    /* .print-content лежит ВНУТРИ модалки, которая в обычном режиме
+       fixed inset-0 (на весь экран) и до которой на реальной странице
+       ещё куча контента (навбар, таблица списка и т.п.) - весь этот
+       контент visibility:hidden не убирает из потока (в отличие от
+       display:none), он продолжает занимать место.
+       Поэтому .print-content выводим через position:fixed - это
+       полностью игнорирует document flow и позиционируется строго от
+       viewport, независимо от того, где элемент лежит в DOM.
+       ВАЖНО: position:fixed игнорирует viewport только если ни один
+       предок не задаёт transform/filter/perspective (тогда предок сам
+       становится containing block) - у .modal-box есть анимационный
+       transform (даже единичная матрица, translate(0)/scale(1) и т.п.
+       всё равно "не none"), поэтому его тоже обнуляем. */
     .modal,
-    .modal-open {
-        position: static !important;
-        display: block !important;
-        inset: auto !important;
-        height: auto !important;
-        min-height: 0 !important;
-        max-height: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    .modal-open,
+    .modal-box {
+        transform: none !important;
     }
 
     .print-content {
         display: block !important;
-        position: static;
+        position: fixed !important;
+        top: 0;
+        left: 0;
         width: 100%;
     }
 
@@ -75,16 +79,11 @@
     }
 
     .modal-box {
-        position: static !important;
         border: none;
         box-shadow: none;
         max-width: 100%;
         width: 100%;
-        height: auto !important;
-        min-height: 0 !important;
-        max-height: none !important;
         padding: 0;
-        margin: 0;
         overflow: visible !important;
     }
 

@@ -101,6 +101,14 @@ export const sendEventContract = (eventId, phone) =>
 export const getEventContractLogs = (eventId) =>
   api.get(`/events/${eventId}/contract_logs/`);
 
+// Публичная (без авторизации) электронная версия договора по QR-токену
+export const getPublicContract = (token) =>
+  api.get(`/public/contract/${token}/`);
+
+// Домен фронтенда - используется для формирования ссылки/QR-кода на
+// электронную версию договора. Должен совпадать с CORS_ALLOWED_ORIGINS на бэкенде.
+export const FRONTEND_BASE_URL = "https://redcrm.uz";
+
 // Отправка уведомления об авансе в Telegram (POST /events/{id}/send_advance_notification/)
 export const sendAdvanceNotification = (eventId, phone) =>
   api.post(`/events/${eventId}/send_advance_notification/`, phone ? { phone } : {});

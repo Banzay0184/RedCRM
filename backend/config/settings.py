@@ -57,7 +57,13 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     "https://red-crm-beta.vercel.app",
+    "https://redcrm.uz",
+    "https://www.redcrm.uz",
 ]
+
+# Домен фронтенда - используется для формирования публичной ссылки/QR-кода
+# на электронную версию договора (см. message_templates.generate_contract_message).
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://redcrm.uz')
 
 CORS_ALLOW_HEADERS = [
     "content-type",

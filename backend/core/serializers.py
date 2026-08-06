@@ -300,6 +300,52 @@ class EventSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "advance_history",  # Добавляем поле для истории
+            "contract_token",  # Для ссылки/QR-кода на электронную версию договора
+        ]
+
+
+class PublicContractDeviceSerializer(serializers.ModelSerializer):
+    """Компактное представление устройства для публичной (без авторизации) страницы договора."""
+    service_name = serializers.CharField(source="service.name", default="", read_only=True)
+
+    class Meta:
+        model = Device
+        fields = ["service_name", "restaurant_name", "camera_count", "comment", "event_service_date"]
+
+
+class PublicContractClientSerializer(serializers.ModelSerializer):
+    """Компактное представление клиента для публичной страницы договора - без служебных полей."""
+    phones = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Client
+        fields = ["name", "phones"]
+
+    def get_phones(self, obj):
+        return [phone.phone_number for phone in obj.phones.all()]
+
+
+class PublicContractSerializer(serializers.ModelSerializer):
+    """
+    Публичный сериализатор электронной версии договора - отдаёт только то,
+    что нужно показать клиенту по QR-ссылке (без токенов авторизации,
+    служебных id и внутренних полей).
+    """
+    client = PublicContractClientSerializer(read_only=True)
+    devices = PublicContractDeviceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "client",
+            "devices",
+            "computer_numbers",
+            "amount",
+            "amount_money",
+            "advance",
+            "advance_money",
+            "created_at",
         ]
 
 

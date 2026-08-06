@@ -10,7 +10,7 @@ from rest_framework import status
 logger = logging.getLogger(__name__)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
@@ -19,7 +19,8 @@ from .models import Client, Workers, Service, Event, AdvanceHistory, TelegramCon
 from .permissions import IsAdminOrReadOnly
 from .serializers import ClientSerializer, WorkersSerializer, ServiceSerializer, EventSerializer, UserSerializer, \
     AdvanceHistorySerializer, TelegramContractLogSerializer, TelegramAdvanceNotificationLogSerializer, WorkerDetailSerializer, \
-    WorkerNotificationSettingsSerializer, WorkerNotificationLogSerializer, EventHistorySerializer, ClientHistorySerializer
+    WorkerNotificationSettingsSerializer, WorkerNotificationLogSerializer, EventHistorySerializer, ClientHistorySerializer, \
+    PublicContractSerializer
 from .telegram_service import TelegramService
 from .message_templates import generate_contract_message, generate_advance_notification_message
 
@@ -503,6 +504,19 @@ def get_contract_logs(request, pk):
     # Оптимизация: используем select_related если нужно, но здесь не требуется
     logs = TelegramContractLog.objects.filter(event=event).order_by('-sent_at')
     serializer = TelegramContractLogSerializer(logs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_public_contract(request, token):
+    """
+    Публичная (без авторизации) электронная версия договора - открывается по
+    QR-коду из печатной версии. Ищем по contract_token (непредсказуемый UUID),
+    а не по id события, чтобы нельзя было перебором подобрать чужой договор.
+    """
+    event = get_object_or_404(Event, contract_token=token)
+    serializer = PublicContractSerializer(event)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 

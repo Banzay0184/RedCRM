@@ -36,59 +36,18 @@
 
 
 @media print {
-    /* Печатаем ТОЛЬКО .print-content и всё, что внутри неё -
-       остальная страница (список/календарь под модалкой, сама модалка) скрыта */
-    body * {
-        visibility: hidden;
-    }
-
-    .print-content,
-    .print-content * {
-        visibility: visible;
-    }
-
-    /* .print-content лежит ВНУТРИ модалки, которая в обычном режиме
-       fixed inset-0 (на весь экран) и до которой на реальной странице
-       ещё куча контента (навбар, таблица списка и т.п.) - весь этот
-       контент visibility:hidden не убирает из потока (в отличие от
-       display:none), он продолжает занимать место.
-       Поэтому .print-content выводим через position:fixed - это
-       полностью игнорирует document flow и позиционируется строго от
-       viewport, независимо от того, где элемент лежит в DOM.
-       ВАЖНО: position:fixed игнорирует viewport только если ни один
-       предок не задаёт transform/filter/perspective (тогда предок сам
-       становится containing block) - у .modal-box есть анимационный
-       transform (даже единичная матрица, translate(0)/scale(1) и т.п.
-       всё равно "не none"), поэтому его тоже обнуляем. */
-    .modal,
-    .modal-open,
-    .modal-box {
-        transform: none !important;
+    /* .print-content выводится через React-портал прямо в <body>
+       (см. EventDetailModal.jsx), т.е. лежит РЯДОМ с #root, а не внутри
+       модалки. Поэтому достаточно скрыть #root целиком - .print-content
+       остаётся в обычном document flow и печатается ровно на стольких
+       страницах, сколько реально занимает контент (без position:fixed,
+       который в Chrome дублирует содержимое на каждой печатной странице). */
+    #root {
+        display: none !important;
     }
 
     .print-content {
         display: block !important;
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        width: 100%;
-    }
-
-    .modal-content {
-        display: none !important;
-    }
-
-    .modal-box {
-        border: none;
-        box-shadow: none;
-        max-width: 100%;
-        width: 100%;
-        padding: 0;
-        overflow: visible !important;
-    }
-
-    .print-hidden {
-        display: none !important;
     }
 
     @page {
@@ -102,10 +61,9 @@
     }
 
     html, body {
-        height: 100%;
+        height: auto;
         overflow: visible;
     }
-
 }
 
 

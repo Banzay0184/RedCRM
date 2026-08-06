@@ -1,7 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {format, isValid, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {getEventContractLogs, sendEventContract} from '../api';
+import QRCode from 'qrcode';
+import {getEventContractLogs, sendEventContract, FRONTEND_BASE_URL} from '../api';
+import {formatContractCurrency, formatContractDate} from '../utils/contractFormat';
 import {toast} from 'react-hot-toast';
 
 const EventDetailModal = ({event, services, servicesColor, workersMap, onClose}) => {
@@ -9,21 +12,10 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
     const [sentStatus, setSentStatus] = useState({});
     const [history, setHistory] = useState(() => event.telegram_logs || event.telegram_history || []);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [contractQrCode, setContractQrCode] = useState(null);
 
-    const formatCurrency = (number, isUSD) =>
-        new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: isUSD ? 'USD' : 'UZS',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        }).format(number);
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Дата не указана';
-        const date = parseISO(dateString);
-        if (!isValid(date)) return 'Дата не указана';
-        return format(date, 'dd MMMM yyyy', {locale: ru});
-    };
+    const formatCurrency = formatContractCurrency;
+    const formatDate = formatContractDate;
 
     const formatDateTime = (dateString) => {
         if (!dateString) return 'Дата не указана';
@@ -58,6 +50,22 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
         };
         loadHistory();
     }, [event.id]);
+
+    // QR-код на электронную версию договора (см. ContractPublicPage) - печатается
+    // рядом с подписями, чтобы клиент мог отсканировать его на бумаге.
+    useEffect(() => {
+        if (!event.contract_token) {
+            setContractQrCode(null);
+            return;
+        }
+        const link = `${FRONTEND_BASE_URL}/contract/${event.contract_token}`;
+        QRCode.toDataURL(link, {margin: 1, width: 200})
+            .then(setContractQrCode)
+            .catch((error) => {
+                console.error('Не удалось сгенерировать QR-код договора', error);
+                setContractQrCode(null);
+            });
+    }, [event.contract_token]);
 
     const phones = useMemo(() => event.client.phones || [], [event.client.phones]);
 
@@ -106,6 +114,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
     const currentDate = format(new Date(), 'dd MMMM yyyy', {locale: ru});
 
     return (
+        <>
         <div className="modal modal-open flex items-center justify-center z-50">
             <div className="modal-box relative max-w-3xl p-8 rounded-xl shadow-2xl border-t-8 border-primary">
                 {/* Основное содержимое модального окна */}
@@ -246,54 +255,53 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                         </button>
                     </div>
                 </div>
-
-                {/* Печатный макет */}
-                <div className="print-content hidden text-gray-900">
+            </div>
+        </div>
+        {createPortal(
+            <div className="print-content hidden bg-white text-gray-900">
                     {/* Шапка договора */}
-                    <div className="flex items-center justify-between border-b-2 border-red-600 pb-2 mb-3">
-                        <img src="/redlogo.png" alt="Логотип" className="w-[130px]"/>
-                        <div className="text-right">
-                            <p className="text-base font-bold text-red-600 leading-tight">
-                                ДОГОВОР № {event.id}
-                            </p>
-                            <p className="text-xs text-gray-600">от {currentDate}</p>
-                        </div>
+                    <div className="text-center border-b-2 border-red-600 pb-3 mb-4">
+                        <img src="/redlogo.png" alt="Логотип" className="w-[480px] mx-auto mb-2"/>
+                        <p className="text-base font-bold text-red-600 leading-tight">
+                            ДОГОВОР № {event.id}
+                        </p>
+                        <p className="text-sm text-gray-600">от {currentDate}</p>
                     </div>
 
                     {/* Информация о клиенте */}
-                    <div className="mb-3 flex items-start justify-between text-gray-800">
+                    <div className="mb-4 flex items-start justify-between text-gray-800">
                         <div className="flex flex-col">
-                            <p className="text-sm">
+                            <p className="text-base">
                                 <strong>Клиент:</strong> {event.client.name}
                             </p>
-                            <p className="text-sm">
+                            <p className="text-base">
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-sm text-gray-600">
                             <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
                         </p>
                     </div>
 
                     {/* Услуги и устройства */}
-                    <div className="mb-3">
-                        <h2 className="text-base font-bold text-red-600 uppercase tracking-wide mb-2">Список услуг</h2>
+                    <div className="mb-4">
+                        <h2 className="text-lg font-bold text-red-600 uppercase tracking-wide mb-2">Список услуг</h2>
                         <div className="rounded-lg border border-gray-300 overflow-hidden">
-                            <table className="w-full text-sm border-collapse">
+                            <table className="w-full text-base border-collapse bg-white">
                                 <thead>
-                                    <tr className="bg-red-600 text-white text-left">
-                                        <th className="py-2 px-3 font-semibold">Услуга</th>
-                                        <th className="py-2 px-3 font-semibold">Дата услуги</th>
-                                        <th className="py-2 px-3 font-semibold">Ресторан</th>
-                                        <th className="py-2 px-3 font-semibold">Камер</th>
-                                        <th className="py-2 px-3 font-semibold">Комментарий</th>
+                                    <tr className="bg-white text-black text-left border-b-2 border-red-600">
+                                        <th className="py-2 px-3 font-bold">Услуга</th>
+                                        <th className="py-2 px-3 font-bold">Дата услуги</th>
+                                        <th className="py-2 px-3 font-bold">Ресторан</th>
+                                        <th className="py-2 px-3 font-bold">Камер</th>
+                                        <th className="py-2 px-3 font-bold">Комментарий</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {event.devices.map((device, index) => (
                                         <tr
                                             key={index}
-                                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                                            className="bg-white border-b border-gray-300 last:border-b-0"
                                             style={{breakInside: 'avoid'}}
                                         >
                                             <td className="py-2 px-3 font-bold text-red-600 whitespace-nowrap">
@@ -313,9 +321,9 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Финансовая информация */}
-                    <div className="mb-3">
-                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Финансовая информация</h2>
-                        <div className="flex text-sm text-gray-800 gap-4 border border-gray-300 rounded px-3 py-1.5">
+                    <div className="mb-4">
+                        <h2 className="text-base font-bold text-red-600 uppercase tracking-wide mb-1">Финансовая информация</h2>
+                        <div className="flex text-base text-gray-800 gap-4 border border-gray-300 rounded px-3 py-1.5 bg-white">
                             <p><strong>Общая сумма:</strong> {formatCurrency(event.amount, event.amount_money)}</p>
                             <p><strong>Аванс:</strong> {formatCurrency(event.advance, event.advance_money)}</p>
                             <p><strong>Остаток:</strong> {formatCurrency(event.amount - event.advance, event.amount_money)}</p>
@@ -323,38 +331,67 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Условия договора */}
-                    <div className="mb-3">
-                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Условия договора</h2>
-                        <p className="text-justify text-xs text-gray-800 leading-tight mb-1">
-                            Просим вас ознакомиться с описанием предоставляемых услуг, представленным выше.
-                            Обращаем ваше внимание, что полная предоплата (100%) должна быть произведена до дня свадьбы.
-                            Спасибо, что выбрали нас!
+                    <div className="mb-4">
+                        <h2 className="text-base font-bold text-red-600 uppercase tracking-wide mb-1">Условия договора</h2>
+                        <p className="text-justify text-sm text-gray-800 leading-tight mb-1">
+                            Просим вас внимательно ознакомиться с условиями оказания услуг. Благодарим вас за доверие и
+                            выбор нашей команды!
                         </p>
-                        <ol className="list-decimal list-outside pl-4 space-y-0.5 text-xs text-gray-800 leading-tight">
+                        <ol className="list-decimal list-outside pl-4 space-y-0.5 text-sm text-gray-800 leading-tight">
                             <li>
-                                Оплата услуг должна быть произведена в полном объёме (100%) не позднее дня проведения
-                                мероприятия.
+                                <strong>Оплата услуг</strong> производится в размере <strong>100% стоимости заказа</strong>{' '}
+                                не позднее дня проведения мероприятия.
                             </li>
                             <li>
-                                Готовый материал передаётся Заказчику на флеш-накопитель или внешний жёсткий диск,
-                                предоставленный самим Заказчиком. Носители информации Исполнителем не предоставляются.
+                                <strong>Передача готового материала</strong> осуществляется на флеш-накопитель или внешний
+                                жёсткий диск, предоставленный Заказчиком. Исполнитель не предоставляет носители информации.
                             </li>
                             <li>
-                                При отмене заказа в течение 3 (трёх) календарных дней с момента заключения договора
-                                предоплата возвращается в полном объёме (100%). При отмене заказа по истечении 3
-                                (трёх) календарных дней предоплата возвращается в размере 50%.
+                                <strong>Отмена заказа и возврат предоплаты:</strong>
+                                <ul className="list-disc list-outside pl-4 space-y-0.5 mt-0.5">
+                                    <li>
+                                        при отмене заказа в течение <strong>3 (трёх) календарных дней</strong> с момента
+                                        заключения договора предоплата возвращается Заказчику в полном объёме (
+                                        <strong>100%</strong>);
+                                    </li>
+                                    <li>
+                                        при отмене заказа <strong>по истечении 3 (трёх) календарных дней</strong> предоплата
+                                        возвращается в размере <strong>50%</strong> от внесённой суммы.
+                                    </li>
+                                </ul>
                             </li>
                         </ol>
+                        <p className="text-justify text-sm text-gray-800 leading-tight mt-1">
+                            Благодарим вас за выбор наших услуг и надеемся, что наше сотрудничество оставит только
+                            приятные впечатления!
+                        </p>
                     </div>
 
-                    {/* Подписи сторон */}
-                    <div className="flex justify-between text-gray-800 text-xs mt-6 px-2">
-                        <p>Подпись исполнителя _________________</p>
-                        <p>Подпись заказчика _________________</p>
+                    {/* Подписи сторон (слева) и QR-код электронной версии договора (справа) */}
+                    <div className="flex justify-between items-end text-gray-800 text-sm mt-10 px-2">
+                        <div className="flex gap-8">
+                            <div className="flex flex-col items-center">
+                                <div className="w-40 h-12 border-b border-gray-500"></div>
+                                <p className="mt-1">Подпись исполнителя</p>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="w-40 h-12 border-b border-gray-500"></div>
+                                <p className="mt-1">Подпись заказчика</p>
+                            </div>
+                        </div>
+                        {contractQrCode && (
+                            <div className="flex flex-col items-center">
+                                <img src={contractQrCode} alt="QR-код электронного договора" className="w-24 h-24"/>
+                                <p className="text-[10px] text-gray-500 mt-1 max-w-[110px] text-center leading-tight">
+                                    Сканируйте для просмотра электронной версии
+                                </p>
+                            </div>
+                        )}
                     </div>
-                </div>
-            </div>
-        </div>
+                </div>,
+            document.body
+        )}
+        </>
     );
 };
 

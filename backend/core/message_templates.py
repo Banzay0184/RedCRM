@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.conf import settings
 from .models import Event
 
 
@@ -49,8 +50,12 @@ def generate_contract_message(event: Event) -> str:
     
     # Текущая дата
     current_date = datetime.now().strftime('%d.%m.%Y')
-    
-    message = f"""🎬 **RED VIDEO GROUP**  
+
+    # Ссылка на электронную (публичную) версию договора - та же, что зашита в QR
+    # на печатной версии.
+    contract_link = f"{settings.FRONTEND_URL}/contract/{event.contract_token}"
+
+    message = f"""🎬 **RED VIDEO GROUP**
 — создаём эмоции, а не просто видео —
 
 ━━━━━━━━━━━━━━━━━━
@@ -76,10 +81,15 @@ def generate_contract_message(event: Event) -> str:
 ━━━━━━━━━━━━━━━━━━
 📝 **УСЛОВИЯ ДОГОВОРА**
 ━━━━━━━━━━━━━━━━━━
-Просим вас внимательно ознакомиться с перечнем услуг, указанным выше.  
+Просим вас внимательно ознакомиться с перечнем услуг, указанным выше.
 Обращаем внимание, что **100% оплата должна быть произведена до дня свадьбы**.
 
-🙏 Спасибо, что выбрали **RED VIDEO GROUP**  
+━━━━━━━━━━━━━━━━━━
+🔗 **ЭЛЕКТРОННАЯ ВЕРСИЯ ДОГОВОРА**
+━━━━━━━━━━━━━━━━━━
+{contract_link}
+
+🙏 Спасибо, что выбрали **RED VIDEO GROUP**
 🎥 Мы сохраним ваш день навсегда
 """
 

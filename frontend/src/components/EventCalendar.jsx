@@ -249,13 +249,9 @@ const EventCalendar = ({
                             {dayDevices.map(({device, event, serviceColor}, index) => (
                                 <div key={index}
                                      onClick={() => openModal(device, event)}
-                                     className='flex flex-col gap-1 p-1 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-indigo-500/15 transition-colors duration-150'>
+                                     className='flex flex-col gap-1 p-1 rounded-lg cursor-pointer bg-white/5 border border-solid border-white/10 hover:bg-indigo-500/15 transition-colors duration-150' style={{borderColor: serviceColor}}>
                                     <div className="flex items-center gap-1.5">
-                                        <span
-                                            className="inline-block w-2.5 h-2.5 rounded-[3px] flex-shrink-0"
-                                            style={{backgroundColor: serviceColor}}
-                                        />
-                                        <p className='text-xs font-semibold text-white truncate'>{device.restaurant_name || 'Без названия'}</p>
+                                        <p className='text-xs font-semibold text-white'>{device.restaurant_name || 'Без названия'}</p>
                                     </div>
                                     {device.workers && device.workers.length > 0 && (
                                         <div className='text-[8px] sm:text-[10px] text-gray-300 pl-4'>

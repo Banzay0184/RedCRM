@@ -1,3 +1,5 @@
+import uuid
+
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -143,6 +145,10 @@ class Event(BaseModel):
     advance_money = models.BooleanField(default=False)
     computer_numbers = models.PositiveIntegerField(default=0)
     comment = models.TextField(null=True, blank=True)
+    # Непредсказуемый токен для публичной ссылки/QR-кода на электронную версию
+    # договора - по нему, а не по id, чтобы нельзя было перебором подобрать
+    # чужой договор.
+    contract_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     class Meta:
         indexes = [

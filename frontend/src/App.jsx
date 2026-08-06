@@ -14,6 +14,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
 const EventPage = lazy(() => import("./pages/EventPage.jsx"));
 const WorkerPage = lazy(() => import("./pages/WorkerPage.jsx"));
+const ContractPublicPage = lazy(() => import("./pages/ContractPublicPage.jsx"));
 
 function AppContent({onLogout}) {
     const {isAuthenticated, user} = useContext(GlobalContext);
@@ -29,6 +30,9 @@ function AppContent({onLogout}) {
         <Router>
             <Suspense fallback={<LoadingFallback />}>
                 <Routes>
+                    {/* Публичная страница электронной версии договора - доступна без
+                        авторизации независимо от статуса логина (ссылка/QR для клиента) */}
+                    <Route path="/contract/:token" element={<ContractPublicPage/>}/>
                     {isAuthenticated ? (
                         <Route path="/" element={<Layout user={user} onLogout={onLogout}/>}>
                             <Route index element={<EventPage/>}/>

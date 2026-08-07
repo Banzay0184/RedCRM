@@ -261,7 +261,7 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
             <div className="print-content hidden bg-white text-gray-900">
                     {/* Шапка договора */}
                     <div className="text-center border-b-2 border-red-600 pb-3 mb-4">
-                        <img src="/redlogo.png" alt="Логотип" className="w-[480px] mx-auto mb-2"/>
+                        <img src="/redlogo.png" alt="Логотип" className="w-[320px] mx-auto mb-2"/>
                         <p className="text-base font-bold text-red-600 leading-tight">
                             ДОГОВОР № {event.id}
                         </p>
@@ -278,9 +278,14 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                 <strong>Телефон:</strong> +{event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
                         </div>
-                        <p className="text-sm text-gray-600">
-                            <strong>Номер компьютера:</strong> {event.computer_numbers || '_________'}
-                        </p>
+                        {contractQrCode && (
+                            <div className="flex flex-col items-center">
+                                <img src={contractQrCode} alt="QR-код электронного договора" className="w-20 h-20"/>
+                                <p className="text-[9px] text-gray-500 mt-0.5 max-w-[90px] text-center leading-tight">
+                                    Электронная версия договора
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Услуги и устройства */}
@@ -331,8 +336,8 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                     </div>
 
                     {/* Условия договора */}
-                    <div className="mb-4">
-                        <h2 className="text-base font-bold text-red-600 uppercase tracking-wide mb-1">Условия договора</h2>
+                    <div className="mb-1">
+                        <h2 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Условия договора</h2>
                         <p className="text-justify text-sm text-gray-800 leading-tight mb-1">
                             Просим вас внимательно ознакомиться с условиями оказания услуг. Благодарим вас за доверие и
                             выбор нашей команды!
@@ -367,26 +372,16 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                         </p>
                     </div>
 
-                    {/* Подписи сторон (слева) и QR-код электронной версии договора (справа) */}
-                    <div className="flex justify-between items-end text-gray-800 text-sm mt-10 px-2">
-                        <div className="flex gap-8">
-                            <div className="flex flex-col items-center">
-                                <div className="w-40 h-12 border-b border-gray-500"></div>
-                                <p className="mt-1">Подпись исполнителя</p>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <div className="w-40 h-12 border-b border-gray-500"></div>
-                                <p className="mt-1">Подпись заказчика</p>
-                            </div>
+                    {/* Подписи сторон */}
+                    <div className="flex justify-between text-gray-800 text-sm mt-1 px-2">
+                        <div className="flex flex-col items-center">
+                            <div className="w-48 h-12 border-b border-gray-500"></div>
+                            <p className="mt-1">Подпись исполнителя</p>
                         </div>
-                        {contractQrCode && (
-                            <div className="flex flex-col items-center">
-                                <img src={contractQrCode} alt="QR-код электронного договора" className="w-24 h-24"/>
-                                <p className="text-[10px] text-gray-500 mt-1 max-w-[110px] text-center leading-tight">
-                                    Сканируйте для просмотра электронной версии
-                                </p>
-                            </div>
-                        )}
+                        <div className="flex flex-col items-center">
+                            <div className="w-48 h-12 border-b border-gray-500"></div>
+                            <p className="mt-1">Подпись заказчика</p>
+                        </div>
                     </div>
                 </div>,
             document.body

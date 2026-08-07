@@ -240,15 +240,36 @@ class TelegramService:
         
         # Пытаемся найти в существующих контактах (пропускаем, если есть проблемы с event loop)
         # Используем только ImportContactsRequest, так как он более надежен
-        
+
+        # ВАЖНО: ImportContactsRequest - это upsert, а не "поиск без изменений".
+        # Если номер уже есть среди контактов аккаунта-отправителя, повторный
+        # импорт с пустым first_name/last_name РЕАЛЬНО стирает сохранённое имя
+        # этого контакта в самом Telegram (баг, из-за которого "меняются имена
+        # контактов"). Поэтому сначала смотрим текущее имя контакта по номеру
+        # и передаём в импорт его же - тогда для уже существующих контактов
+        # это no-op, а не переименование.
+        existing_first_name = ""
+        existing_last_name = ""
+        try:
+            existing_contacts = await client(GetContactsRequest(hash=0))
+            normalized_target = phone.lstrip('+')
+            for existing_user in getattr(existing_contacts, 'users', []):
+                existing_phone = (existing_user.phone or '').lstrip('+')
+                if existing_phone and existing_phone == normalized_target:
+                    existing_first_name = existing_user.first_name or ""
+                    existing_last_name = existing_user.last_name or ""
+                    break
+        except Exception as e:
+            logger.warning(f"Не удалось получить список контактов для сохранения имени {phone}: {e}")
+
         # Импортируем контакт временно
         try:
             result = await client(ImportContactsRequest([
                 InputPhoneContact(
                     client_id=0,
                     phone=phone,
-                    first_name="",  # Пустое имя, чтобы не менять существующее
-                    last_name=""
+                    first_name=existing_first_name,  # Своё имя для уже существующих - чтобы не затереть
+                    last_name=existing_last_name
                 )
             ]))
             

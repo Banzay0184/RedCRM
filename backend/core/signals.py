@@ -4,10 +4,56 @@ from django.db.models.signals import pre_save, pre_delete, post_save, post_delet
 from django.dispatch import receiver
 
 from .middleware import get_current_user
-from .models import Client, ClientHistory, Event, EventHistory, PhoneClient
+from .models import Client, ClientHistory, Device, Event, EventHistory, PhoneClient
 
 TRACKED_EVENT_FIELDS = ["amount", "amount_money", "computer_numbers", "comment"]
 TRACKED_CLIENT_FIELDS = ["name"]
+
+# Поля Device (устройство/услуга на мероприятии), которые логируем в EventHistory.
+# Раньше не отслеживались вообще - изменение даты услуги, ресторана и т.п.
+# нигде не фиксировалось, хотя сумма/комментарий самого Event отслеживались.
+# Ключ - имя поля модели, значение - человекочитаемый лейбл для истории
+# (контекст с названием услуги добавляется динамически в момент записи,
+# см. _device_field_label ниже - так не пришлось трогать фронтенд, там
+# ContractHistoryManager и так делает fallback на "как есть", если
+# field_name не найден в его собственном FIELD_LABELS).
+TRACKED_DEVICE_FIELDS = {
+    "event_service_date": "Дата услуги",
+    "restaurant_name": "Ресторан",
+    "camera_count": "Количество камер",
+    "comment": "Комментарий услуги",
+}
+
+# Мероприятия, которые прямо сейчас удаляются - чтобы не писать историю
+# по устройствам, которые удаляются каскадно вместе с самим событием
+# (событие и так исчезнет вместе со всей его историей).
+_deleting_event_ids = threading.local()
+
+
+def _is_event_being_deleted(event_id):
+    ids = getattr(_deleting_event_ids, "ids", None)
+    return bool(ids) and event_id in ids
+
+
+@receiver(pre_delete, sender=Event)
+def mark_event_deleting(sender, instance, **kwargs):
+    ids = getattr(_deleting_event_ids, "ids", None)
+    if ids is None:
+        ids = set()
+        _deleting_event_ids.ids = ids
+    ids.add(instance.pk)
+
+
+@receiver(post_delete, sender=Event)
+def unmark_event_deleting(sender, instance, **kwargs):
+    ids = getattr(_deleting_event_ids, "ids", None)
+    if ids:
+        ids.discard(instance.pk)
+
+
+def _device_field_label(field, service_name):
+    base = TRACKED_DEVICE_FIELDS[field]
+    return f"{base} ({service_name})" if service_name else base
 
 # Клиенты, которые прямо сейчас удаляются в текущем потоке (см. mark_client_deleting ниже).
 # pre_delete гарантированно срабатывает раньше любых DELETE в каскаде, поэтому к моменту,
@@ -79,6 +125,87 @@ def write_event_history(sender, instance, **kwargs):
         for _, field, old_value, new_value in changes
     ])
     del instance._pending_history
+
+
+@receiver(pre_save, sender=Device)
+def stash_device_changes(sender, instance, **kwargs):
+    """Сравнивает Device со свежей копией из БД - аналогично stash_event_changes."""
+    if instance.pk is None:
+        return
+
+    try:
+        old = Device.objects.select_related("service").get(pk=instance.pk)
+    except Device.DoesNotExist:
+        return
+
+    changes = []
+    service_name = instance.service.name if instance.service_id else None
+
+    for field in TRACKED_DEVICE_FIELDS:
+        old_value = getattr(old, field)
+        new_value = getattr(instance, field)
+        if old_value != new_value:
+            changes.append((_device_field_label(field, service_name), old_value, new_value))
+
+    if old.service_id != instance.service_id:
+        old_service_name = old.service.name if old.service_id else "не указана"
+        new_service_name = service_name or "не указана"
+        changes.append(("Услуга", old_service_name, new_service_name))
+
+    if changes:
+        instance._pending_history = (old.event_id, changes)
+
+
+@receiver(post_save, sender=Device)
+def write_device_history(sender, instance, created, **kwargs):
+    user = get_current_user()
+
+    if created:
+        service_name = instance.service.name if instance.service_id else "не указана"
+        EventHistory.objects.create(
+            event=instance.event,
+            field_name="Услуга добавлена",
+            old_value=None,
+            new_value=service_name,
+            changed_by=user,
+        )
+        return
+
+    pending = getattr(instance, "_pending_history", None)
+    if not pending:
+        return
+
+    event_id, changes = pending
+    EventHistory.objects.bulk_create([
+        EventHistory(
+            event_id=event_id,
+            field_name=field_label,
+            old_value=old_value,
+            new_value=new_value,
+            changed_by=user,
+        )
+        for field_label, old_value, new_value in changes
+    ])
+    del instance._pending_history
+
+
+@receiver(post_delete, sender=Device)
+def write_device_deletion_history(sender, instance, **kwargs):
+    # Устройство удалилось как часть каскадного удаления самого события - не пишем,
+    # событие и так исчезнет вместе со всей своей историей.
+    if _is_event_being_deleted(instance.event_id):
+        return
+    if not Event.objects.filter(pk=instance.event_id).exists():
+        return
+
+    service_name = instance.service.name if instance.service_id else "не указана"
+    EventHistory.objects.create(
+        event_id=instance.event_id,
+        field_name="Услуга удалена",
+        old_value=service_name,
+        new_value=None,
+        changed_by=get_current_user(),
+    )
 
 
 @receiver(pre_save, sender=Client)

@@ -45,7 +45,7 @@ const EventCalendar = ({
     const [advanceEvent, setAdvanceEvent] = useState(null);
     const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
     const [historyEvent, setHistoryEvent] = useState(null);
-    const [expandedWorkerId, setExpandedWorkerId] = useState(null);
+    const [showAllServices, setShowAllServices] = useState(false);
 
     // Используем React Query для получения работников
     const { data: workersList = [] } = useWorkers();
@@ -168,13 +168,13 @@ const EventCalendar = ({
         const deviceWithEvent = {...device, event};
         setSelectedDevice(deviceWithEvent);
         setModalOpen(true);
-        setExpandedWorkerId(null);
+        setShowAllServices(false);
     }, []);
 
     const closeModal = React.useCallback(() => {
         setModalOpen(false);
         setSelectedDevice(null);
-        setExpandedWorkerId(null);
+        setShowAllServices(false);
     }, []);
 
     const openEditModal = React.useCallback((event) => {
@@ -350,9 +350,27 @@ const EventCalendar = ({
                             {servicesMap[selectedDevice.service]?.name || 'Неизвестно'}
                         </h3>
                         <div className="space-y-2 sm:space-y-4">
-                            <p className="text-sm sm:text-base">
-                                <strong>Клиент:</strong> {selectedDevice.event.client.name}
-                            </p>
+                            <div className="text-sm sm:text-base">
+                                <p className="flex flex-wrap items-center gap-2">
+                                    <span><strong>Клиент:</strong> {selectedDevice.event.client.name}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllServices((prev) => !prev)}
+                                        className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
+                                    >
+                                        <FaConciergeBell className="text-[10px]"/>
+                                        Услуги
+                                    </button>
+                                </p>
+                                {showAllServices && (
+                                    <p className="mt-1 text-xs text-gray-300">
+                                        {(selectedDevice.event.devices || [])
+                                            .map((d) => servicesMap[d.service]?.name)
+                                            .filter(Boolean)
+                                            .join(', ') || 'Нет услуг'}
+                                    </p>
+                                )}
+                            </div>
                             <p className="text-sm sm:text-base">
                                 <strong>Телефон:</strong> +{selectedDevice.event.client.phones.map((phone) => phone.phone_number).join(', +')}
                             </p>
@@ -371,47 +389,18 @@ const EventCalendar = ({
                                     <strong>Комментарий:</strong> {selectedDevice.comment}
                                 </p>
                             )}
-                            <div className="text-sm sm:text-base">
-                                <strong>Работники:</strong>
-                                {selectedDevice.workers && selectedDevice.workers.length > 0 ? (
-                                    <div className="mt-1.5 space-y-1.5">
-                                        {selectedDevice.workers
+                            <div className="flex items-center text-sm sm:text-base">
+                                <p>
+                                    <strong>Работники: </strong>
+                                    {selectedDevice.workers && selectedDevice.workers.length > 0
+                                        ? selectedDevice.workers
                                             .map((workerId) => workersMap[workerId])
                                             .filter(Boolean)
                                             .sort((a, b) => (a.order || 0) - (b.order || 0))
-                                            .map((worker) => {
-                                                const workerServices = (selectedDevice.event.devices || [])
-                                                    .filter((d) => d.workers?.includes(worker.id))
-                                                    .map((d) => servicesMap[d.service]?.name)
-                                                    .filter(Boolean);
-                                                const isExpanded = expandedWorkerId === worker.id;
-                                                return (
-                                                    <div key={worker.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                        <span>{worker.name}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setExpandedWorkerId(isExpanded ? null : worker.id)
-                                                            }
-                                                            className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
-                                                        >
-                                                            <FaConciergeBell className="text-[10px]"/>
-                                                            Услуги
-                                                        </button>
-                                                        {isExpanded && (
-                                                            <div className="basis-full text-xs text-gray-300 pl-1">
-                                                                {workerServices.length > 0
-                                                                    ? workerServices.join(', ')
-                                                                    : 'Нет услуг'}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                ) : (
-                                    <span> Нет работников</span>
-                                )}
+                                            .map(worker => worker.name)
+                                            .join(', ')
+                                        : 'Нет работников'}
+                                </p>
                             </div>
                             <p>
                                 <strong>Общая

@@ -15,7 +15,7 @@ import {
     startOfWeek,
 } from 'date-fns';
 import {ru} from 'date-fns/locale';
-import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaEdit, FaHistory, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
+import {FaArrowLeft, FaArrowRight, FaCalendarAlt, FaConciergeBell, FaEdit, FaHistory, FaMoneyBillWave, FaPlus} from 'react-icons/fa';
 import {updateEventAdvance} from "../api.js";
 import EditEventModal from "./EditEventModal.jsx";
 import AddAdvanceModal from "./AddAdvanceModal.jsx";
@@ -45,6 +45,7 @@ const EventCalendar = ({
     const [advanceEvent, setAdvanceEvent] = useState(null);
     const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
     const [historyEvent, setHistoryEvent] = useState(null);
+    const [expandedWorkerId, setExpandedWorkerId] = useState(null);
 
     // Используем React Query для получения работников
     const { data: workersList = [] } = useWorkers();
@@ -79,7 +80,8 @@ const EventCalendar = ({
         }
         
         const searchLower = searchQuery ? searchQuery.toLowerCase() : '';
-        
+        const searchDigits = searchQuery ? searchQuery.replace(/\D/g, '') : '';
+
         return events.filter((event) => {
             // Фильтр по поисковому запросу
             const matchesSearchQuery =
@@ -87,7 +89,8 @@ const EventCalendar = ({
                 event.client?.name?.toLowerCase().includes(searchLower) ||
                 event.client?.phones?.some((phone) =>
                     phone.phone_number.includes(searchQuery)
-                );
+                ) ||
+                (searchDigits !== '' && event.id.toString().includes(searchDigits));
 
             // Фильтр по услуге
             const matchesService =
@@ -165,11 +168,13 @@ const EventCalendar = ({
         const deviceWithEvent = {...device, event};
         setSelectedDevice(deviceWithEvent);
         setModalOpen(true);
+        setExpandedWorkerId(null);
     }, []);
 
     const closeModal = React.useCallback(() => {
         setModalOpen(false);
         setSelectedDevice(null);
+        setExpandedWorkerId(null);
     }, []);
 
     const openEditModal = React.useCallback((event) => {
@@ -366,18 +371,47 @@ const EventCalendar = ({
                                     <strong>Комментарий:</strong> {selectedDevice.comment}
                                 </p>
                             )}
-                            <div className="flex items-center text-sm sm:text-base">
-                                <p>
-                                    <strong>Работники: </strong>
-                                    {selectedDevice.workers && selectedDevice.workers.length > 0
-                                        ? selectedDevice.workers
+                            <div className="text-sm sm:text-base">
+                                <strong>Работники:</strong>
+                                {selectedDevice.workers && selectedDevice.workers.length > 0 ? (
+                                    <div className="mt-1.5 space-y-1.5">
+                                        {selectedDevice.workers
                                             .map((workerId) => workersMap[workerId])
                                             .filter(Boolean)
                                             .sort((a, b) => (a.order || 0) - (b.order || 0))
-                                            .map(worker => worker.name)
-                                            .join(', ')
-                                        : 'Нет работников'}
-                                </p>
+                                            .map((worker) => {
+                                                const workerServices = (selectedDevice.event.devices || [])
+                                                    .filter((d) => d.workers?.includes(worker.id))
+                                                    .map((d) => servicesMap[d.service]?.name)
+                                                    .filter(Boolean);
+                                                const isExpanded = expandedWorkerId === worker.id;
+                                                return (
+                                                    <div key={worker.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                        <span>{worker.name}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setExpandedWorkerId(isExpanded ? null : worker.id)
+                                                            }
+                                                            className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
+                                                        >
+                                                            <FaConciergeBell className="text-[10px]"/>
+                                                            Услуги
+                                                        </button>
+                                                        {isExpanded && (
+                                                            <div className="basis-full text-xs text-gray-300 pl-1">
+                                                                {workerServices.length > 0
+                                                                    ? workerServices.join(', ')
+                                                                    : 'Нет услуг'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                ) : (
+                                    <span> Нет работников</span>
+                                )}
                             </div>
                             <p>
                                 <strong>Общая

@@ -134,13 +134,15 @@ const EventList = ({
         });
 
         const searchLower = searchQuery.toLowerCase();
-        
+        const searchDigits = searchQuery.replace(/\D/g, '');
+
         return sortedEvents.filter((event) => {
             const matchesSearchQuery =
                 event.client.name.toLowerCase().includes(searchLower) ||
                 event.client.phones.some((phone) =>
                     phone.phone_number.includes(searchQuery)
-                );
+                ) ||
+                (searchDigits !== '' && event.id.toString().includes(searchDigits));
 
             const matchesService =
                 filterService === '' ||
@@ -187,6 +189,7 @@ const EventList = ({
                     <table className="table w-full">
                         <thead>
                             <tr className="bg-primary text-white text-primary-content">
+                                <th>№ договора</th>
                                 <th>Клиент</th>
                                 <th>Телефон</th>
                                 <th>Услуга и дата</th>
@@ -199,6 +202,7 @@ const EventList = ({
                                     key={event.id}
                                     className={index % 2 === 0 ? 'bg-base-200' : ''}
                                 >
+                                    <td className="font-mono text-sm opacity-70">№ {event.id}</td>
                                     <td className="font-semibold">{event.client.name}</td>
                                     <td>
                                         {event.client.phones.map((phone) => (

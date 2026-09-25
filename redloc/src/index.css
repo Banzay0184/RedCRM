@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-canvas text-ink font-sans antialiased; }
+  ::selection { @apply bg-brand text-white; }
+}
+
+@layer components {
+  .card { @apply bg-white rounded-2xl border border-line shadow-card; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 h-10 text-sm font-semibold
+      transition-colors disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+  }
+  .btn-primary { @apply bg-brand text-white hover:bg-brand-dark; }
+  .btn-dark { @apply bg-ink text-white hover:bg-ink-700; }
+  .btn-outline { @apply border border-line bg-white text-ink hover:bg-canvas; }
+  .btn-ghost { @apply text-ink hover:bg-canvas; }
+  .btn-sm { @apply h-8 px-3 text-xs rounded-lg; }
+  .btn-icon { @apply h-10 w-10 p-0; }
+  .input {
+    @apply w-full h-10 rounded-xl border border-line bg-white px-3 text-sm placeholder:text-muted/70
+      focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition;
+  }
+  textarea.input { @apply h-auto py-2.5 leading-relaxed; }
+  select.input {
+    @apply appearance-none pr-9 bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236B7180' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right .7rem center;
+  }
+  .label { @apply block text-xs font-semibold text-ink-600 mb-1.5; }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md bg-canvas px-2 py-0.5 text-[11px] font-medium text-ink-600;
+  }
+  .chip-toggle {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 h-8 text-xs font-medium
+      text-ink-600 hover:border-ink-600/40 transition cursor-pointer select-none;
+  }
+  .chip-toggle[data-active='true'] { @apply bg-ink text-white border-ink; }
+  .section-title { @apply text-lg font-bold tracking-tight; }
+  .page-title { @apply text-2xl font-extrabold tracking-tight; }
+}
+
+@layer utilities {
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+}

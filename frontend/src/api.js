@@ -97,6 +97,10 @@ export const updateServicesOrder = (data) => api.post("/services/update_order/",
 export const sendEventContract = (eventId, phone) =>
   api.post(`/events/${eventId}/send_contract/`, phone ? { phone } : {});
 
+// REDLOC: создать временную ссылку на каталог локаций и отправить клиенту в Telegram
+export const sendRedlocLink = (clientId, phone) =>
+  api.post(`/redloc/access-links/send/`, { client: clientId, phone });
+
 // История отправок договора (GET /events/{id}/contract_logs/)
 export const getEventContractLogs = (eventId) =>
   api.get(`/events/${eventId}/contract_logs/`);

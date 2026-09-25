@@ -59,7 +59,16 @@ CORS_ALLOWED_ORIGINS = [
     "https://red-crm-beta.vercel.app",
     "https://redcrm.uz",
     "https://www.redcrm.uz",
+    # REDLOC — каталог локаций (отдельный фронт, общий API)
+    "http://localhost:5174",
+    "https://redloc.uz",
+    "https://www.redloc.uz",
 ]
+
+# REDLOC: адрес сайта для ссылок, которые отправляются клиентам в Telegram,
+# и срок жизни такой ссылки в минутах (10 дней = 14400; сейчас 5 минут для теста).
+REDLOC_FRONTEND_URL = os.getenv('REDLOC_FRONTEND_URL', 'https://redloc.uz')
+REDLOC_LINK_TTL_MINUTES = int(os.getenv('REDLOC_LINK_TTL_MINUTES', '5'))
 
 # Домен фронтенда - используется для формирования публичной ссылки/QR-кода
 # на электронную версию договора (см. message_templates.generate_contract_message).
@@ -69,6 +78,7 @@ CORS_ALLOW_HEADERS = [
     "content-type",
     "authorization",
     "x-csrftoken",
+    "x-redloc-access",  # временная ссылка-доступ клиента к каталогу REDLOC
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -86,6 +96,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "core",
+    "redloc",
     "django_celery_beat",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -304,3 +315,9 @@ MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # для collectstatic
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')    # для загруженных файлов
+
+# REDLOC: загрузка фото/видео. Файлы крупнее FILE_UPLOAD_MAX_MEMORY_SIZE Django пишет
+# во временный файл, а не в память. Не забудьте поднять client_max_body_size в nginx.
+# Хранилище (S3 или локальный MEDIA_ROOT) — см. redloc/storage.py и REDLOC_S3_* в .env.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024

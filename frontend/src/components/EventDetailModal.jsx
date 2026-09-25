@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {format, isValid, parseISO} from 'date-fns';
 import {ru} from 'date-fns/locale';
 import QRCode from 'qrcode';
-import {getEventContractLogs, sendEventContract, FRONTEND_BASE_URL} from '../api';
+import {getEventContractLogs, sendEventContract, sendRedlocLink, FRONTEND_BASE_URL} from '../api';
 import {formatContractCurrency, formatContractDate} from '../utils/contractFormat';
 import {toast} from 'react-hot-toast';
 
@@ -110,6 +110,40 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
         }
     };
 
+    // REDLOC: временная ссылка на каталог локаций (срок задаётся на бэкенде)
+    const [redlocSending, setRedlocSending] = useState(null);
+    const [redlocLinks, setRedlocLinks] = useState({});
+
+    const handleSendRedloc = async (phoneNumber) => {
+        if (redlocSending) {
+            return;
+        }
+        setRedlocSending(phoneNumber);
+        try {
+            const {data} = await sendRedlocLink(event.client.id, phoneNumber);
+            setRedlocLinks((prev) => ({...prev, [phoneNumber]: {...data, ok: true}}));
+            toast.success(`Ссылка REDLOC отправлена (действует до ${formatDateTime(data.expires_at)})`);
+        } catch (error) {
+            const data = error.response?.data || {};
+            // Если Telegram не доставил, ссылка всё равно создана - её можно скопировать
+            if (data.url) {
+                setRedlocLinks((prev) => ({...prev, [phoneNumber]: {...data, ok: false}}));
+            }
+            toast.error(data.detail || 'Не удалось отправить ссылку REDLOC');
+        } finally {
+            setRedlocSending(null);
+        }
+    };
+
+    const copyRedlocLink = async (url) => {
+        try {
+            await navigator.clipboard.writeText(url);
+            toast.success('Ссылка скопирована');
+        } catch {
+            toast.error(url);
+        }
+    };
+
     // Текущая дата для печатной версии
     const currentDate = format(new Date(), 'dd MMMM yyyy', {locale: ru});
 
@@ -156,6 +190,28 @@ const EventDetailModal = ({event, services, servicesColor, workersMap, onClose})
                                             )}
                                             {sentStatus[phone.phone_number] === 'error' && (
                                                 <span className="badge badge-error text-white">Ошибка</span>
+                                            )}
+                                            <button
+                                                className="btn btn-sm btn-outline btn-error"
+                                                onClick={() => handleSendRedloc(phone.phone_number)}
+                                                disabled={!!redlocSending}
+                                                title="Отправить клиенту временную ссылку на каталог локаций REDLOC"
+                                            >
+                                                {redlocSending === phone.phone_number ? 'Отправка...' : 'REDLOC'}
+                                            </button>
+                                            {redlocLinks[phone.phone_number] && (
+                                                <span className="flex items-center gap-2 text-xs">
+                                                    <span className={`badge ${redlocLinks[phone.phone_number].ok ? 'badge-success' : 'badge-warning'} text-white`}>
+                                                        {redlocLinks[phone.phone_number].ok ? 'REDLOC отправлен' : 'Не доставлено'}
+                                                    </span>
+                                                    до {formatDateTime(redlocLinks[phone.phone_number].expires_at)}
+                                                    <button
+                                                        className="link link-primary"
+                                                        onClick={() => copyRedlocLink(redlocLinks[phone.phone_number].url)}
+                                                    >
+                                                        копировать
+                                                    </button>
+                                                </span>
                                             )}
                                         </li>
                                     ))}

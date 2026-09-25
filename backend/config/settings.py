@@ -63,6 +63,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
     "https://redloc.uz",
     "https://www.redloc.uz",
+    "https://redloc-nine.vercel.app",
 ]
 
 # REDLOC: адрес сайта для ссылок, которые отправляются клиентам в Telegram,

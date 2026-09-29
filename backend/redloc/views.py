@@ -11,17 +11,18 @@ from rest_framework.response import Response
 
 from .images import InvalidImage, process_photo, process_poster
 from .models import (
-    Amenity, Category, City, Favorite, Location, LocationPhoto, LocationRequest, LocationVideo, LocationZone,
-    ShootType, Tag,
+    Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo,
+    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
 from .access import AUTHENTICATION, CatalogAccess, CatalogReadStaffWrite, access_error, find_link, touch_link
 from .messages import access_link_message
 from .models import AccessLink
-from .permissions import IsStaff, RequestCreateThrottle
+from .permissions import IsStaff
 from .serializers import (
-    AccessLinkSerializer, access_link_url, AmenitySerializer, CategorySerializer, CitySerializer, LocationDetailSerializer, LocationListSerializer,
-    LocationWriteSerializer, PhotoSerializer, RequestAdminSerializer, RequestSerializer, ShootTypeSerializer,
-    TagSerializer, VideoSerializer, ZoneSerializer,
+    AccessLinkSerializer, access_link_url, AmenitySerializer, CategorySerializer, CitySerializer, CollectionSerializer, LocationDetailSerializer, LocationListSerializer,
+    LocationWriteSerializer, PhotoSerializer, PortfolioDetailSerializer, PortfolioListSerializer, PortfolioPhotoSerializer,
+    PortfolioVideoSerializer, PortfolioVideoWriteSerializer, PortfolioWriteSerializer, ShootTypeSerializer,
+    TagSerializer, VideoSerializer,
 )
 
 MAX_PHOTOS_PER_UPLOAD = 30
@@ -48,12 +49,13 @@ def _next_order(qs):
 
 
 def _reorder(model, ids, location_id=None):
+    _reorder_in(model, ids, **({"location_id": location_id} if location_id is not None else {}))
+
+
+def _reorder_in(model, ids, **parent):
     if not isinstance(ids, list) or not all(isinstance(i, int) for i in ids):
         raise ValidationError({"ids": "Ожидается список id"})
-    qs = model.objects.filter(id__in=ids)
-    if location_id is not None:
-        qs = qs.filter(location_id=location_id)
-    objs = {o.id: o for o in qs}
+    objs = {o.id: o for o in model.objects.filter(id__in=ids, **parent)}
     with transaction.atomic():
         for idx, obj_id in enumerate(ids):
             if obj_id in objs:
@@ -105,6 +107,11 @@ class CategoryViewSet(DictionaryViewSet):
     serializer_class = CategorySerializer
 
 
+class CollectionViewSet(DictionaryViewSet):
+    model = Collection
+    serializer_class = CollectionSerializer
+
+
 class ShootTypeViewSet(DictionaryViewSet):
     model = ShootType
     serializer_class = ShootTypeSerializer
@@ -143,12 +150,13 @@ def meta(request):
         qs = model.objects.annotate(
             locations_count=Count("locations", filter=Q(locations__is_published=True), distinct=True)
         ).order_by("order", "id")
-        return serializer(qs, many=True).data
+        return serializer(qs, many=True, context={"request": request}).data
 
     published = Location.objects.filter(is_published=True)
     return Response({
         "cities": dicts(City, CitySerializer),
         "categories": dicts(Category, CategorySerializer),
+        "collections": dicts(Collection, CollectionSerializer),
         "shoot_types": dicts(ShootType, ShootTypeSerializer),
         "amenities": dicts(Amenity, AmenitySerializer),
         "badges": [{"value": v, "label": label} for v, label in Location.BADGE_CHOICES if v],
@@ -191,13 +199,6 @@ class LocationViewSet(viewsets.ModelViewSet):
             return LocationDetailSerializer
         return LocationListSerializer
 
-    def get_serializer_context(self):
-        ctx = super().get_serializer_context()
-        user = self.request.user
-        if user and user.is_authenticated:
-            ctx["favorite_ids"] = set(Favorite.objects.filter(user=user).values_list("location_id", flat=True))
-        return ctx
-
     def get_queryset(self):
         p = self.request.query_params
         photos_qs = LocationPhoto.objects.order_by("order", "id")
@@ -211,7 +212,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         )
         if self.action == "retrieve":
             qs = qs.prefetch_related(
-                "shoot_types", "amenities", "zones",
+                "collections", "shoot_types", "amenities",
                 Prefetch("photos", queryset=photos_qs),
                 Prefetch("videos", queryset=LocationVideo.objects.order_by("order", "id")),
             )
@@ -228,6 +229,7 @@ class LocationViewSet(viewsets.ModelViewSet):
             qs = qs.filter(city__slug__in=_csv(p["city"]))
         for param, field in (
             ("category", "categories__slug"),
+            ("collection", "collections__slug"),
             ("tag", "tags__slug"),
             ("shoot_type", "shoot_types__slug"),
             ("amenity", "amenities__slug"),
@@ -241,12 +243,6 @@ class LocationViewSet(viewsets.ModelViewSet):
             qs = qs.filter(is_featured=True)
         if p.get("has_video") == "1":
             qs = qs.filter(videos_count__gt=0)
-        if p.get("ids"):
-            ids = [int(i) for i in _csv(p["ids"]) if i.isdigit()]
-            qs = qs.filter(id__in=ids)
-        if p.get("favorites") == "1":
-            user = self.request.user
-            qs = qs.filter(favorites__user=user) if user.is_authenticated else qs.none()
         q = (p.get("q") or "").strip()
         if q:
             qs = qs.filter(
@@ -279,58 +275,11 @@ class LocationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
-    @action(detail=True, methods=["get"], permission_classes=[CatalogAccess])
-    def similar(self, request, slug=None):
-        location = self.get_object()
-        cat_ids = list(location.categories.values_list("id", flat=True))
-        qs = (
-            Location.objects.filter(is_published=True)
-            .exclude(pk=location.pk)
-            .filter(Q(categories__in=cat_ids) | Q(city=location.city_id))
-            .select_related("city")
-            .prefetch_related(
-                "categories", "tags",
-                Prefetch("photos", queryset=LocationPhoto.objects.order_by("order", "id")[:1], to_attr="cover_photos"),
-            )
-            .annotate(photos_count=Count("photos", distinct=True), videos_count=Count("videos", distinct=True))
-            .distinct()
-            .order_by("-is_featured", "-views_count")[:8]
-        )
-        return Response(LocationListSerializer(qs, many=True, context=self.get_serializer_context()).data)
-
-    @action(detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated])
-    def favorite(self, request, slug=None):
-        location = self.get_object()
-        if request.method == "POST":
-            Favorite.objects.get_or_create(user=request.user, location=location)
-            return Response({"is_favorite": True})
-        Favorite.objects.filter(user=request.user, location=location).delete()
-        return Response({"is_favorite": False})
-
-
-@api_view(["POST"])
-@authentication_classes(AUTHENTICATION)
-@permission_classes([IsAuthenticated])
-def sync_favorites(request):
-    """Переносит «гостевое» избранное (из localStorage) в аккаунт после входа."""
-    ids = [i for i in request.data.get("ids", []) if isinstance(i, int)][:500]
-    existing = set(Favorite.objects.filter(user=request.user).values_list("location_id", flat=True))
-    valid = Location.objects.filter(id__in=ids, is_published=True).exclude(id__in=existing).values_list("id", flat=True)
-    Favorite.objects.bulk_create([Favorite(user=request.user, location_id=i) for i in valid])
-    return Response({"ids": list(Favorite.objects.filter(user=request.user).values_list("location_id", flat=True))})
-
-
-@api_view(["GET"])
-@authentication_classes(AUTHENTICATION)
-@permission_classes([IsAuthenticated])
-def favorite_ids(request):
-    return Response({"ids": list(Favorite.objects.filter(user=request.user).values_list("location_id", flat=True))})
-
 
 # ---------------------------------------------------------------- медиа
 
 
-class PhotoViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class PhotoViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     """Фото всех локаций (страница «Фото») + загрузка/сортировка/удаление для staff."""
 
     authentication_classes = AUTHENTICATION
@@ -345,8 +294,6 @@ class PhotoViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.Destro
         p = self.request.query_params
         if p.get("location"):
             qs = qs.filter(location__slug=p["location"]) if not p["location"].isdigit() else qs.filter(location_id=p["location"])
-        if p.get("zone"):
-            qs = qs.filter(zone_id=p["zone"])
         if p.get("category"):
             qs = qs.filter(location__categories__slug=p["category"])
         if p.get("city"):
@@ -450,69 +397,6 @@ class VideoViewSet(viewsets.ModelViewSet):
                 f.delete(save=False)
 
 
-class ZoneViewSet(viewsets.ModelViewSet):
-    authentication_classes = AUTHENTICATION
-    permission_classes = [CatalogReadStaffWrite]
-    serializer_class = ZoneSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        qs = LocationZone.objects.annotate(photos_count=Count("photos"))
-        if self.request.query_params.get("location"):
-            qs = qs.filter(location_id=self.request.query_params["location"])
-        if not is_staff(self.request):
-            qs = qs.filter(location__is_published=True)
-        return qs.order_by("order", "id")
-
-    def perform_create(self, serializer):
-        serializer.save(order=_next_order(serializer.validated_data["location"].zones))
-
-
-# ---------------------------------------------------------------- заявки
-
-
-class RequestViewSet(viewsets.ModelViewSet):
-    """Заявки: создать может любой (с лимитом), просматривать и обрабатывать — staff."""
-
-    pagination_class = CatalogPagination
-    authentication_classes = AUTHENTICATION
-
-    def get_permissions(self):
-        if self.action == "create":
-            return [CatalogAccess()]
-        return [IsStaff()]
-
-    def get_throttles(self):
-        if self.action == "create":
-            return [RequestCreateThrottle()]
-        return []
-
-    def get_serializer_class(self):
-        return RequestSerializer if self.action == "create" else RequestAdminSerializer
-
-    def get_queryset(self):
-        qs = LocationRequest.objects.select_related("location", "shoot_type", "access_link__client")
-        p = self.request.query_params
-        if p.get("status"):
-            qs = qs.filter(status=p["status"])
-        if p.get("location"):
-            qs = qs.filter(location_id=p["location"])
-        q = (p.get("q") or "").strip()
-        if q:
-            qs = qs.filter(Q(name__icontains=q) | Q(phone__icontains=q) | Q(location__title__icontains=q))
-        return qs.order_by("-created_at")
-
-    def perform_create(self, serializer):
-        user = self.request.user if self.request.user.is_authenticated else None
-        link = self.request.auth if isinstance(self.request.auth, AccessLink) else None
-        serializer.save(user=user, access_link=link)
-
-    @action(detail=False, methods=["get"])
-    def counts(self, request):
-        rows = LocationRequest.objects.values("status").annotate(n=Count("id"))
-        return Response({r["status"]: r["n"] for r in rows})
-
-
 # ---------------------------------------------------------------- ссылки-доступ для клиентов
 
 
@@ -585,3 +469,139 @@ class AccessLinkViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets
             # Ссылка всё равно создана — менеджер может скопировать её и отправить вручную
             return Response({**data, "detail": link.send_error}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_201_CREATED)
+
+
+# ---------------------------------------------------------------- портфолио (готовые съёмки)
+
+
+def _delete_files(*files):
+    for f in files:
+        if f:
+            f.delete(save=False)
+
+
+class PortfolioViewSet(viewsets.ModelViewSet):
+    """Love story / альбомы: читать — всем с доступом, создавать и менять — staff."""
+
+    authentication_classes = AUTHENTICATION
+    permission_classes = [CatalogReadStaffWrite]
+    pagination_class = CatalogPagination
+    lookup_field = "slug"
+    lookup_value_regex = "[-a-zA-Z0-9_]+"
+
+    def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            return PortfolioWriteSerializer
+        return PortfolioDetailSerializer if self.action == "retrieve" else PortfolioListSerializer
+
+    def get_queryset(self):
+        photos_qs = PortfolioPhoto.objects.order_by("order", "id")
+        qs = (
+            Portfolio.objects.select_related("location__city")
+            .prefetch_related(Prefetch("photos", queryset=photos_qs[:1], to_attr="cover_photos"))
+            .annotate(photos_count=Count("photos", distinct=True), videos_count=Count("videos", distinct=True))
+        )
+        if self.action == "retrieve":
+            qs = qs.prefetch_related(Prefetch("photos", queryset=photos_qs), "videos")
+        if not is_staff(self.request):
+            qs = qs.filter(is_published=True)
+        kind = self.request.query_params.get("kind")
+        if kind:
+            qs = qs.filter(kind=kind)
+        return qs.order_by("order", "-shot_at", "-id")
+
+    def perform_create(self, serializer):
+        kind = serializer.validated_data["kind"]
+        serializer.save(order=_next_order(Portfolio.objects.filter(kind=kind)))
+
+    def perform_destroy(self, instance):
+        files = [f for p in instance.photos.all() for f in (p.image, p.thumbnail)]
+        files += [f for v in instance.videos.all() for f in (v.file, v.poster)]
+        instance.delete()
+        _delete_files(*files)
+
+
+class PortfolioPhotoViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """Кадры съёмки: загрузка пачкой, порядок, удаление — только staff."""
+
+    authentication_classes = AUTHENTICATION
+    permission_classes = [IsStaff]
+    serializer_class = PortfolioPhotoSerializer
+    queryset = PortfolioPhoto.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        portfolio = get_object_or_404(Portfolio, pk=request.data.get("portfolio"))
+        files = request.FILES.getlist("images")
+        if not files:
+            raise ValidationError({"images": "Выберите хотя бы одно фото"})
+        if len(files) > MAX_PHOTOS_PER_UPLOAD:
+            raise ValidationError({"images": f"Не больше {MAX_PHOTOS_PER_UPLOAD} фото за раз"})
+        created, errors = [], []
+        order = _next_order(portfolio.photos)
+        for f in files:
+            if f.size > MAX_PHOTO_SIZE:
+                errors.append({"file": f.name, "error": "Файл больше 25 МБ"})
+                continue
+            try:
+                full, thumb = process_photo(f)
+            except InvalidImage as exc:
+                errors.append({"file": f.name, "error": str(exc)})
+                continue
+            photo = PortfolioPhoto(portfolio=portfolio, order=order)
+            photo.image.save("photo.webp", full, save=False)
+            photo.thumbnail.save("thumb.webp", thumb, save=False)
+            photo.save()
+            created.append(photo)
+            order += 1
+        data = PortfolioPhotoSerializer(created, many=True, context={"request": request}).data
+        code = status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST
+        return Response({"created": data, "errors": errors}, status=code)
+
+    @action(detail=False, methods=["post"])
+    def reorder(self, request):
+        _reorder_in(PortfolioPhoto, request.data.get("ids"), portfolio_id=request.data.get("portfolio"))
+        return Response({"ok": True})
+
+    def perform_destroy(self, instance):
+        files = (instance.image, instance.thumbnail)
+        instance.delete()
+        _delete_files(*files)
+
+
+class PortfolioVideoViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    authentication_classes = AUTHENTICATION
+    permission_classes = [IsStaff]
+    serializer_class = PortfolioVideoWriteSerializer
+    queryset = PortfolioVideo.objects.all()
+
+    def perform_create(self, serializer):
+        f = serializer.validated_data.get("file")
+        if f and f.size > MAX_VIDEO_SIZE:
+            raise ValidationError({"file": "Видео больше 500 МБ — загрузите на YouTube и вставьте ссылку"})
+        poster = serializer.validated_data.pop("poster", None)
+        processed = None
+        if poster:
+            try:
+                processed = process_poster(poster)
+            except InvalidImage as exc:
+                raise ValidationError({"poster": str(exc)})
+        portfolio = serializer.validated_data["portfolio"]
+        instance = serializer.save(order=_next_order(portfolio.videos))
+        if processed:
+            instance.poster.save("poster.webp", processed)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(PortfolioVideoSerializer(serializer.instance, context={"request": request}).data, status=201)
+
+    @action(detail=False, methods=["post"])
+    def reorder(self, request):
+        _reorder_in(PortfolioVideo, request.data.get("ids"), portfolio_id=request.data.get("portfolio"))
+        return Response({"ok": True})
+
+    def perform_destroy(self, instance):
+        files = (instance.file, instance.poster)
+        instance.delete()
+        _delete_files(*files)

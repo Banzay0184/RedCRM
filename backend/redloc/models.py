@@ -95,6 +95,14 @@ class Amenity(Dictionary):
         verbose_name_plural = "Удобства"
 
 
+class Collection(Dictionary):
+    """Подборка локаций для главной: «Осень», «Зима», «Ночь»... Одна локация может быть в нескольких."""
+
+    class Meta(Dictionary.Meta):
+        verbose_name = "Подборка"
+        verbose_name_plural = "Подборки"
+
+
 class Tag(BaseModel):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=60, unique=True, blank=True)
@@ -134,6 +142,7 @@ class Location(BaseModel):
     tags = models.ManyToManyField(Tag, related_name="locations", blank=True)
     shoot_types = models.ManyToManyField(ShootType, related_name="locations", blank=True)
     amenities = models.ManyToManyField(Amenity, related_name="locations", blank=True)
+    collections = models.ManyToManyField(Collection, related_name="locations", blank=True)
     badge = models.CharField(max_length=10, choices=BADGE_CHOICES, blank=True, default=BADGE_NONE)
     is_featured = models.BooleanField("Популярная", default=False, db_index=True)
     is_published = models.BooleanField(default=True, db_index=True)
@@ -234,15 +243,6 @@ class LocationVideo(BaseModel):
         return self.title or f"Видео #{self.pk}"
 
 
-class Favorite(BaseModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="redloc_favorites")
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="favorites")
-
-    class Meta:
-        ordering = ["-created_at"]
-        constraints = [models.UniqueConstraint(fields=["user", "location"], name="redloc_unique_favorite")]
-
-
 def _access_token():
     return secrets.token_urlsafe(24)
 
@@ -306,36 +306,78 @@ class AccessLink(BaseModel):
         return f"{self.client or self.phone or 'ссылка'} до {self.expires_at:%d.%m.%Y %H:%M}"
 
 
-class LocationRequest(BaseModel):
-    """Заявка на съёмку с публичной страницы локации («Связаться»)."""
+def portfolio_photo_path(instance, filename):
+    return f"portfolio/{instance.portfolio_id}/photos/{uuid.uuid4().hex}.webp"
 
-    STATUS_NEW = "new"
-    STATUS_IN_PROGRESS = "in_progress"
-    STATUS_DONE = "done"
-    STATUS_REJECTED = "rejected"
-    STATUS_CHOICES = [
-        (STATUS_NEW, "Новая"),
-        (STATUS_IN_PROGRESS, "В работе"),
-        (STATUS_DONE, "Завершена"),
-        (STATUS_REJECTED, "Отклонена"),
-    ]
 
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name="requests")
-    name = models.CharField(max_length=120)
-    phone = models.CharField(max_length=20)
-    shoot_type = models.ForeignKey(ShootType, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
-    shooting_date = models.DateField(null=True, blank=True)
-    message = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW, db_index=True)
-    admin_note = models.TextField(blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
-    # Через какую ссылку пришёл клиент — связывает заявку с клиентом RedCRM
-    access_link = models.ForeignKey(
-        AccessLink, on_delete=models.SET_NULL, null=True, blank=True, related_name="requests"
-    )
+def portfolio_thumb_path(instance, filename):
+    return f"portfolio/{instance.portfolio_id}/thumbs/{uuid.uuid4().hex}.webp"
+
+
+def portfolio_video_path(instance, filename):
+    ext = (filename.rsplit(".", 1)[-1] if "." in filename else "mp4").lower()[:5]
+    return f"portfolio/{instance.portfolio_id}/videos/{uuid.uuid4().hex}.{ext}"
+
+
+def portfolio_poster_path(instance, filename):
+    return f"portfolio/{instance.portfolio_id}/posters/{uuid.uuid4().hex}.webp"
+
+
+class Portfolio(BaseModel):
+    """Готовая съёмка студии (love story, альбом) — портфолио, привязанное к локации, где снимали."""
+
+    KIND_LOVE_STORY = "love_story"
+    KIND_ALBUM = "album"
+    KIND_CHOICES = [(KIND_LOVE_STORY, "Love story"), (KIND_ALBUM, "Альбом")]
+
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES, db_index=True)
+    title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=90, unique=True, blank=True)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name="portfolios")
+    description_ru = models.TextField(blank=True)
+    description_uz = models.TextField(blank=True)
+    shot_at = models.DateField("Дата съёмки", null=True, blank=True)
+    is_published = models.BooleanField(default=True, db_index=True)
+    order = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["order", "-shot_at", "-id"]
+        verbose_name = "Съёмка (портфолио)"
+        verbose_name_plural = "Съёмки (портфолио)"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = make_slug(self.title, Portfolio, self.pk)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} — {self.location or 'без локации'}"
+        return self.title
+
+
+class PortfolioPhoto(BaseModel):
+    """Кадр съёмки. Первое по order — обложка."""
+
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name="photos")
+    image = models.ImageField(upload_to=portfolio_photo_path, storage=redloc_storage, width_field="width", height_field="height")
+    thumbnail = models.ImageField(upload_to=portfolio_thumb_path, storage=redloc_storage, blank=True)
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0, db_index=True)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+
+class PortfolioVideo(BaseModel):
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name="videos")
+    title = models.CharField(max_length=150, blank=True)
+    file = models.FileField(upload_to=portfolio_video_path, storage=redloc_storage, blank=True)
+    youtube_url = models.URLField(blank=True)
+    poster = models.ImageField(upload_to=portfolio_poster_path, storage=redloc_storage, blank=True)
+    duration = models.PositiveIntegerField("Длительность, сек", null=True, blank=True)
+    order = models.PositiveIntegerField(default=0, db_index=True)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    youtube_id = LocationVideo.youtube_id

@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import {
   LuArrowDown, LuArrowUp, LuImage, LuPlus, LuStar, LuTrash2, LuVideo, LuYoutube,
 } from 'react-icons/lu'
-import { redloc, errorText } from '../../lib/api'
+import { errorText } from '../../lib/api'
 import { useLang } from '../../lib/i18n'
 import { cx, formatDuration, readVideoDuration } from '../../lib/format'
-import { DictIcon, ICON_KEYS } from '../../lib/icons'
 import Dropzone from '../../components/Dropzone'
 import Sortable, { move } from '../../components/Sortable'
 import VideoTile from '../../components/VideoTile'
@@ -23,60 +21,31 @@ function Progress({ value, label }) {
   )
 }
 
-function PhotoEditModal({ photo, zones, onClose, onSaved, onDelete, onMakeCover, isCover }) {
+function PhotoModal({ photo, onClose, onDelete, onMakeCover, isCover }) {
   const { t } = useLang()
-  const [caption, setCaption] = useState(photo?.caption || '')
-  const [zone, setZone] = useState(photo?.zone || '')
-  const [saving, setSaving] = useState(false)
   if (!photo) return null
-  const save = async () => {
-    setSaving(true)
-    try {
-      await redloc.updatePhoto(photo.id, { caption, zone: zone || null })
-      onSaved()
-      onClose()
-    } catch (e) {
-      toast.error(errorText(e))
-    } finally {
-      setSaving(false)
-    }
-  }
   return (
     <Modal open onClose={onClose} title={t('a.photo')} wide
       footer={<>
         <button className="btn btn-ghost mr-auto text-brand" onClick={() => onDelete(photo)}><LuTrash2 className="h-4 w-4" /> {t('common.delete')}</button>
-        <button className="btn btn-outline" onClick={onClose}>{t('common.cancel')}</button>
-        <button className="btn btn-primary" onClick={save} disabled={saving}>{t('common.save')}</button>
+        {!isCover && (
+          <button className="btn btn-outline" onClick={() => { onMakeCover(photo); onClose() }}>
+            <LuStar className="h-4 w-4" /> {t('a.makeCover')}
+          </button>
+        )}
+        <button className="btn btn-primary" onClick={onClose}>{t('common.close')}</button>
       </>}>
-      <div className="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
-        <img src={photo.image} alt="" className="w-full rounded-xl bg-canvas object-contain" />
-        <div className="space-y-3">
-          <Field label={t('a.caption')}>
-            <input className="input" value={caption} maxLength={200} onChange={(e) => setCaption(e.target.value)} />
-          </Field>
-          <Field label={t('a.zone')} hint={zones.length ? '' : t('a.zonesHint')}>
-            <select className="input" value={zone} onChange={(e) => setZone(Number(e.target.value) || '')}>
-              <option value="">—</option>
-              {zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
-            </select>
-          </Field>
-          {!isCover && (
-            <button className="btn btn-outline w-full" onClick={() => { onMakeCover(photo); onClose() }}>
-              <LuStar className="h-4 w-4" /> {t('a.makeCover')}
-            </button>
-          )}
-          {photo.width && <div className="text-xs text-muted">{photo.width} × {photo.height}px</div>}
-        </div>
-      </div>
+      <img src={photo.image} alt="" className="w-full rounded-xl bg-canvas object-contain" />
+      {photo.width && <div className="mt-2 text-xs text-muted">{photo.width} × {photo.height}px</div>}
     </Modal>
   )
 }
 
-export function PhotosManager({ location, onChanged }) {
+// api = { upload(files, onProgress), reorder(ids), remove(id) } — одинаково для локации и съёмки
+export function PhotosManager({ photos, api, onChanged }) {
   const { t } = useLang()
   const [progress, setProgress] = useState(null)
   const [edit, setEdit] = useState(null)
-  const photos = location.photos
 
   const upload = async (files) => {
     // Загружаем пачками по 10, чтобы не упираться в лимиты запроса
@@ -86,7 +55,7 @@ export function PhotosManager({ location, onChanged }) {
     let failed = 0
     try {
       for (const chunk of chunks) {
-        const res = await redloc.uploadPhotos(location.id, chunk, (p) =>
+        const res = await api.upload(chunk, (p) =>
           setProgress(Math.round(((done + (p / 100) * chunk.length) / files.length) * 100)))
         done += chunk.length
         failed += res.errors?.length || 0
@@ -104,7 +73,7 @@ export function PhotosManager({ location, onChanged }) {
 
   const reorder = async (next) => {
     try {
-      await redloc.reorderPhotos(location.id, next.map((p) => p.id))
+      await api.reorder(next.map((p) => p.id))
       onChanged()
     } catch (e) {
       toast.error(errorText(e))
@@ -113,7 +82,7 @@ export function PhotosManager({ location, onChanged }) {
 
   const remove = async (photo) => {
     if (!window.confirm(t('common.confirmDelete'))) return
-    await redloc.deletePhoto(photo.id)
+    await api.remove(photo.id)
     setEdit(null)
     onChanged()
   }
@@ -132,32 +101,29 @@ export function PhotosManager({ location, onChanged }) {
                 className="group relative block aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-canvas active:cursor-grabbing">
                 <img src={p.thumbnail} alt="" draggable={false} className="h-full w-full object-cover" />
                 {i === 0 && <span className="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[9px] font-bold text-white">{t('a.cover')}</span>}
-                {p.zone && <span className="absolute bottom-1 left-1 max-w-[90%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white">
-                  {location.zones.find((z) => z.id === p.zone)?.name}
-                </span>}
                 <span className="absolute inset-0 bg-ink/0 transition group-hover:bg-ink/20" />
               </button>
             )} />
         </>
       )}
-      <PhotoEditModal key={edit?.id} photo={edit} zones={location.zones} isCover={photos[0]?.id === edit?.id}
-        onClose={() => setEdit(null)} onSaved={onChanged} onDelete={remove}
+      <PhotoModal key={edit?.id} photo={edit} isCover={photos[0]?.id === edit?.id}
+        onClose={() => setEdit(null)} onDelete={remove}
         onMakeCover={(p) => reorder([p, ...photos.filter((x) => x.id !== p.id)])} />
     </div>
   )
 }
 
-export function VideosManager({ location, onChanged }) {
+// api = { create(data, onProgress), reorder(ids), remove(id) }; data без владельца — его добавляет api.create
+export function VideosManager({ videos, api, onChanged }) {
   const { t } = useLang()
   const [mode, setMode] = useState('youtube')
   const [form, setForm] = useState({ title: '', youtube_url: '', file: null, poster: null })
   const [progress, setProgress] = useState(null)
   const [play, setPlay] = useState(null)
-  const videos = location.videos
 
-  // Не <form>: менеджер живёт внутри формы локации, вложенные формы невалидны
+  // Не <form>: менеджер живёт внутри формы, вложенные формы невалидны
   const add = async () => {
-    const data = { location: location.id, title: form.title }
+    const data = { title: form.title }
     if (mode === 'youtube') {
       if (!form.youtube_url.trim()) return toast.error(t('a.youtubeRequired'))
       data.youtube_url = form.youtube_url.trim()
@@ -169,7 +135,7 @@ export function VideosManager({ location, onChanged }) {
     }
     setProgress(0)
     try {
-      await redloc.createVideo(data, setProgress)
+      await api.create(data, setProgress)
       setForm({ title: '', youtube_url: '', file: null, poster: null })
       toast.success(t('common.saved'))
       onChanged()
@@ -188,13 +154,13 @@ export function VideosManager({ location, onChanged }) {
   }
 
   const reorder = async (next) => {
-    await redloc.reorderVideos(location.id, next.map((v) => v.id))
+    await api.reorder(next.map((v) => v.id))
     onChanged()
   }
 
   const remove = async (v) => {
     if (!window.confirm(t('common.confirmDelete'))) return
-    await redloc.deleteVideo(v.id)
+    await api.remove(v.id)
     onChanged()
   }
 
@@ -245,60 +211,6 @@ export function VideosManager({ location, onChanged }) {
         </button>
       </div>
       <VideoModal video={play} onClose={() => setPlay(null)} />
-    </div>
-  )
-}
-
-export function ZonesManager({ location, onChanged }) {
-  const { t } = useLang()
-  const [name, setName] = useState('')
-  const [icon, setIcon] = useState('frame')
-  const qc = useQueryClient()
-
-  const add = async () => {
-    if (!name.trim()) return
-    try {
-      await redloc.createZone({ location: location.id, name: name.trim(), icon })
-      setName('')
-      onChanged()
-    } catch (err) {
-      toast.error(errorText(err))
-    }
-  }
-  const rename = async (z) => {
-    const next = window.prompt(t('a.zoneName'), z.name)
-    if (!next || next === z.name) return
-    await redloc.updateZone(z.id, { name: next })
-    onChanged()
-  }
-  const remove = async (z) => {
-    if (!window.confirm(t('common.confirmDelete'))) return
-    await redloc.deleteZone(z.id)
-    onChanged()
-    qc.invalidateQueries({ queryKey: ['photos'] })
-  }
-
-  return (
-    <div className="space-y-3">
-      <p className="text-xs text-muted">{t('a.zonesIntro')}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {location.zones.map((z) => (
-          <span key={z.id} className="chip-toggle cursor-default">
-            <DictIcon name={z.icon} className="h-3.5 w-3.5" />
-            <button type="button" onClick={() => rename(z)} className="hover:underline">{z.name}</button>
-            <span className="opacity-50">{z.photos_count}</span>
-            <button type="button" onClick={() => remove(z)} className="text-muted hover:text-brand">×</button>
-          </span>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <select className="input w-24" value={icon} onChange={(e) => setIcon(e.target.value)} aria-label="icon">
-          {ICON_KEYS.map((k) => <option key={k} value={k}>{k}</option>)}
-        </select>
-        <input className="input" placeholder={t('a.zonePlaceholder')} value={name} maxLength={100} onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add() } }} />
-        <button type="button" onClick={add} className="btn btn-dark btn-icon shrink-0"><LuPlus className="h-4 w-4" /></button>
-      </div>
     </div>
   )
 }

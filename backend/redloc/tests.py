@@ -15,7 +15,7 @@ from django.utils import timezone
 
 from core.models import Client
 
-from .models import AccessLink, Category, City, Favorite, Location, LocationPhoto, LocationRequest, ShootType
+from .models import AccessLink, Category, City, Location, LocationPhoto
 
 TMP_MEDIA = tempfile.mkdtemp()
 
@@ -131,48 +131,55 @@ class RedlocApiTests(APITestCase):
         res = self.client.post("/api/redloc/videos/", {"location": loc.id}, format="json")
         self.assertEqual(res.status_code, 400)
 
-    def test_detail_counts_views_and_zones(self):
+    def test_detail_counts_views(self):
         loc = self.create_location()
-        self.client.force_authenticate(self.staff)
-        zone = self.client.post("/api/redloc/zones/", {"location": loc.id, "name": "Окно в пол"}, format="json").data
-        self.client.post("/api/redloc/photos/", {"location": loc.id, "images": [jpeg()]}, format="multipart")
-        photo = loc.photos.first()
-        res = self.client.patch(f"/api/redloc/photos/{photo.id}/", {"zone": zone["id"]}, format="json")
-        self.assertEqual(res.status_code, 200, res.data)
         self.as_guest()
-        data = self.client.get(f"/api/redloc/locations/{loc.slug}/").data
-        self.assertEqual(data["zones"][0]["photos_count"], 1)
+        self.client.get(f"/api/redloc/locations/{loc.slug}/")
         self.client.get(f"/api/redloc/locations/{loc.slug}/")
         loc.refresh_from_db()
         self.assertEqual(loc.views_count, 2)
 
-    def test_favorites(self):
+    def test_portfolio_crud_and_media(self):
         loc = self.create_location()
-        self.assertEqual(self.client.post(f"/api/redloc/locations/{loc.slug}/favorite/").status_code, 403)
-        self.client.force_authenticate(self.user)
-        self.client.post(f"/api/redloc/locations/{loc.slug}/favorite/")
-        self.client.post(f"/api/redloc/locations/{loc.slug}/favorite/")
-        self.assertEqual(Favorite.objects.filter(user=self.user).count(), 1)
-        res = self.client.get("/api/redloc/locations/?favorites=1")
-        self.assertTrue(res.data["results"][0]["is_favorite"])
-        self.client.delete(f"/api/redloc/locations/{loc.slug}/favorite/")
-        self.assertEqual(self.client.post("/api/redloc/favorites/sync/", {"ids": [loc.id, 9999]}, format="json").data,
-                         {"ids": [loc.id]})
-
-    def test_requests(self):
-        loc = self.create_location()
-        res = self.client.post("/api/redloc/requests/", {
-            "location": loc.id, "name": "Ali", "phone": "+998 90 123-45-67",
-            "shoot_type": ShootType.objects.first().id, "status": "done",
-        }, format="json")
-        self.assertEqual(res.status_code, 201, res.data)
-        req = LocationRequest.objects.get()
-        self.assertEqual(req.status, "new")  # статус с публичной формы игнорируется
-        self.assertEqual(req.access_link, self.link)
-        self.assertEqual(self.client.get("/api/redloc/requests/").status_code, 403)
         self.client.force_authenticate(self.staff)
-        self.assertEqual(self.client.patch(f"/api/redloc/requests/{req.id}/", {"status": "done"}).data["status"], "done")
-        self.assertEqual(self.client.get("/api/redloc/requests/counts/").data, {"done": 1})
+        res = self.client.post("/api/redloc/portfolios/", {"kind": "love_story", "title": "Азиз и Малика", "location": loc.id},
+                               format="json")
+        self.assertEqual(res.status_code, 201, res.data)
+        slug, pid = res.data["slug"], res.data["id"]
+        up = self.client.post("/api/redloc/portfolio-photos/", {"portfolio": pid, "images": [jpeg("a.jpg"), jpeg("b.jpg")]},
+                              format="multipart")
+        self.assertEqual(up.status_code, 201, up.data)
+        ids = [p["id"] for p in up.data["created"]]
+        self.client.post("/api/redloc/portfolio-photos/reorder/", {"portfolio": pid, "ids": ids[::-1]}, format="json")
+        yt = self.client.post("/api/redloc/portfolio-videos/", {"portfolio": pid, "youtube_url": "https://youtu.be/dQw4w9WgXcQ"},
+                              format="json")
+        self.assertEqual(yt.data["youtube_id"], "dQw4w9WgXcQ")
+        detail = self.client.get(f"/api/redloc/portfolios/{slug}/").data
+        self.assertEqual([p["id"] for p in detail["photos"]], ids[::-1])
+        self.assertEqual(detail["location"]["slug"], loc.slug)
+        # скрытая съёмка не видна клиенту; менять может только staff
+        self.client.patch(f"/api/redloc/portfolios/{slug}/", {"is_published": False}, format="json")
+        self.as_guest()
+        self.assertEqual(self.client.get("/api/redloc/portfolios/?kind=love_story").data["count"], 0)
+        self.assertEqual(self.client.post("/api/redloc/portfolios/", {"kind": "album", "title": "x"}, format="json").status_code, 403)
+        self.assertEqual(self.client.delete(f"/api/redloc/portfolio-photos/{ids[0]}/").status_code, 403)
+        self.client.force_authenticate(self.staff)
+        self.assertEqual(self.client.delete(f"/api/redloc/portfolios/{slug}/").status_code, 204)
+
+    def test_collections(self):
+        loc = self.create_location()
+        other = self.create_location(title="Другая")
+        self.client.force_authenticate(self.staff)
+        col = self.client.post("/api/redloc/collections/", {"name_ru": "Ночь", "name_uz": "Tun"}, format="json").data
+        res = self.client.patch(f"/api/redloc/locations/{loc.slug}/", {"collections": [col["id"]]}, format="json")
+        self.assertEqual(res.status_code, 200, res.data)
+        self.as_guest()
+        found = self.client.get(f"/api/redloc/locations/?collection={col['slug']}").data["results"]
+        self.assertEqual([x["id"] for x in found], [loc.id])
+        self.assertNotIn(other.id, [x["id"] for x in found])
+        night = next(c for c in self.client.get("/api/redloc/meta/").data["collections"] if c["slug"] == col["slug"])
+        self.assertEqual(night["locations_count"], 1)
+        self.assertEqual(self.client.get(f"/api/redloc/locations/{loc.slug}/").data["collections"][0]["id"], col["id"])
 
     def test_meta(self):
         self.create_location()

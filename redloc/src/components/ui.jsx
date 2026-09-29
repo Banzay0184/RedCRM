@@ -89,12 +89,3 @@ export function Toggle({ checked, onChange, label }) {
   )
 }
 
-export function Checkbox({ checked, onChange, label }) {
-  return (
-    <label className="inline-flex cursor-pointer select-none items-center gap-2 text-sm text-ink-600">
-      <input type="checkbox" className="h-4 w-4 rounded border-line accent-brand" checked={checked}
-        onChange={(e) => onChange(e.target.checked)} />
-      {label}
-    </label>
-  )
-}

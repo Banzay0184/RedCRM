@@ -1,52 +1,9 @@
 import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { LuCamera, LuEyeOff, LuHeart, LuImage, LuMapPin, LuVideo } from 'react-icons/lu'
-import { useFavorites } from '../lib/favorites'
+import { LuCamera, LuEyeOff, LuImage, LuMapPin, LuVideo } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 import { cx } from '../lib/format'
 
-export function BadgePill({ badge, className }) {
-  const { t } = useLang()
-  if (!badge) return null
-  const styles = {
-    premium: 'bg-sky-500 text-white',
-    hit: 'bg-brand text-white',
-    new: 'bg-emerald-500 text-white',
-  }
-  return (
-    <span className={cx('rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide', styles[badge], className)}>
-      {t(`badge.${badge}`)}
-    </span>
-  )
-}
-
-export function FavoriteButton({ location, className, withLabel = false }) {
-  const fav = useFavorites()
-  const { t } = useLang()
-  const active = fav.has(location.id)
-  const onClick = async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const on = await fav.toggle(location)
-    if (on && fav.isGuest) toast(t('fav.guestHint'), { id: 'fav-guest', icon: '♡' })
-  }
-  if (withLabel) {
-    return (
-      <button onClick={onClick} className={cx('btn', active ? 'btn-outline text-brand' : 'btn-primary', className)}>
-        <LuHeart className={cx('h-4 w-4', active && 'fill-brand')} />
-        {active ? t('loc.inFav') : t('loc.addFav')}
-      </button>
-    )
-  }
-  return (
-    <button onClick={onClick} aria-label="favorite"
-      className={cx('grid h-9 w-9 place-items-center rounded-full bg-white/95 shadow transition hover:scale-105', className)}>
-      <LuHeart className={cx('h-[18px] w-[18px]', active ? 'fill-brand text-brand' : 'text-ink')} />
-    </button>
-  )
-}
-
-export default function LocationCard({ location }) {
+function LocationCard({ location }) {
   const { t, tn } = useLang()
   const cover = location.cover
   return (
@@ -60,14 +17,12 @@ export default function LocationCard({ location }) {
           <div className="grid h-full w-full place-items-center text-muted"><LuImage className="h-10 w-10" /></div>
         )}
         <div className="absolute left-3 top-3 flex gap-1.5">
-          <BadgePill badge={location.badge} />
           {!location.is_published && (
             <span className="flex items-center gap-1 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-bold text-white">
               <LuEyeOff className="h-3 w-3" /> {t('loc.hidden')}
             </span>
           )}
         </div>
-        <FavoriteButton location={location} className="absolute right-3 top-3" />
       </div>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="line-clamp-1 font-semibold">{location.title}</h3>

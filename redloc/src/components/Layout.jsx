@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
-  LuBell, LuCamera, LuClock, LuChevronDown, LuHeart, LuHouse, LuInbox, LuLayoutGrid, LuLogIn, LuLogOut, LuMapPin, LuMenu,
-  LuPlus, LuSearch, LuSettings, LuTag, LuUser, LuVideo, LuX,
+  LuBookImage, LuCamera, LuClock, LuChevronDown, LuHeart, LuHouse, LuLogIn, LuLogOut, LuMenu,
+  LuPlus, LuSettings, LuVideo, LuX,
 } from 'react-icons/lu'
-import { redloc } from '../lib/api'
 import { useAccess } from '../lib/access'
 import { useAuth } from '../lib/auth'
 import { useLang } from '../lib/i18n'
@@ -17,46 +15,30 @@ function useNav() {
   const { isStaff } = useAuth()
   const items = [
     { to: '/', label: t('nav.home'), icon: LuHouse, end: true },
-    { to: '/locations', label: t('nav.locations'), icon: LuMapPin },
     { to: '/photos', label: t('nav.photos'), icon: LuCamera },
     { to: '/videos', label: t('nav.videos'), icon: LuVideo },
-    { to: '/categories', label: t('nav.categories'), icon: LuLayoutGrid },
-    { to: '/tags', label: t('nav.tags'), icon: LuTag },
-    { to: '/favorites', label: t('nav.favorites'), icon: LuHeart },
+    { to: '/love-story', label: t('nav.loveStory'), icon: LuHeart },
+    { to: '/albums', label: t('nav.albums'), icon: LuBookImage },
   ]
   if (isStaff) {
     items.push(
-      { to: '/requests', label: t('nav.requests'), icon: LuInbox, badgeKey: 'requests' },
       { to: '/settings', label: t('nav.settings'), icon: LuSettings },
     )
   }
   return items
 }
 
-function useNewRequests() {
-  const { isStaff } = useAuth()
-  const { data } = useQuery({
-    queryKey: ['requests', 'counts'],
-    queryFn: redloc.requestCounts,
-    enabled: isStaff,
-    refetchInterval: 60_000,
-  })
-  return data?.new || 0
-}
-
 function Sidebar({ onNavigate }) {
   const items = useNav()
   const { t } = useLang()
   const { isStaff } = useAuth()
-  const newRequests = useNewRequests()
-
   return (
     <div className="flex h-full flex-col bg-ink text-white">
       <Link to="/" onClick={onNavigate} className="px-5 pb-6 pt-6">
         <Logo dark />
       </Link>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 scrollbar-none">
-        {items.map(({ to, label, icon: Icon, end, badgeKey }) => (
+        {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} onClick={onNavigate}
             className={({ isActive }) => cx(
               'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
@@ -64,9 +46,6 @@ function Sidebar({ onNavigate }) {
             )}>
             <Icon className="h-[18px] w-[18px]" />
             <span className="flex-1">{label}</span>
-            {badgeKey === 'requests' && newRequests > 0 && (
-              <span className="rounded-full bg-white px-1.5 text-[10px] font-bold text-brand">{newRequests}</span>
-            )}
           </NavLink>
         ))}
         {isStaff && (
@@ -162,75 +141,36 @@ function AccessUntil() {
 function Topbar({ onMenu }) {
   const { t } = useLang()
   const { isStaff } = useAuth()
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const loc = useLocation()
-  const [q, setQ] = useState(loc.pathname === '/locations' ? params.get('q') || '' : '')
-  const newRequests = useNewRequests()
-
-  useEffect(() => {
-    if (loc.pathname === '/locations') setQ(params.get('q') || '')
-  }, [loc.pathname, params])
-
-  const submit = (e) => {
-    e.preventDefault()
-    const next = new URLSearchParams(loc.pathname === '/locations' ? params : undefined)
-    q.trim() ? next.set('q', q.trim()) : next.delete('q')
-    navigate(`/locations?${next}`)
-  }
-
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-white/90 backdrop-blur">
       <div className="flex h-16 items-center gap-3 px-4 lg:px-6">
-        <button className="btn btn-ghost btn-icon -ml-2 lg:hidden" onClick={onMenu} aria-label="menu">
-          <LuMenu className="h-5 w-5" />
-        </button>
+        {isStaff && (
+          <button className="btn btn-ghost btn-icon -ml-2 lg:hidden" onClick={onMenu} aria-label="menu">
+            <LuMenu className="h-5 w-5" />
+          </button>
+        )}
         <Link to="/" className="lg:hidden"><Logo compact /></Link>
-        <form onSubmit={submit} className="relative hidden max-w-md flex-1 sm:block">
-          <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search.placeholder')}
-            className="input border-transparent bg-canvas pl-9 focus:bg-white" />
-        </form>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <AccessUntil />
           <LangSwitch />
-          {isStaff && (
-            <Link to="/requests" className="btn btn-ghost btn-icon relative" aria-label="requests">
-              <LuBell className="h-5 w-5" />
-              {newRequests > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand ring-2 ring-white" />}
-            </Link>
-          )}
           <UserMenu />
         </div>
       </div>
-      <form onSubmit={submit} className="px-4 pb-3 sm:hidden">
-        <div className="relative">
-          <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search.placeholder')}
-            className="input border-transparent bg-canvas pl-9" />
-        </div>
-      </form>
     </header>
   )
 }
 
 function MobileNav() {
-  const { t } = useLang()
-  const { user } = useAuth()
-  const items = [
-    { to: '/', label: t('nav.home'), icon: LuHouse, end: true },
-    { to: '/locations', label: t('nav.locations'), icon: LuMapPin },
-    { to: '/favorites', label: t('nav.favorites'), icon: LuHeart },
-    { to: user ? '/profile' : '/login', label: t('nav.profile'), icon: LuUser },
-  ]
+  // Все разделы каталога внизу экрана; служебные пункты staff остаются в меню-гамбургере
+  const items = useNav().filter((i) => i.to !== '/settings')
   return (
     <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white lg:hidden">
-      <div className="grid grid-cols-4">
+      <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={label} to={to} end={end}
-            className={({ isActive }) => cx('flex flex-col items-center gap-1 py-2 text-[10px] font-medium', isActive ? 'text-brand' : 'text-muted')}>
+            className={({ isActive }) => cx('flex flex-col items-center gap-1 px-1 py-2 text-[10px] font-medium', isActive ? 'text-brand' : 'text-muted')}>
             <Icon className="h-5 w-5" />
-            {label}
+            <span className="w-full truncate text-center">{label}</span>
           </NavLink>
         ))}
       </div>

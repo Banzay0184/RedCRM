@@ -78,6 +78,30 @@ export function errorText(error, fallback = 'Что-то пошло не так'
 
 const R = '/redloc'
 
+const progressOpts = (onProgress) => ({
+  timeout: 0,
+  onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
+})
+
+// Пачка фото одним multipart-запросом: { <owner>: id, images: [...] }
+function uploadImages(path, ownerKey, ownerId, files, onProgress) {
+  const fd = new FormData()
+  fd.append(ownerKey, ownerId)
+  files.forEach((f) => fd.append('images', f))
+  return api.post(`${R}/${path}/`, fd, progressOpts(onProgress)).then((r) => r.data)
+}
+
+// Видео: JSON для ссылки YouTube, multipart — если есть файл или постер
+function postMedia(path, data, onProgress) {
+  let body = data
+  if (data.file || data.poster) {
+    body = new FormData()
+    Object.entries(data).forEach(([k, v]) => v !== undefined && v !== null && v !== '' && body.append(k, v))
+  }
+  return api.post(`${R}/${path}/`, body, progressOpts(onProgress)).then((r) => r.data)
+}
+
+
 export const redloc = {
   // auth
   login: (username, password) => api.post('/token/', { username, password }),
@@ -89,68 +113,40 @@ export const redloc = {
   // locations
   locations: (params) => api.get(`${R}/locations/`, { params }).then((r) => r.data),
   location: (slug) => api.get(`${R}/locations/${slug}/`).then((r) => r.data),
-  similar: (slug) => api.get(`${R}/locations/${slug}/similar/`).then((r) => r.data),
   createLocation: (data) => api.post(`${R}/locations/`, data).then((r) => r.data),
   updateLocation: (slug, data) => api.patch(`${R}/locations/${slug}/`, data).then((r) => r.data),
   deleteLocation: (slug) => api.delete(`${R}/locations/${slug}/`),
-  addFavorite: (slug) => api.post(`${R}/locations/${slug}/favorite/`),
-  removeFavorite: (slug) => api.delete(`${R}/locations/${slug}/favorite/`),
-  favoriteIds: () => api.get(`${R}/favorites/ids/`).then((r) => r.data.ids),
-  syncFavorites: (ids) => api.post(`${R}/favorites/sync/`, { ids }).then((r) => r.data.ids),
 
   // media
   photos: (params) => api.get(`${R}/photos/`, { params }).then((r) => r.data),
-  uploadPhotos: (locationId, files, onProgress) => {
-    const fd = new FormData()
-    fd.append('location', locationId)
-    files.forEach((f) => fd.append('images', f))
-    return api
-      .post(`${R}/photos/`, fd, {
-        timeout: 0,
-        onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
-      })
-      .then((r) => r.data)
-  },
-  updatePhoto: (id, data) => api.patch(`${R}/photos/${id}/`, data).then((r) => r.data),
+  portfolios: (params) => api.get(`${R}/portfolios/`, { params }).then((r) => r.data),
+  portfolio: (slug) => api.get(`${R}/portfolios/${slug}/`).then((r) => r.data),
+  uploadPhotos: (locationId, files, onProgress) => uploadImages('photos', 'location', locationId, files, onProgress),
   deletePhoto: (id) => api.delete(`${R}/photos/${id}/`),
   reorderPhotos: (location, ids) => api.post(`${R}/photos/reorder/`, { location, ids }),
 
   videos: (params) => api.get(`${R}/videos/`, { params }).then((r) => r.data),
-  createVideo: (data, onProgress) => {
-    const hasFile = data.file || data.poster
-    let body = data
-    if (hasFile) {
-      body = new FormData()
-      Object.entries(data).forEach(([k, v]) => v !== undefined && v !== null && v !== '' && body.append(k, v))
-    }
-    return api
-      .post(`${R}/videos/`, body, {
-        timeout: 0,
-        onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
-      })
-      .then((r) => r.data)
-  },
-  updateVideo: (id, data) => api.patch(`${R}/videos/${id}/`, data).then((r) => r.data),
+  createVideo: (data, onProgress) => postMedia('videos', data, onProgress),
   deleteVideo: (id) => api.delete(`${R}/videos/${id}/`),
   reorderVideos: (location, ids) => api.post(`${R}/videos/reorder/`, { location, ids }),
 
-  createZone: (data) => api.post(`${R}/zones/`, data).then((r) => r.data),
-  updateZone: (id, data) => api.patch(`${R}/zones/${id}/`, data).then((r) => r.data),
-  deleteZone: (id) => api.delete(`${R}/zones/${id}/`),
+  // портфолио (love story / альбомы)
+  createPortfolio: (data) => api.post(`${R}/portfolios/`, data).then((r) => r.data),
+  updatePortfolio: (slug, data) => api.patch(`${R}/portfolios/${slug}/`, data).then((r) => r.data),
+  deletePortfolio: (slug) => api.delete(`${R}/portfolios/${slug}/`),
+  uploadPortfolioPhotos: (id, files, onProgress) => uploadImages('portfolio-photos', 'portfolio', id, files, onProgress),
+  deletePortfolioPhoto: (id) => api.delete(`${R}/portfolio-photos/${id}/`),
+  reorderPortfolioPhotos: (portfolio, ids) => api.post(`${R}/portfolio-photos/reorder/`, { portfolio, ids }),
+  createPortfolioVideo: (data, onProgress) => postMedia('portfolio-videos', data, onProgress),
+  deletePortfolioVideo: (id) => api.delete(`${R}/portfolio-videos/${id}/`),
+  reorderPortfolioVideos: (portfolio, ids) => api.post(`${R}/portfolio-videos/reorder/`, { portfolio, ids }),
 
-  // dictionaries: kind = cities | categories | shoot-types | amenities | tags
+  // dictionaries: kind = cities | categories | collections
   dict: (kind, params) => api.get(`${R}/${kind}/`, { params }).then((r) => r.data),
   createDict: (kind, data) => api.post(`${R}/${kind}/`, data).then((r) => r.data),
   updateDict: (kind, id, data) => api.patch(`${R}/${kind}/${id}/`, data).then((r) => r.data),
   deleteDict: (kind, id) => api.delete(`${R}/${kind}/${id}/`),
   reorderDict: (kind, ids) => api.post(`${R}/${kind}/reorder/`, { ids }),
-
-  // requests
-  createRequest: (data) => api.post(`${R}/requests/`, data).then((r) => r.data),
-  requests: (params) => api.get(`${R}/requests/`, { params }).then((r) => r.data),
-  requestCounts: () => api.get(`${R}/requests/counts/`).then((r) => r.data),
-  updateRequest: (id, data) => api.patch(`${R}/requests/${id}/`, data).then((r) => r.data),
-  deleteRequest: (id) => api.delete(`${R}/requests/${id}/`),
 }
 
 export default api

@@ -1,12 +1,13 @@
 from django.contrib import admin
 
 from .models import (
-    AccessLink, Amenity, Category, City, Favorite, Location, LocationPhoto, LocationRequest, LocationVideo, LocationZone,
-    ShootType, Tag,
+    AccessLink, Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo, LocationZone,
+    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
+from .images import process_photo
 
 
-@admin.register(City, Category, ShootType, Amenity)
+@admin.register(City, Category, Collection, ShootType, Amenity)
 class DictionaryAdmin(admin.ModelAdmin):
     list_display = ["name_ru", "name_uz", "slug", "icon", "order"]
     list_editable = ["order"]
@@ -45,19 +46,43 @@ class LocationAdmin(admin.ModelAdmin):
     inlines = [ZoneInline, PhotoInline, VideoInline]
 
 
-@admin.register(LocationRequest)
-class LocationRequestAdmin(admin.ModelAdmin):
-    list_display = ["name", "phone", "location", "shooting_date", "status", "created_at"]
-    list_filter = ["status"]
-    search_fields = ["name", "phone"]
-
-
-admin.site.register(Favorite)
-
-
 @admin.register(AccessLink)
 class AccessLinkAdmin(admin.ModelAdmin):
     list_display = ["client", "phone", "expires_at", "revoked_at", "open_count", "send_status", "created_at"]
     list_filter = ["send_status"]
     search_fields = ["phone", "client__name", "token"]
     readonly_fields = ["token", "first_opened_at", "last_opened_at", "open_count", "telegram_user_id"]
+
+
+class PortfolioPhotoInline(admin.TabularInline):
+    model = PortfolioPhoto
+    extra = 3
+    fields = ["image", "order"]
+
+
+class PortfolioVideoInline(admin.TabularInline):
+    model = PortfolioVideo
+    extra = 0
+    fields = ["title", "file", "youtube_url", "poster", "duration", "order"]
+
+
+@admin.register(Portfolio)
+class PortfolioAdmin(admin.ModelAdmin):
+    list_display = ["title", "kind", "location", "shot_at", "is_published", "order"]
+    list_filter = ["kind", "is_published"]
+    list_editable = ["order", "is_published"]
+    search_fields = ["title"]
+    autocomplete_fields = ["location"]
+    inlines = [PortfolioPhotoInline, PortfolioVideoInline]
+
+    def save_formset(self, request, form, formset, change):
+        # Фото из админки прогоняем через ту же обработку, что и загрузку в каталоге (WebP + превью)
+        for obj in formset.save(commit=False):
+            if isinstance(obj, PortfolioPhoto) and obj.image and not obj.image._committed:
+                full, thumb = process_photo(obj.image)
+                obj.image.save("image.webp", full, save=False)
+                obj.thumbnail.save("thumb.webp", thumb, save=False)
+            obj.save()
+        for obj in formset.deleted_objects:
+            obj.delete()
+        formset.save_m2m()

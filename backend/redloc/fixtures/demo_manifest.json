@@ -1,0 +1,1358 @@
+{
+ "locations": [
+  {
+   "key": "loft-kirpich",
+   "title": "Лофт «Кирпич»",
+   "city": "tashkent",
+   "address_hint": "Мирабадский район",
+   "description_ru": "Просторный лофт 180 м² с красной кирпичной кладкой, металлическими балками и окнами в пол. Днём много мягкого естественного света, вечером — тёплые лампы Эдисона.",
+   "description_uz": "180 m² keng loft: qizil g‘isht devorlar, metall to‘sinlar va poldan shiftgacha derazalar. Kunduzi yumshoq tabiiy yorug‘lik ko‘p, kechqurun — iliq Edison lampalari.",
+   "categories": [
+    "interior"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "clip",
+    "fashion",
+    "reels"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "dressing-room",
+    "power",
+    "daylight",
+    "toilet"
+   ],
+   "tags": [
+    "лофт",
+    "кирпич",
+    "окна в пол"
+   ],
+   "badge": "hit",
+   "featured": true,
+   "zones": [
+    "Кирпичная стена",
+    "Окно в пол",
+    "Кожаный диван",
+    "Барная стойка"
+   ],
+   "q_photos": "loft interior brick wall",
+   "q_videos": "loft interior",
+   "photos": [
+    "https://images.pexels.com/photos/7587820/pexels-photo-7587820.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587807/pexels-photo-7587807.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587808/pexels-photo-7587808.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587818/pexels-photo-7587818.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587827/pexels-photo-7587827.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587828/pexels-photo-7587828.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587831/pexels-photo-7587831.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587819/pexels-photo-7587819.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587814/pexels-photo-7587814.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7587826/pexels-photo-7587826.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/13218/13218-720.mp4",
+     "title": "Панорамные окна"
+    }
+   ],
+   "collections": [
+    "osen",
+    "zima"
+   ]
+  },
+  {
+   "key": "studio-oq-nur",
+   "title": "Студия Oq Nur",
+   "city": "tashkent",
+   "address_hint": "Юнусабад, 4 квартал",
+   "description_ru": "Белая фотостудия с циклорамой 6×4 м, импульсным светом Godox и набором фонов. Подходит для каталожной, портретной и предметной съёмки.",
+   "description_uz": "6×4 m siklorama, Godox impuls yoritgichlari va fonlar to‘plamiga ega oq fotostudiya. Katalog, portret va predmetli suratga olish uchun.",
+   "categories": [
+    "studio"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "fashion",
+    "product",
+    "advertising"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "dressing-room",
+    "lighting",
+    "toilet",
+    "kitchen"
+   ],
+   "tags": [
+    "циклорама",
+    "белый фон"
+   ],
+   "badge": "premium",
+   "featured": true,
+   "zones": [
+    "Циклорама",
+    "Гримёрка",
+    "Предметный стол"
+   ],
+   "q_photos": "photo studio white cyclorama",
+   "q_videos": "photo studio lighting",
+   "photos": [
+    "https://images.pexels.com/photos/7383646/pexels-photo-7383646.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7383644/pexels-photo-7383644.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7383647/pexels-photo-7383647.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7383648/pexels-photo-7383648.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/22998/22998-720.mp4",
+     "title": "Съёмочная площадка"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "villa-charvak",
+   "title": "Вилла у Чарвака",
+   "city": "tashkent-region",
+   "address_hint": "Бостанлыкский район, берег водохранилища",
+   "description_ru": "Современная вилла с панорамным остеклением, бассейном-инфинити и видом на Чарвакское водохранилище и горы. Лучший свет — на закате.",
+   "description_uz": "Panoramali oynalar, infinity basseyn va Chorvoq suv ombori hamda tog‘larga manzarali zamonaviy villa. Eng yaxshi yorug‘lik — quyosh botishida.",
+   "categories": [
+    "house",
+    "nature"
+   ],
+   "shoot_types": [
+    "wedding",
+    "clip",
+    "advertising",
+    "movie"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "separate-zone",
+    "power",
+    "daylight",
+    "toilet",
+    "kitchen"
+   ],
+   "tags": [
+    "бассейн",
+    "панорамные окна",
+    "вид на горы"
+   ],
+   "badge": "premium",
+   "featured": true,
+   "zones": [
+    "Бассейн",
+    "Терраса",
+    "Гостиная"
+   ],
+   "q_photos": "modern villa pool mountains",
+   "q_videos": "luxury villa pool",
+   "photos": [
+    "https://images.pexels.com/photos/31817157/pexels-photo-31817157.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817156/pexels-photo-31817156.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817158/pexels-photo-31817158.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817160/pexels-photo-31817160.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817150/pexels-photo-31817150.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817155/pexels-photo-31817155.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817162/pexels-photo-31817162.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817164/pexels-photo-31817164.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817166/pexels-photo-31817166.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/31817153/pexels-photo-31817153.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4045/4045-720.mp4",
+     "title": "Бассейн на закате"
+    },
+    {
+     "url": "https://assets.mixkit.co/videos/3171/3171-720.mp4",
+     "title": "Бассейн"
+    }
+   ],
+   "collections": [
+    "leto"
+   ]
+  },
+  {
+   "key": "chimgan-plato",
+   "title": "Плато в Чимгане",
+   "city": "tashkent-region",
+   "address_hint": "Чимган, 1,5 км от канатной дороги",
+   "description_ru": "Открытое горное плато с альпийскими лугами и видом на Большой Чимган. Весной — поля цветов, осенью — золотая трава, зимой — снег.",
+   "description_uz": "Katta Chimyonga qaragan alp o‘tloqlari bilan ochiq tog‘ platosi. Bahorda gullar, kuzda oltin o‘t, qishda qor.",
+   "categories": [
+    "nature"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "wedding",
+    "clip",
+    "movie"
+   ],
+   "amenities": [
+    "parking",
+    "daylight"
+   ],
+   "tags": [
+    "горы",
+    "луга",
+    "рассвет"
+   ],
+   "badge": "",
+   "featured": true,
+   "zones": [],
+   "q_photos": "mountain meadow landscape",
+   "q_videos": "mountain meadow drone",
+   "photos": [
+    "https://images.pexels.com/photos/4406219/pexels-photo-4406219.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4406222/pexels-photo-4406222.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4406210/pexels-photo-4406210.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4406208/pexels-photo-4406208.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4406221/pexels-photo-4406221.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4406216/pexels-photo-4406216.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/41545/41545-720.mp4",
+     "title": "Зелёные холмы"
+    }
+   ],
+   "collections": [
+    "vesna",
+    "leto"
+   ]
+  },
+  {
+   "key": "restoran-sahn",
+   "title": "Ресторан «Sahn»",
+   "city": "tashkent",
+   "address_hint": "Шайхантахурский район",
+   "description_ru": "Ресторан с высокими потолками, хрустальными люстрами, бирюзовыми стенами и мраморным полом. Съёмки — утром до 11:00 или по понедельникам.",
+   "description_uz": "Baland shiftli, billur qandilli, moviy devorli va marmar polli restoran. Suratga olish — ertalab 11:00 gacha yoki dushanba kunlari.",
+   "categories": [
+    "interior",
+    "business"
+   ],
+   "shoot_types": [
+    "advertising",
+    "interview",
+    "reels",
+    "video"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "power",
+    "toilet",
+    "kitchen"
+   ],
+   "tags": [
+    "ресторан",
+    "тёплый свет"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [
+    "Барная стойка",
+    "Открытая кухня",
+    "VIP-зал"
+   ],
+   "q_photos": "elegant restaurant interior",
+   "q_videos": "restaurant interior",
+   "photos": [
+    "https://images.pexels.com/photos/13369918/pexels-photo-13369918.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13369919/pexels-photo-13369919.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13369920/pexels-photo-13369920.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13369921/pexels-photo-13369921.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13369925/pexels-photo-13369925.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13369923/pexels-photo-13369923.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4076/4076-720.mp4",
+     "title": "Зал с панорамой"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "kofeynya-bir",
+   "title": "Кофейня Bir Piyola",
+   "city": "tashkent",
+   "address_hint": "Яккасарайский район",
+   "description_ru": "Небольшая уютная кофейня с минималистичным интерьером, бетоном и живыми растениями. Идеальна для Reels, интервью и lifestyle-съёмки.",
+   "description_uz": "Minimalistik interyer, beton va jonli o‘simliklarga ega kichik shinam qahvaxona. Reels, intervyu va lifestyle suratga olish uchun ideal.",
+   "categories": [
+    "interior",
+    "business"
+   ],
+   "shoot_types": [
+    "reels",
+    "interview",
+    "photoshoot"
+   ],
+   "amenities": [
+    "wifi",
+    "ac",
+    "power",
+    "daylight",
+    "toilet"
+   ],
+   "tags": [
+    "кофейня",
+    "минимализм",
+    "растения"
+   ],
+   "badge": "new",
+   "featured": false,
+   "zones": [],
+   "q_photos": "minimalist coffee shop interior plants",
+   "q_videos": "coffee shop barista",
+   "photos": [
+    "https://images.pexels.com/photos/13630282/pexels-photo-13630282.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13630279/pexels-photo-13630279.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13630280/pexels-photo-13630280.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13630281/pexels-photo-13630281.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/13630283/pexels-photo-13630283.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/41859/41859-720.mp4",
+     "title": "Кофе"
+    }
+   ],
+   "collections": [
+    "osen",
+    "zima"
+   ]
+  },
+  {
+   "key": "ofis-tower",
+   "title": "Креативный офис-студия",
+   "city": "tashkent",
+   "address_hint": "Яккасарайский район",
+   "description_ru": "Светлый креативный офис с open space, лаунж-зоной, стеной журналов и небольшой студией с фонами. Для корпоративных роликов и интервью.",
+   "description_uz": "Open space, lounge-zona, jurnallar devori va fonlarga ega kichik studiyali yorug‘ kreativ ofis. Korporativ roliklar va intervyular uchun.",
+   "categories": [
+    "business",
+    "interior"
+   ],
+   "shoot_types": [
+    "interview",
+    "advertising",
+    "video"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "power",
+    "daylight",
+    "toilet",
+    "kitchen"
+   ],
+   "tags": [
+    "офис",
+    "open space",
+    "креатив"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [
+    "Open space",
+    "Переговорная",
+    "Лаунж"
+   ],
+   "q_photos": "modern office open space city view",
+   "q_videos": "modern office",
+   "photos": [
+    "https://images.pexels.com/photos/18033178/pexels-photo-18033178.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033168/pexels-photo-18033168.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033171/pexels-photo-18033171.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033169/pexels-photo-18033169.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033173/pexels-photo-18033173.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033174/pexels-photo-18033174.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033176/pexels-photo-18033176.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033177/pexels-photo-18033177.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/18033170/pexels-photo-18033170.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/46750/46750-720.mp4",
+     "title": "Переговорная"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "angar",
+   "title": "Промышленный ангар",
+   "city": "tashkent-region",
+   "address_hint": "Зангиатинский район",
+   "description_ru": "Бывший производственный цех с высокими потолками, бетонным полом и металлическими фермами, плюс заброшенный корпус с атмосферой постапокалипсиса.",
+   "description_uz": "Baland shiftli, beton polli va metall fermali sobiq ishlab chiqarish sexi hamda post-apokaliptik muhitli tashlandiq bino.",
+   "categories": [
+    "industrial"
+   ],
+   "shoot_types": [
+    "clip",
+    "movie",
+    "fashion",
+    "advertising"
+   ],
+   "amenities": [
+    "parking",
+    "power",
+    "separate-zone"
+   ],
+   "tags": [
+    "индастриал",
+    "бетон",
+    "большое пространство"
+   ],
+   "badge": "hit",
+   "featured": true,
+   "zones": [],
+   "q_photos": "abandoned industrial warehouse",
+   "q_videos": "industrial warehouse",
+   "photos": [
+    "https://images.pexels.com/photos/236705/pexels-photo-236705.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/236698/pexels-photo-236698.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/236709/pexels-photo-236709.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16813983/pexels-photo-16813983.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16813984/pexels-photo-16813984.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/23204/23204-720.mp4",
+     "title": "Клип в цеху"
+    },
+    {
+     "url": "https://assets.mixkit.co/videos/23097/23097-720.mp4",
+     "title": ""
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "kvartira-scandi",
+   "title": "Апартаменты премиум-класса",
+   "city": "tashkent",
+   "address_hint": "Мирзо-Улугбекский район",
+   "description_ru": "Просторные апартаменты с дизайнерским ремонтом: гостиная с панорамными окнами, столовая, кабинет с книжными стеллажами и мраморные ванные.",
+   "description_uz": "Dizaynerlik ta’miriga ega keng apartamentlar: panoramali derazali mehmonxona, oshxona-zal, kitob javonli kabinet va marmar hammomlar.",
+   "categories": [
+    "house",
+    "interior"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "reels",
+    "advertising",
+    "product"
+   ],
+   "amenities": [
+    "wifi",
+    "ac",
+    "power",
+    "daylight",
+    "toilet",
+    "kitchen"
+   ],
+   "tags": [
+    "апартаменты",
+    "премиум",
+    "панорамные окна"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [
+    "Гостиная",
+    "Столовая",
+    "Кабинет",
+    "Ванная"
+   ],
+   "q_photos": "scandinavian apartment bright interior",
+   "q_videos": "bright apartment interior",
+   "photos": [
+    "https://images.pexels.com/photos/7167073/pexels-photo-7167073.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167071/pexels-photo-7167071.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167072/pexels-photo-7167072.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167077/pexels-photo-7167077.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167080/pexels-photo-7167080.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167083/pexels-photo-7167083.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167082/pexels-photo-7167082.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167075/pexels-photo-7167075.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167076/pexels-photo-7167076.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7167074/pexels-photo-7167074.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/25591/25591-720.mp4",
+     "title": "Гостиная"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "bogi-eram",
+   "title": "Сад «Bog‘i Eram»",
+   "city": "tashkent-region",
+   "address_hint": "Кибрайский район",
+   "description_ru": "Частный сад с фруктовыми деревьями, розарием и деревянной беседкой. Популярен для свадебных прогулок и love story.",
+   "description_uz": "Mevali daraxtlar, atirgulzor va yog‘och shiyponga ega xususiy bog‘. To‘y sayrlari va love story uchun mashhur.",
+   "categories": [
+    "nature",
+    "exterior"
+   ],
+   "shoot_types": [
+    "wedding",
+    "photoshoot",
+    "clip"
+   ],
+   "amenities": [
+    "parking",
+    "power",
+    "daylight",
+    "toilet"
+   ],
+   "tags": [
+    "сад",
+    "розы",
+    "love story"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [
+    "Розарий",
+    "Беседка",
+    "Аллея"
+   ],
+   "q_photos": "garden wedding gazebo roses",
+   "q_videos": "garden flowers",
+   "photos": [
+    "https://images.pexels.com/photos/7174111/pexels-photo-7174111.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174102/pexels-photo-7174102.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174103/pexels-photo-7174103.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174104/pexels-photo-7174104.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174105/pexels-photo-7174105.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174106/pexels-photo-7174106.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174107/pexels-photo-7174107.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174109/pexels-photo-7174109.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174110/pexels-photo-7174110.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7174114/pexels-photo-7174114.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4074/4074-720.mp4",
+     "title": "Парк и газон"
+    }
+   ],
+   "collections": [
+    "vesna",
+    "leto",
+    "osen"
+   ]
+  },
+  {
+   "key": "garazh-retro",
+   "title": "Подземный паркинг с ретро-авто",
+   "city": "tashkent",
+   "address_hint": "Сергелийский район",
+   "description_ru": "Подземный паркинг с коллекцией американских маслкаров 60–70-х. Бетон, неоновые лампы и отражения на полу — готовая картинка для клипа.",
+   "description_uz": "60–70-yillar Amerika muscle-carlar kolleksiyasiga ega yer osti avtoturargohi. Beton, neon lampalar va poldagi aks — klip uchun tayyor kadr.",
+   "categories": [
+    "transport"
+   ],
+   "shoot_types": [
+    "clip",
+    "fashion",
+    "photoshoot",
+    "movie"
+   ],
+   "amenities": [
+    "parking",
+    "power",
+    "toilet"
+   ],
+   "tags": [
+    "ретро",
+    "автомобили"
+   ],
+   "badge": "new",
+   "featured": false,
+   "zones": [],
+   "q_photos": "vintage car garage",
+   "q_videos": "vintage car",
+   "photos": [
+    "https://images.pexels.com/photos/29284927/pexels-photo-29284927.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/29284928/pexels-photo-29284928.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/29284922/pexels-photo-29284922.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/29284925/pexels-photo-29284925.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/29284926/pexels-photo-29284926.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "krysha",
+   "title": "Станции Ташкентского метро",
+   "city": "tashkent",
+   "address_hint": "Линии Чиланзарская и Узбекистанская",
+   "description_ru": "Метро Ташкента — одно из самых красивых в мире: мрамор, люстры, мозаика и колонны. Съёмка — в ночное окно после закрытия, с разрешением метрополитена.",
+   "description_uz": "Toshkent metrosi dunyodagi eng chiroyli metrolardan biri: marmar, qandillar, mozaika va ustunlar. Suratga olish — yopilgandan keyin tungi vaqtda, metropoliten ruxsati bilan.",
+   "categories": [
+    "city",
+    "historic"
+   ],
+   "shoot_types": [
+    "clip",
+    "fashion",
+    "movie",
+    "photoshoot"
+   ],
+   "amenities": [
+    "power"
+   ],
+   "tags": [
+    "метро",
+    "мрамор",
+    "люстры"
+   ],
+   "badge": "hit",
+   "featured": true,
+   "zones": [],
+   "q_photos": "rooftop city sunset",
+   "q_videos": "city rooftop sunset",
+   "photos": [
+    "https://images.pexels.com/photos/19227977/pexels-photo-19227977.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227973/pexels-photo-19227973.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227974/pexels-photo-19227974.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227976/pexels-photo-19227976.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227979/pexels-photo-19227979.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227980/pexels-photo-19227980.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227981/pexels-photo-19227981.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227994/pexels-photo-19227994.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227975/pexels-photo-19227975.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "biblioteka",
+   "title": "Загородный дом с крытым бассейном",
+   "city": "tashkent",
+   "address_hint": "Кибрайский район",
+   "description_ru": "Двухэтажный дом с ухоженным газоном, зимним садом и крытым бассейном. Светлые интерьеры, большая кухня-столовая и спальни с видом на сад.",
+   "description_uz": "Ozoda maysazor, qishki bog‘ va yopiq basseynga ega ikki qavatli uy. Yorug‘ interyerlar, katta oshxona-zal va bog‘ga qaragan yotoqxonalar.",
+   "categories": [
+    "house",
+    "exterior"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "advertising",
+    "movie",
+    "reels"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "power",
+    "daylight",
+    "toilet",
+    "kitchen",
+    "separate-zone"
+   ],
+   "tags": [
+    "бассейн",
+    "загородный дом",
+    "газон"
+   ],
+   "badge": "new",
+   "featured": false,
+   "zones": [
+    "Бассейн",
+    "Зимний сад",
+    "Кухня",
+    "Спальня"
+   ],
+   "q_photos": "home library bookshelves leather armchair",
+   "q_videos": "library bookshelves",
+   "photos": [
+    "https://images.pexels.com/photos/7061674/pexels-photo-7061674.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061667/pexels-photo-7061667.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061659/pexels-photo-7061659.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061662/pexels-photo-7061662.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061663/pexels-photo-7061663.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061669/pexels-photo-7061669.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061664/pexels-photo-7061664.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061665/pexels-photo-7061665.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061676/pexels-photo-7061676.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7061677/pexels-photo-7061677.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4075/4075-720.mp4",
+     "title": "Сад у дома"
+    }
+   ],
+   "collections": [
+    "leto"
+   ]
+  },
+  {
+   "key": "tennis",
+   "title": "Комплекс Хазрати Имам",
+   "city": "tashkent",
+   "address_hint": "Алмазарский район, Старый город",
+   "description_ru": "Архитектурный ансамбль в Старом городе: медресе, мечети с бирюзовыми куполами и просторная площадь. Красив в утреннем свете.",
+   "description_uz": "Eski shahardagi me’moriy ansambl: madrasa, moviy gumbazli masjidlar va keng maydon. Ertalabki yorug‘likda juda chiroyli.",
+   "categories": [
+    "historic",
+    "exterior"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "wedding",
+    "movie"
+   ],
+   "amenities": [
+    "parking",
+    "daylight"
+   ],
+   "tags": [
+    "медресе",
+    "Ташкент",
+    "голубые купола"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [],
+   "q_photos": "tennis court",
+   "q_videos": "tennis court",
+   "photos": [
+    "https://images.pexels.com/photos/19227995/pexels-photo-19227995.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227991/pexels-photo-19227991.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227993/pexels-photo-19227993.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227998/pexels-photo-19227998.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19227999/pexels-photo-19227999.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19228002/pexels-photo-19228002.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19228000/pexels-photo-19228000.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19228001/pexels-photo-19228001.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19228004/pexels-photo-19228004.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "vesna",
+    "osen"
+   ]
+  },
+  {
+   "key": "podval-bar",
+   "title": "Бар в подвале",
+   "city": "tashkent",
+   "address_hint": "Ул. Шота Руставели",
+   "description_ru": "Тёмный бар с красными арками, росписью на стенах, камином и кожаными диванами. Для клипов, ночных сцен и рекламы напитков.",
+   "description_uz": "Qizil arkalar, devor rasmlari, kamin va charm divanlarga ega qorong‘i bar. Kliplar, tungi sahnalar va ichimliklar reklamasi uchun.",
+   "categories": [
+    "interior",
+    "business"
+   ],
+   "shoot_types": [
+    "clip",
+    "movie",
+    "advertising"
+   ],
+   "amenities": [
+    "ac",
+    "power",
+    "toilet",
+    "lighting"
+   ],
+   "tags": [
+    "неон",
+    "бар",
+    "ночь"
+   ],
+   "badge": "new",
+   "featured": false,
+   "zones": [],
+   "q_photos": "neon bar interior dark",
+   "q_videos": "neon bar",
+   "photos": [
+    "https://images.pexels.com/photos/5863513/pexels-photo-5863513.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863509/pexels-photo-5863509.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863508/pexels-photo-5863508.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863511/pexels-photo-5863511.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863512/pexels-photo-5863512.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863516/pexels-photo-5863516.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863521/pexels-photo-5863521.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863515/pexels-photo-5863515.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863522/pexels-photo-5863522.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5863504/pexels-photo-5863504.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4043/4043-720.mp4",
+     "title": "Вечер в баре"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "registan",
+   "title": "Площадь Регистан",
+   "city": "samarkand",
+   "address_hint": "Исторический центр",
+   "description_ru": "Ансамбль из трёх медресе XV–XVII веков. Съёмка возможна рано утром до открытия для туристов; нужно разрешение дирекции — поможем оформить.",
+   "description_uz": "XV–XVII asrlarga oid uch madrasa ansambli. Sayyohlar uchun ochilishidan oldin, erta tongda suratga olish mumkin; direksiya ruxsati kerak — rasmiylashtirishda yordam beramiz.",
+   "categories": [
+    "historic",
+    "exterior"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "wedding",
+    "movie",
+    "clip"
+   ],
+   "amenities": [
+    "parking",
+    "daylight"
+   ],
+   "tags": [
+    "медресе",
+    "мозаика",
+    "Самарканд"
+   ],
+   "badge": "hit",
+   "featured": true,
+   "zones": [],
+   "q_photos": "Registan Samarkand",
+   "q_videos": "Samarkand",
+   "photos": [
+    "https://images.pexels.com/photos/19439126/pexels-photo-19439126.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439125/pexels-photo-19439125.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439122/pexels-photo-19439122.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439178/pexels-photo-19439178.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439127/pexels-photo-19439127.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439132/pexels-photo-19439132.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439150/pexels-photo-19439150.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439123/pexels-photo-19439123.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "vesna",
+    "osen"
+   ]
+  },
+  {
+   "key": "shahi-zinda",
+   "title": "Некрополь Шахи-Зинда",
+   "city": "samarkand",
+   "address_hint": "Северо-восток старого города",
+   "description_ru": "Улица голубых куполов и майоликовых порталов. Узкие коридоры дают красивую перспективу и мягкую тень даже в полдень.",
+   "description_uz": "Moviy gumbazlar va sirkor peshtoqlar ko‘chasi. Tor yo‘laklar chiroyli perspektiva va tush paytida ham yumshoq soya beradi.",
+   "categories": [
+    "historic"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "fashion",
+    "movie"
+   ],
+   "amenities": [
+    "daylight"
+   ],
+   "tags": [
+    "мозаика",
+    "голубые купола",
+    "Самарканд"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [],
+   "q_photos": "Shah-i-Zinda Samarkand",
+   "q_videos": "Samarkand mosaic",
+   "photos": [
+    "https://images.pexels.com/photos/19439149/pexels-photo-19439149.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439142/pexels-photo-19439142.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439170/pexels-photo-19439170.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439177/pexels-photo-19439177.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439145/pexels-photo-19439145.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439172/pexels-photo-19439172.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439129/pexels-photo-19439129.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439175/pexels-photo-19439175.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439148/pexels-photo-19439148.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439144/pexels-photo-19439144.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "vesna",
+    "osen"
+   ]
+  },
+  {
+   "key": "poi-kalon",
+   "title": "Ансамбль Пои-Калян",
+   "city": "bukhara",
+   "address_hint": "Старый город",
+   "description_ru": "Минарет Калян, мечеть и медресе Мири-Араб. Вечером ансамбль подсвечивается — идеальная точка для синего часа.",
+   "description_uz": "Minorai Kalon, masjid va Mir-Arab madrasasi. Kechqurun ansambl yoritiladi — ko‘k soat uchun ideal nuqta.",
+   "categories": [
+    "historic",
+    "city"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "wedding",
+    "movie"
+   ],
+   "amenities": [
+    "parking",
+    "daylight"
+   ],
+   "tags": [
+    "минарет",
+    "Бухара"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [],
+   "q_photos": "Bukhara",
+   "q_videos": "Bukhara",
+   "photos": [
+    "https://images.pexels.com/photos/19439115/pexels-photo-19439115.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439118/pexels-photo-19439118.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439113/pexels-photo-19439113.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439114/pexels-photo-19439114.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473653/pexels-photo-19473653.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473652/pexels-photo-19473652.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19439156/pexels-photo-19439156.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473661/pexels-photo-19473661.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473670/pexels-photo-19473670.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473671/pexels-photo-19473671.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "osen"
+   ]
+  },
+  {
+   "key": "ichan-kala",
+   "title": "Ичан-Кала",
+   "city": "khiva",
+   "address_hint": "Внутренний город",
+   "description_ru": "Город-музей под открытым небом за глиняными стенами. Минарет Кальта-Минор, узкие улочки и плоские крыши — готовая декорация для исторического кино.",
+   "description_uz": "Loy devorlar ortidagi ochiq osmon ostidagi shahar-muzey. Kalta Minor, tor ko‘chalar va yassi tomlar — tarixiy kino uchun tayyor dekoratsiya.",
+   "categories": [
+    "historic",
+    "city"
+   ],
+   "shoot_types": [
+    "movie",
+    "photoshoot",
+    "clip"
+   ],
+   "amenities": [
+    "daylight"
+   ],
+   "tags": [
+    "крепость",
+    "Хива",
+    "глиняные стены"
+   ],
+   "badge": "premium",
+   "featured": false,
+   "zones": [],
+   "q_photos": "Khiva Uzbekistan",
+   "q_videos": "Khiva",
+   "photos": [
+    "https://images.pexels.com/photos/19473659/pexels-photo-19473659.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473625/pexels-photo-19473625.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473632/pexels-photo-19473632.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473635/pexels-photo-19473635.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473628/pexels-photo-19473628.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473649/pexels-photo-19473649.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473651/pexels-photo-19473651.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473634/pexels-photo-19473634.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473640/pexels-photo-19473640.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/19473644/pexels-photo-19473644.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "collections": [
+    "vesna",
+    "osen"
+   ]
+  },
+  {
+   "key": "fergana-sad",
+   "title": "Абрикосовый сад",
+   "city": "fergana",
+   "address_hint": "Риштанский район",
+   "description_ru": "Большой абрикосовый сад. В конце марта — начале апреля всё в белом и розовом цвету, летом — зелень и спелые фрукты.",
+   "description_uz": "Katta o‘rik bog‘i. Mart oxiri — aprel boshida hammasi oq va pushti gullarda, yozda — yashillik va pishgan mevalar.",
+   "categories": [
+    "nature"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "wedding",
+    "reels"
+   ],
+   "amenities": [
+    "parking",
+    "daylight"
+   ],
+   "tags": [
+    "цветение",
+    "сад",
+    "весна"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [],
+   "q_photos": "apricot blossom orchard",
+   "q_videos": "blossom orchard",
+   "photos": [
+    "https://images.pexels.com/photos/16804538/pexels-photo-16804538.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804534/pexels-photo-16804534.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804536/pexels-photo-16804536.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804537/pexels-photo-16804537.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804540/pexels-photo-16804540.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804541/pexels-photo-16804541.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804542/pexels-photo-16804542.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/16804544/pexels-photo-16804544.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/32941/32941-720.mp4",
+     "title": "Цветение"
+    }
+   ],
+   "collections": [
+    "vesna"
+   ]
+  },
+  {
+   "key": "podkast-studia",
+   "title": "Студия звукозаписи Ovoz",
+   "city": "tashkent",
+   "address_hint": "Мирабадский район",
+   "description_ru": "Профессиональная студия звукозаписи: вокальная кабина, микшерный пульт, мониторы и тёплый свет. Подходит для клипов, backstage и подкастов.",
+   "description_uz": "Professional ovoz yozish studiyasi: vokal kabinasi, mikser pulti, monitorlar va iliq yorug‘lik. Kliplar, backstage va podkastlar uchun.",
+   "categories": [
+    "studio"
+   ],
+   "shoot_types": [
+    "clip",
+    "interview",
+    "video",
+    "reels"
+   ],
+   "amenities": [
+    "parking",
+    "wifi",
+    "ac",
+    "power",
+    "lighting",
+    "toilet"
+   ],
+   "tags": [
+    "звукозапись",
+    "музыка"
+   ],
+   "badge": "new",
+   "featured": false,
+   "zones": [],
+   "q_photos": "podcast studio microphones",
+   "q_videos": "podcast studio",
+   "photos": [
+    "https://images.pexels.com/photos/4988128/pexels-photo-4988128.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988130/pexels-photo-4988130.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988137/pexels-photo-4988137.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988144/pexels-photo-4988144.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988142/pexels-photo-4988142.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988129/pexels-photo-4988129.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988135/pexels-photo-4988135.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988139/pexels-photo-4988139.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988131/pexels-photo-4988131.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/4988143/pexels-photo-4988143.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/2948/2948-720.mp4",
+     "title": "Запись в студии"
+    }
+   ],
+   "collections": [
+    "zima"
+   ]
+  },
+  {
+   "key": "konyushnya",
+   "title": "Конюшня и манеж",
+   "city": "tashkent-region",
+   "address_hint": "Ахангаранский район",
+   "description_ru": "Конноспортивный клуб: деревянная конюшня, крытый манеж и выгул с горами на фоне. Лошади и инструктор — по договорённости.",
+   "description_uz": "Otchilik klubi: yog‘och otxona, yopiq manej va tog‘lar fonidagi sayr maydoni. Otlar va instruktor — kelishuv asosida.",
+   "categories": [
+    "nature",
+    "other"
+   ],
+   "shoot_types": [
+    "photoshoot",
+    "fashion",
+    "clip",
+    "wedding"
+   ],
+   "amenities": [
+    "parking",
+    "daylight",
+    "toilet"
+   ],
+   "tags": [
+    "лошади",
+    "ранчо"
+   ],
+   "badge": "",
+   "featured": false,
+   "zones": [],
+   "q_photos": "horse stable",
+   "q_videos": "horse ranch",
+   "photos": [
+    "https://images.pexels.com/photos/5087994/pexels-photo-5087994.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5087995/pexels-photo-5087995.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5087998/pexels-photo-5087998.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5087999/pexels-photo-5087999.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5088000/pexels-photo-5088000.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5088002/pexels-photo-5088002.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5088003/pexels-photo-5088003.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/1133/1133-720.mp4",
+     "title": "Конюшня"
+    },
+    {
+     "url": "https://assets.mixkit.co/videos/17790/17790-720.mp4",
+     "title": "Лошади на выгуле"
+    }
+   ],
+   "collections": [
+    "vesna",
+    "leto",
+    "osen"
+   ]
+  }
+ ],
+ "portfolios": [
+  {
+   "kind": "love_story",
+   "title": "Азиз и Малика",
+   "location": "Сад «Bog‘i Eram»",
+   "shot_at": "2026-05-18",
+   "description_ru": "Весенняя love story в тенистом саду: прогулка по аллеям, беседка и пруд. Мягкий свет после обеда.",
+   "description_uz": "Soya-salqin bog‘dagi bahorgi love story: xiyobonlar bo‘ylab sayr, shiypon va hovuz. Tushdan keyingi yumshoq yorug‘lik.",
+   "photos": [
+    "https://images.pexels.com/photos/17487384/pexels-photo-17487384.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487378/pexels-photo-17487378.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487379/pexels-photo-17487379.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487380/pexels-photo-17487380.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487381/pexels-photo-17487381.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487382/pexels-photo-17487382.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487383/pexels-photo-17487383.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487385/pexels-photo-17487385.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487386/pexels-photo-17487386.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487387/pexels-photo-17487387.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487388/pexels-photo-17487388.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487389/pexels-photo-17487389.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487390/pexels-photo-17487390.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487391/pexels-photo-17487391.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487376/pexels-photo-17487376.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/17487377/pexels-photo-17487377.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/40593/40593-720.mp4",
+     "title": "Тизер"
+    },
+    {
+     "url": "https://assets.mixkit.co/videos/40627/40627-720.mp4",
+     "title": ""
+    }
+   ]
+  },
+  {
+   "kind": "love_story",
+   "title": "Тимур и Дилноза: над облаками",
+   "location": "Плато в Чимгане",
+   "shot_at": "2026-06-07",
+   "description_ru": "Love story на высоте 2500 м: ветер, скалы и бесконечные горы. Поднялись до рассвета, чтобы поймать туман.",
+   "description_uz": "2500 m balandlikdagi love story: shamol, qoyalar va cheksiz tog‘lar. Tumanni tutish uchun tong otmasdan chiqdik.",
+   "photos": [
+    "https://images.pexels.com/photos/7537843/pexels-photo-7537843.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537832/pexels-photo-7537832.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537833/pexels-photo-7537833.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537834/pexels-photo-7537834.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537835/pexels-photo-7537835.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537836/pexels-photo-7537836.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537837/pexels-photo-7537837.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537838/pexels-photo-7537838.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537839/pexels-photo-7537839.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537840/pexels-photo-7537840.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537841/pexels-photo-7537841.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537842/pexels-photo-7537842.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7537844/pexels-photo-7537844.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4664/4664-720.mp4",
+     "title": "Закат"
+    }
+   ]
+  },
+  {
+   "kind": "love_story",
+   "title": "Шахзод и Севара: boho",
+   "location": "Загородный дом с крытым бассейном",
+   "shot_at": "2026-08-23",
+   "description_ru": "Тёплая boho-история в золотой час: сухоцветы, деревянный мостик и белые льняные образы.",
+   "description_uz": "Oltin soatdagi iliq boho-hikoya: quruq gullar, yog‘och ko‘prikcha va oq zig‘ir liboslar.",
+   "photos": [
+    "https://images.pexels.com/photos/7945026/pexels-photo-7945026.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7945024/pexels-photo-7945024.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7945025/pexels-photo-7945025.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7945027/pexels-photo-7945027.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7945028/pexels-photo-7945028.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7945029/pexels-photo-7945029.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/4636/4636-720.mp4",
+     "title": ""
+    }
+   ]
+  },
+  {
+   "kind": "album",
+   "title": "Свадьба Жасура и Камилы",
+   "location": "Конюшня и манеж",
+   "shot_at": "2026-07-12",
+   "description_ru": "Свадебный альбом на ранчо у гор: зелёный луг, красные амбары и пасмурное небо, которое дало мягкий свет на весь день.",
+   "description_uz": "Tog‘ etagidagi rancho’da to‘y albomi: yashil o‘tloq, qizil omborlar va kun bo‘yi yumshoq yorug‘lik bergan bulutli osmon.",
+   "photos": [
+    "https://images.pexels.com/photos/7178888/pexels-photo-7178888.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178882/pexels-photo-7178882.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178883/pexels-photo-7178883.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178884/pexels-photo-7178884.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178885/pexels-photo-7178885.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178886/pexels-photo-7178886.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178887/pexels-photo-7178887.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178890/pexels-photo-7178890.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178891/pexels-photo-7178891.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178892/pexels-photo-7178892.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178893/pexels-photo-7178893.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178894/pexels-photo-7178894.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178895/pexels-photo-7178895.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/7178896/pexels-photo-7178896.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/40584/40584-720.mp4",
+     "title": "Свадебный клип"
+    }
+   ]
+  },
+  {
+   "kind": "album",
+   "title": "Свадьба у воды: Бекзод и Нигора",
+   "location": "Вилла у Чарвака",
+   "shot_at": "2026-09-06",
+   "description_ru": "Выездная церемония у воды: сборы невесты, арка, банкет под открытым небом и первый танец.",
+   "description_uz": "Suv bo‘yidagi sayyor marosim: kelinning tayyorgarligi, arka, ochiq osmon ostidagi ziyofat va birinchi raqs.",
+   "photos": [
+    "https://images.pexels.com/photos/15530617/pexels-photo-15530617.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530610/pexels-photo-15530610.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530611/pexels-photo-15530611.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530619/pexels-photo-15530619.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530621/pexels-photo-15530621.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530615/pexels-photo-15530615.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530616/pexels-photo-15530616.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530613/pexels-photo-15530613.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530618/pexels-photo-15530618.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530620/pexels-photo-15530620.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530624/pexels-photo-15530624.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530625/pexels-photo-15530625.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/15530628/pexels-photo-15530628.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/40591/40591-720.mp4",
+     "title": "Церемония"
+    }
+   ]
+  },
+  {
+   "kind": "album",
+   "title": "Семья Рахимовых",
+   "location": "Плато в Чимгане",
+   "shot_at": "2026-06-21",
+   "description_ru": "Семейная фотосессия в горах: прогулка по лугам, пикник и много объятий. Снимали на закате.",
+   "description_uz": "Tog‘dagi oilaviy fotosessiya: o‘tloqlarda sayr, piknik va ko‘p quchoqlar. Quyosh botishida suratga oldik.",
+   "photos": [
+    "https://images.pexels.com/photos/5163534/pexels-photo-5163534.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163523/pexels-photo-5163523.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163524/pexels-photo-5163524.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163525/pexels-photo-5163525.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163526/pexels-photo-5163526.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163527/pexels-photo-5163527.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163528/pexels-photo-5163528.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163529/pexels-photo-5163529.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163532/pexels-photo-5163532.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163533/pexels-photo-5163533.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163535/pexels-photo-5163535.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163536/pexels-photo-5163536.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163537/pexels-photo-5163537.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163538/pexels-photo-5163538.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163539/pexels-photo-5163539.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163540/pexels-photo-5163540.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163541/pexels-photo-5163541.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163544/pexels-photo-5163544.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163545/pexels-photo-5163545.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/5163546/pexels-photo-5163546.jpeg?auto=compress&cs=tinysrgb&w=2000"
+   ],
+   "videos": [
+    {
+     "url": "https://assets.mixkit.co/videos/33729/33729-720.mp4",
+     "title": "Прогулка"
+    },
+    {
+     "url": "https://assets.mixkit.co/videos/18258/18258-720.mp4",
+     "title": ""
+    }
+   ]
+  }
+ ]
+}

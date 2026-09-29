@@ -10,9 +10,8 @@ import { move } from '../../components/Sortable'
 import { PageLoader } from '../../components/ui'
 
 const KINDS = [
+  { kind: 'collections', label: 'nav.collections', icons: false },
   { kind: 'categories', label: 'filters.category', icons: true },
-  { kind: 'shoot-types', label: 'filters.shootType', icons: true },
-  { kind: 'amenities', label: 'filters.amenities', icons: true },
   { kind: 'cities', label: 'filters.city', icons: false },
 ]
 
@@ -112,55 +111,20 @@ function DictEditor({ kind, icons }) {
   )
 }
 
-function TagsEditor() {
-  const { t } = useLang()
-  const qc = useQueryClient()
-  const { data, isLoading } = useQuery({ queryKey: ['tags', 'all'], queryFn: () => redloc.dict('tags') })
-  const refresh = () => qc.invalidateQueries({ queryKey: ['tags'] })
-  const rename = async (tag) => {
-    const name = window.prompt(t('a.name'), tag.name)
-    if (!name || name === tag.name) return
-    try {
-      await redloc.updateDict('tags', tag.id, { name })
-      refresh()
-    } catch (e) {
-      toast.error(errorText(e))
-    }
-  }
-  const remove = async (tag) => {
-    if (!window.confirm(`#${tag.name} — ${t('common.confirmDelete')}`)) return
-    await redloc.deleteDict('tags', tag.id)
-    refresh()
-  }
-  if (isLoading) return <PageLoader />
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {data.map((tag) => (
-        <span key={tag.id} className="chip-toggle cursor-default">
-          <button onClick={() => rename(tag)} className="hover:underline">#{tag.name}</button>
-          <span className="opacity-50">{tag.locations_count}</span>
-          <button onClick={() => remove(tag)} className="text-muted hover:text-brand">×</button>
-        </span>
-      ))}
-      {!data.length && <span className="text-sm text-muted">—</span>}
-    </div>
-  )
-}
-
 export default function Settings() {
   const { t } = useLang()
-  const [tab, setTab] = useState('categories')
+  const [tab, setTab] = useState('collections')
   const current = KINDS.find((k) => k.kind === tab)
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="page-title mb-4">{t('nav.settings')}</h1>
       <div className="mb-4 flex gap-1.5 overflow-x-auto scrollbar-none">
-        {[...KINDS.map((k) => [k.kind, t(k.label)]), ['tags', t('nav.tags')]].map(([k, label]) => (
+        {KINDS.map((k) => [k.kind, t(k.label)]).map(([k, label]) => (
           <button key={k} data-active={tab === k} className="chip-toggle shrink-0" onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
       <section className="card p-5">
-        {tab === 'tags' ? <TagsEditor /> : <DictEditor key={tab} kind={tab} icons={current.icons} />}
+        <DictEditor key={tab} kind={tab} icons={current.icons} />
       </section>
     </div>
   )

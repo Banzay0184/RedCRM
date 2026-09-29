@@ -9,13 +9,12 @@ import { useMeta } from '../../lib/useMeta'
 import { cx } from '../../lib/format'
 import { DictIcon } from '../../lib/icons'
 import Dropzone from '../../components/Dropzone'
-import TagInput from '../../components/TagInput'
-import { Checkbox, Field, PageLoader, Spinner, Toggle } from '../../components/ui'
-import { PhotosManager, VideosManager, ZonesManager } from './MediaManager'
+import { Field, PageLoader, Spinner, Toggle } from '../../components/ui'
+import { PhotosManager, VideosManager } from './MediaManager'
 
 const EMPTY = {
-  title: '', city: '', address_hint: '', categories: [], tags: [], description_ru: '', description_uz: '',
-  shoot_types: [], amenities: [], badge: '', is_featured: false, is_published: true,
+  title: '', city: '', address_hint: '', categories: [], collections: [], description_ru: '', description_uz: '',
+  is_featured: false, is_published: true,
 }
 
 function ChipsSelect({ items, value, onChange }) {
@@ -60,8 +59,8 @@ export default function LocationForm() {
     const d = loc.data
     setForm({
       title: d.title, city: d.city?.id || '', address_hint: d.address_hint, categories: d.categories.map((c) => c.id),
-      tags: d.tags, description_ru: d.description_ru, description_uz: d.description_uz,
-      shoot_types: d.shoot_types.map((s) => s.id), amenities: d.amenities.map((a) => a.id), badge: d.badge,
+      collections: d.collections.map((c) => c.id),
+      description_ru: d.description_ru, description_uz: d.description_uz,
       is_featured: d.is_featured, is_published: d.is_published,
     })
   }, [loc.data])
@@ -120,7 +119,7 @@ export default function LocationForm() {
     toast.success(t('common.deleted'))
     qc.invalidateQueries({ queryKey: ['locations'] })
     qc.invalidateQueries({ queryKey: ['meta'] })
-    navigate('/locations')
+    navigate('/')
   }
 
   if (editing && loc.isLoading) return <PageLoader />
@@ -130,7 +129,7 @@ export default function LocationForm() {
     <form onSubmit={submit} className="space-y-5">
       <div>
         <nav className="mb-1 flex items-center gap-1.5 text-xs text-muted">
-          <Link to="/locations" className="hover:text-brand">{t('nav.locations')}</Link>
+          <Link to="/" className="hover:text-brand">{t('nav.home')}</Link>
           <LuChevronRight className="h-3 w-3" />
           <span className="text-ink">{editing ? loc.data?.title : t('a.addLocation')}</span>
         </nav>
@@ -163,8 +162,8 @@ export default function LocationForm() {
               <Field label={t('filters.category')} required error={errors.categories}>
                 <ChipsSelect items={meta.categories} value={form.categories} onChange={set('categories')} />
               </Field>
-              <Field label={t('nav.tags')} hint={t('a.tagsHint')}>
-                <TagInput value={form.tags} onChange={set('tags')} placeholder={t('a.tagsPlaceholder')} />
+              <Field label={t('nav.collections')} hint={t('a.collectionsHint')}>
+                <ChipsSelect items={meta.collections} value={form.collections} onChange={set('collections')} />
               </Field>
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
@@ -182,30 +181,10 @@ export default function LocationForm() {
             </div>
           </Card>
 
-          <Card title={t('filters.shootType')}>
-            <ChipsSelect items={meta.shoot_types} value={form.shoot_types} onChange={set('shoot_types')} />
-          </Card>
-
-          <Card title={t('a.amenitiesTitle')}>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {meta.amenities.map((a) => (
-                <Checkbox key={a.id} label={tn(a)} checked={form.amenities.includes(a.id)}
-                  onChange={(on) => set('amenities')(on ? [...form.amenities, a.id] : form.amenities.filter((x) => x !== a.id))} />
-              ))}
-            </div>
-          </Card>
-
           <Card title={t('a.publication')}>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <Toggle checked={form.is_published} onChange={set('is_published')} label={t('a.published')} />
               <Toggle checked={form.is_featured} onChange={set('is_featured')} label={t('a.featured')} />
-              <label className="flex items-center gap-2 text-sm">
-                {t('a.badge')}
-                <select className="input h-9 w-auto" value={form.badge} onChange={set('badge')}>
-                  <option value="">—</option>
-                  {meta.badges.map((b) => <option key={b.value} value={b.value}>{t(`badge.${b.value}`)}</option>)}
-                </select>
-              </label>
             </div>
           </Card>
         </div>
@@ -213,7 +192,11 @@ export default function LocationForm() {
         <div className="min-w-0 space-y-5">
           <Card title={t('a.photos')}>
             {editing ? (
-              <PhotosManager location={loc.data} onChanged={refresh} />
+              <PhotosManager photos={loc.data.photos} onChanged={refresh} api={{
+                upload: (files, onProgress) => redloc.uploadPhotos(loc.data.id, files, onProgress),
+                reorder: (ids) => redloc.reorderPhotos(loc.data.id, ids),
+                remove: redloc.deletePhoto,
+              }} />
             ) : (
               <div className="space-y-3">
                 <Dropzone accept="image/*" onFiles={(files) => setPending((p) => [...p, ...files])} icon={LuImage}
@@ -235,10 +218,13 @@ export default function LocationForm() {
             )}
           </Card>
           <Card title={t('a.videos')}>
-            {editing ? <VideosManager location={loc.data} onChanged={refresh} /> : <p className="text-sm text-muted">{t('a.saveFirst')}</p>}
-          </Card>
-          <Card title={t('loc.zones')}>
-            {editing ? <ZonesManager location={loc.data} onChanged={refresh} /> : <p className="text-sm text-muted">{t('a.saveFirst')}</p>}
+            {editing ? (
+              <VideosManager videos={loc.data.videos} onChanged={refresh} api={{
+                create: (data, onProgress) => redloc.createVideo({ ...data, location: loc.data.id }, onProgress),
+                reorder: (ids) => redloc.reorderVideos(loc.data.id, ids),
+                remove: redloc.deleteVideo,
+              }} />
+            ) : <p className="text-sm text-muted">{t('a.saveFirst')}</p>}
           </Card>
         </div>
       </div>

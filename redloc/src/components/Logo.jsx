@@ -14,15 +14,10 @@ export default function Logo({ dark = false, compact = false, className }) {
     <div className={cx('flex items-center gap-2', className)}>
       <Pin className={compact ? 'h-7 w-7' : 'h-9 w-9'} />
       <div className="leading-none">
-        <div className={cx('font-extrabold tracking-tight', compact ? 'text-lg' : 'text-[22px]')}>
-          <span className="text-brand">RED</span>
-          <span className={dark ? 'text-white' : 'text-ink'}>LOC</span>
+        <div className={cx('font-extrabold tracking-tight text-brand', compact ? 'text-lg' : 'text-[22px]')}>RED</div>
+        <div className={cx('mt-0.5 font-bold tracking-tight', compact ? 'text-[11px]' : 'text-[13px]', dark ? 'text-white' : 'text-ink')}>
+          Video Location
         </div>
-        {!compact && (
-          <div className={cx('mt-1 text-[9px] font-medium', dark ? 'text-white/50' : 'text-muted')}>
-            Locations for Photo &amp; Video
-          </div>
-        )}
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ def access_link_message(link, url):
     hello_ru = f"Здравствуйте, {name}!" if name else "Здравствуйте!"
     hello_uz = f"Assalomu alaykum, {name}!" if name else "Assalomu alaykum!"
     return (
-        "🎬 **RED VIDEO GROUP · REDLOC**\n\n"
+        "🎬 **RED Video Location**\n\n"
         f"{hello_ru}\n"
         "Подобрали для вас каталог локаций для фото и видео съёмки 📸\n"
         f"👉 {url}\n"

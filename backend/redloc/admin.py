@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import (
-    AccessLink, Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo, LocationZone,
+    AccessLink, Amenity, Category, City, Location, LocationPhoto, LocationVideo, LocationZone,
     Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
 from .images import process_photo
 
 
-@admin.register(City, Category, Collection, ShootType, Amenity)
+@admin.register(City, Category, ShootType, Amenity)
 class DictionaryAdmin(admin.ModelAdmin):
     list_display = ["name_ru", "name_uz", "slug", "icon", "order"]
     list_editable = ["order"]

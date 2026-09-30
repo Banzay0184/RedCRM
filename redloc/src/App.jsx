@@ -12,7 +12,6 @@ import Home from './pages/Home'
 const LocationDetail = lazy(() => import('./pages/LocationDetail'))
 const Photos = lazy(() => import('./pages/Photos'))
 const Videos = lazy(() => import('./pages/Videos'))
-const CollectionPage = lazy(() => import('./pages/CollectionPage'))
 const Portfolios = lazy(() => import('./pages/Portfolios'))
 const PortfolioDetail = lazy(() => import('./pages/PortfolioDetail'))
 const Login = lazy(() => import('./pages/Login'))
@@ -55,7 +54,6 @@ function AppRoutes() {
           <Route path="locations/:slug" element={<LocationDetail />} />
           <Route path="photos" element={<Photos />} />
           <Route path="videos" element={<Videos />} />
-          <Route path="collections/:slug" element={<CollectionPage />} />
           <Route path="love-story" element={<Portfolios kind="love_story" />} />
           <Route path="albums" element={<Portfolios kind="album" />} />
           <Route path="love-story/:slug" element={<PortfolioDetail />} />

@@ -13,8 +13,8 @@ import { Field, PageLoader, Spinner, Toggle } from '../../components/ui'
 import { PhotosManager, VideosManager } from './MediaManager'
 
 const EMPTY = {
-  title: '', city: '', address_hint: '', categories: [], collections: [], description_ru: '', description_uz: '',
-  is_featured: false, is_published: true,
+  title: '', city: '', address_hint: '', categories: [], description_ru: '', description_uz: '',
+  badge: '', is_published: true,
 }
 
 function ChipsSelect({ items, value, onChange }) {
@@ -59,9 +59,8 @@ export default function LocationForm() {
     const d = loc.data
     setForm({
       title: d.title, city: d.city?.id || '', address_hint: d.address_hint, categories: d.categories.map((c) => c.id),
-      collections: d.collections.map((c) => c.id),
       description_ru: d.description_ru, description_uz: d.description_uz,
-      is_featured: d.is_featured, is_published: d.is_published,
+      badge: d.badge, is_published: d.is_published,
     })
   }, [loc.data])
 
@@ -162,9 +161,6 @@ export default function LocationForm() {
               <Field label={t('filters.category')} required error={errors.categories}>
                 <ChipsSelect items={meta.categories} value={form.categories} onChange={set('categories')} />
               </Field>
-              <Field label={t('nav.collections')} hint={t('a.collectionsHint')}>
-                <ChipsSelect items={meta.collections} value={form.collections} onChange={set('collections')} />
-              </Field>
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <span className="label mb-0">{t('a.description')}</span>
@@ -184,7 +180,17 @@ export default function LocationForm() {
           <Card title={t('a.publication')}>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <Toggle checked={form.is_published} onChange={set('is_published')} label={t('a.published')} />
-              <Toggle checked={form.is_featured} onChange={set('is_featured')} label={t('a.featured')} />
+              <div className="flex items-center gap-2 text-sm">
+                <span>{t('a.badge')}</span>
+                <div className="flex gap-1 rounded-lg bg-canvas p-1 text-xs font-semibold">
+                  {['', ...meta.badges.map((b) => b.value)].map((v) => (
+                    <button type="button" key={v || 'none'} onClick={() => set('badge')(v)}
+                      className={cx('rounded-md px-2.5 py-1', form.badge === v ? 'bg-white shadow-sm' : 'text-muted')}>
+                      {v ? t(`badge.${v}`) : '—'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </Card>
         </div>

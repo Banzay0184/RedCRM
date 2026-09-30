@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { LuArrowDown, LuArrowUp, LuPlus, LuTrash2 } from 'react-icons/lu'
+import { LuArrowDown, LuArrowUp, LuImage, LuPlus, LuRotateCcw, LuTrash2 } from 'react-icons/lu'
 import { redloc, errorText } from '../../lib/api'
 import { useLang } from '../../lib/i18n'
 import { cx } from '../../lib/format'
 import { DictIcon, ICON_KEYS } from '../../lib/icons'
 import { move } from '../../components/Sortable'
-import { PageLoader } from '../../components/ui'
+import { Field, PageLoader, Spinner } from '../../components/ui'
+import Dropzone from '../../components/Dropzone'
+import { useMeta } from '../../lib/useMeta'
 
 const KINDS = [
-  { kind: 'collections', label: 'nav.collections', icons: false },
   { kind: 'categories', label: 'filters.category', icons: true },
   { kind: 'cities', label: 'filters.city', icons: false },
 ]
@@ -111,20 +113,92 @@ function DictEditor({ kind, icons }) {
   )
 }
 
+function HeroEditor() {
+  const { t } = useLang()
+  const qc = useQueryClient()
+  const { data: meta } = useMeta()
+  const site = meta?.site
+  const [form, setForm] = useState(null)
+  const [file, setFile] = useState(null)
+  const [lang, setLang] = useState('ru')
+  const [saving, setSaving] = useState(false)
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
+  useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview])
+  useEffect(() => {
+    if (site && !form) {
+      const { hero_title_ru, hero_title_uz, hero_subtitle_ru, hero_subtitle_uz } = site
+      setForm({ hero_title_ru, hero_title_uz, hero_subtitle_ru, hero_subtitle_uz })
+    }
+  }, [site, form])
+  if (!form) return <PageLoader />
+
+  const save = async (extra = {}) => {
+    setSaving(true)
+    try {
+      await redloc.updateSite({ ...form, ...(file ? { hero_image: file } : {}), ...extra })
+      setFile(null)
+      qc.invalidateQueries({ queryKey: ['meta'] })
+      toast.success(t('common.saved'))
+    } catch (e) {
+      toast.error(errorText(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+  const image = preview || site.hero_image_url
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <div className="flex rounded-lg bg-canvas p-0.5 text-[11px] font-semibold">
+          {['ru', 'uz'].map((l) => (
+            <button type="button" key={l} onClick={() => setLang(l)}
+              className={cx('rounded-md px-2 py-0.5 uppercase', lang === l ? 'bg-white shadow-sm' : 'text-muted')}>{l}</button>
+          ))}
+        </div>
+      </div>
+      <Field label={t('a.heroTitle')} hint={t('hero.title').replace('\n', ' ')}>
+        <textarea className="input" rows={2} maxLength={120} value={form[`hero_title_${lang}`]} onChange={set(`hero_title_${lang}`)} />
+      </Field>
+      <Field label={t('a.heroSubtitle')} hint={t('hero.subtitle').replace('\n', ' ')}>
+        <textarea className="input" rows={2} maxLength={300} value={form[`hero_subtitle_${lang}`]} onChange={set(`hero_subtitle_${lang}`)} />
+      </Field>
+      <Field label={t('a.heroImage')} hint={t('a.heroImageHint')}>
+        <div className="space-y-2">
+          {image && <img src={image} alt="" className="aspect-[21/9] w-full rounded-xl bg-canvas object-cover" />}
+          <Dropzone accept="image/*" multiple={false} onFiles={(files) => setFile(files[0] || null)} icon={LuImage}
+            title={t('a.uploadPhotos')} hint={t('a.dropHint')} button={t('a.chooseFiles')} />
+          {site.hero_image_url && !file && (
+            <button type="button" className="btn btn-ghost btn-sm text-brand" disabled={saving} onClick={() => save({ remove_hero_image: 1 })}>
+              <LuRotateCcw className="h-4 w-4" /> {t('a.heroDefault')}
+            </button>
+          )}
+        </div>
+      </Field>
+      <button type="button" className="btn btn-primary min-w-32" disabled={saving} onClick={() => save()}>
+        {saving && <Spinner className="h-4 w-4 text-white" />} {t('common.save')}
+      </button>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { t } = useLang()
-  const [tab, setTab] = useState('collections')
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') || 'home'
+  const setTab = (k) => setParams({ tab: k }, { replace: true })
   const current = KINDS.find((k) => k.kind === tab)
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="page-title mb-4">{t('nav.settings')}</h1>
       <div className="mb-4 flex gap-1.5 overflow-x-auto scrollbar-none">
-        {KINDS.map((k) => [k.kind, t(k.label)]).map(([k, label]) => (
+        {[['home', t('nav.homeHero')], ...KINDS.map((k) => [k.kind, t(k.label)])].map(([k, label]) => (
           <button key={k} data-active={tab === k} className="chip-toggle shrink-0" onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
       <section className="card p-5">
-        <DictEditor key={tab} kind={tab} icons={current.icons} />
+        {current ? <DictEditor key={tab} kind={tab} icons={current.icons} /> : <HeroEditor />}
       </section>
     </div>
   )

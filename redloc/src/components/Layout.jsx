@@ -8,7 +8,8 @@ import { useAccess } from '../lib/access'
 import { useAuth } from '../lib/auth'
 import { useLang } from '../lib/i18n'
 import { cx, formatDateTime } from '../lib/format'
-import Logo, { Pin } from './Logo'
+import Logo from './Logo'
+import BackgroundMusic from './BackgroundMusic'
 
 function useNav() {
   const { t } = useLang()
@@ -55,8 +56,7 @@ function Sidebar({ onNavigate }) {
           </Link>
         )}
       </nav>
-      <div className="flex items-center gap-2 px-5 pb-6 pt-4">
-        <Pin className="h-6 w-6" />
+      <div className="px-5 pb-6 pt-4">
         <div className="leading-tight">
           <div className="text-xs font-extrabold">
             <span className="text-brand">RED</span>CRM
@@ -207,6 +207,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <MobileNav />
+      <BackgroundMusic />
     </div>
   )
 }

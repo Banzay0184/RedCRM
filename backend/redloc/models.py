@@ -95,14 +95,6 @@ class Amenity(Dictionary):
         verbose_name_plural = "Удобства"
 
 
-class Collection(Dictionary):
-    """Подборка локаций для главной: «Осень», «Зима», «Ночь»... Одна локация может быть в нескольких."""
-
-    class Meta(Dictionary.Meta):
-        verbose_name = "Подборка"
-        verbose_name_plural = "Подборки"
-
-
 class Tag(BaseModel):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=60, unique=True, blank=True)
@@ -120,15 +112,16 @@ class Tag(BaseModel):
 
 
 class Location(BaseModel):
+    # Одна метка на карточку: ТОП закрепляет локацию выше всех, «Не сезон» опускает в конец списка
     BADGE_NONE = ""
-    BADGE_PREMIUM = "premium"
+    BADGE_TOP = "top"
     BADGE_HIT = "hit"
-    BADGE_NEW = "new"
+    BADGE_OFF_SEASON = "off_season"
     BADGE_CHOICES = [
         (BADGE_NONE, "—"),
-        (BADGE_PREMIUM, "Премиум"),
+        (BADGE_TOP, "ТОП"),
         (BADGE_HIT, "Хит"),
-        (BADGE_NEW, "Новинка"),
+        (BADGE_OFF_SEASON, "Не сезон"),
     ]
 
     title = models.CharField(max_length=150, db_index=True)
@@ -142,10 +135,11 @@ class Location(BaseModel):
     tags = models.ManyToManyField(Tag, related_name="locations", blank=True)
     shoot_types = models.ManyToManyField(ShootType, related_name="locations", blank=True)
     amenities = models.ManyToManyField(Amenity, related_name="locations", blank=True)
-    collections = models.ManyToManyField(Collection, related_name="locations", blank=True)
     badge = models.CharField(max_length=10, choices=BADGE_CHOICES, blank=True, default=BADGE_NONE)
     is_featured = models.BooleanField("Популярная", default=False, db_index=True)
     is_published = models.BooleanField(default=True, db_index=True)
+    # Позиция карточки, которую выставляет сотрудник (перетаскиванием на главной)
+    order = models.PositiveIntegerField(default=0, db_index=True)
     views_count = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
@@ -381,3 +375,26 @@ class PortfolioVideo(BaseModel):
         ordering = ["order", "id"]
 
     youtube_id = LocationVideo.youtube_id
+
+
+def hero_image_path(instance, filename):
+    return f"site/hero/{uuid.uuid4().hex}.webp"
+
+
+class SiteSettings(BaseModel):
+    """Настройки главной страницы (одна запись): баннер — фото, заголовок и подзаголовок на двух языках."""
+
+    hero_title_ru = models.CharField(max_length=120, blank=True)
+    hero_title_uz = models.CharField(max_length=120, blank=True)
+    hero_subtitle_ru = models.CharField(max_length=300, blank=True)
+    hero_subtitle_uz = models.CharField(max_length=300, blank=True)
+    hero_image = models.ImageField(upload_to=hero_image_path, storage=redloc_storage, blank=True)
+
+    class Meta:
+        verbose_name = "Настройки главной"
+        verbose_name_plural = "Настройки главной"
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

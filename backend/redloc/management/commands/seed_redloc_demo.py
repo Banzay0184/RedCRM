@@ -21,7 +21,7 @@ from django.utils import timezone
 
 from redloc.images import process_photo, process_poster
 from redloc.models import (
-    Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo, Portfolio,
+    Amenity, Category, City, Location, LocationPhoto, LocationVideo, Portfolio,
     PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
 
@@ -54,8 +54,8 @@ class Command(BaseCommand):
             if Location.objects.filter(title=item["title"], tags=demo_tag).exists():
                 continue
             loc = self.create_location(item, demo_tag)
-            # Разнести даты создания на ~3 месяца назад, «Новинки» — самые свежие
-            days = rnd.randint(1, 12) if item.get("badge") == "new" else rnd.randint(14, 95)
+            # Разнести даты создания на ~3 месяца назад
+            days = rnd.randint(1, 95)
             Location.objects.filter(pk=loc.pk).update(
                 created_at=timezone.now() - timedelta(days=days, hours=rnd.randint(0, 23)),
                 views_count=item.get("views") or rnd.randint(50, 3000),
@@ -79,7 +79,6 @@ class Command(BaseCommand):
             is_featured=item.get("featured", False),
         )
         loc.categories.set(Category.objects.filter(slug__in=item.get("categories", [])))
-        loc.collections.set(Collection.objects.filter(slug__in=item.get("collections", [])))
         loc.shoot_types.set(ShootType.objects.filter(slug__in=item.get("shoot_types", [])))
         loc.amenities.set(Amenity.objects.filter(slug__in=item.get("amenities", [])))
         tags = [demo_tag] + [Tag.objects.get_or_create(name=t)[0] for t in item.get("tags", [])]

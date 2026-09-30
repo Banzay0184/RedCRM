@@ -166,20 +166,39 @@ class RedlocApiTests(APITestCase):
         self.client.force_authenticate(self.staff)
         self.assertEqual(self.client.delete(f"/api/redloc/portfolios/{slug}/").status_code, 204)
 
-    def test_collections(self):
-        loc = self.create_location()
-        other = self.create_location(title="Другая")
-        self.client.force_authenticate(self.staff)
-        col = self.client.post("/api/redloc/collections/", {"name_ru": "Ночь", "name_uz": "Tun"}, format="json").data
-        res = self.client.patch(f"/api/redloc/locations/{loc.slug}/", {"collections": [col["id"]]}, format="json")
-        self.assertEqual(res.status_code, 200, res.data)
+    def test_site_settings_hero(self):
         self.as_guest()
-        found = self.client.get(f"/api/redloc/locations/?collection={col['slug']}").data["results"]
-        self.assertEqual([x["id"] for x in found], [loc.id])
-        self.assertNotIn(other.id, [x["id"] for x in found])
-        night = next(c for c in self.client.get("/api/redloc/meta/").data["collections"] if c["slug"] == col["slug"])
-        self.assertEqual(night["locations_count"], 1)
-        self.assertEqual(self.client.get(f"/api/redloc/locations/{loc.slug}/").data["collections"][0]["id"], col["id"])
+        self.assertEqual(self.client.get("/api/redloc/meta/").data["site"]["hero_image_url"], None)
+        self.assertEqual(self.client.patch("/api/redloc/site/", {"hero_title_ru": "x"}, format="json").status_code, 403)
+        self.client.force_authenticate(self.staff)
+        res = self.client.patch("/api/redloc/site/", {"hero_title_ru": "Новый заголовок", "hero_image": jpeg()}, format="multipart")
+        self.assertEqual(res.status_code, 200, res.data)
+        self.assertTrue(res.data["hero_image_url"].endswith(".webp"))
+        self.as_guest()
+        site = self.client.get("/api/redloc/meta/").data["site"]
+        self.assertEqual(site["hero_title_ru"], "Новый заголовок")
+        self.client.force_authenticate(self.staff)
+        res = self.client.patch("/api/redloc/site/", {"remove_hero_image": "1"}, format="multipart")
+        self.assertIsNone(res.data["hero_image_url"])
+
+    def test_badge_ordering_top_first_off_season_last(self):
+        off = self.create_location(title="Не сезон", badge="off_season")
+        plain = self.create_location(title="Обычная")
+        top = self.create_location(title="Топовая", badge="top")
+        Location.objects.filter(pk=off.pk).update(views_count=999)  # просмотры не поднимают «не сезон» наверх
+        ids = [x["id"] for x in self.client.get("/api/redloc/locations/?ordering=popular").data["results"]]
+        self.assertEqual(ids, [top.id, plain.id, off.id])
+
+    def test_manual_order_within_badge_groups(self):
+        a = self.create_location(title="А")
+        b = self.create_location(title="Б")
+        top = self.create_location(title="Топ", badge="top")
+        self.assertEqual(self.client.post("/api/redloc/locations/reorder/", {"ids": [b.id, a.id]}, format="json").status_code, 403)
+        self.client.force_authenticate(self.staff)
+        self.client.post("/api/redloc/locations/reorder/", {"ids": [b.id, a.id, top.id]}, format="json")
+        self.as_guest()
+        ids = [x["id"] for x in self.client.get("/api/redloc/locations/?ordering=popular").data["results"]]
+        self.assertEqual(ids, [top.id, b.id, a.id])  # ТОП всё равно первым, дальше — порядок сотрудника
 
     def test_meta(self):
         self.create_location()

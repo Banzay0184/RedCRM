@@ -2,8 +2,8 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .models import (
-    AccessLink, Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo,
-    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
+    AccessLink, Amenity, Category, City, Location, LocationPhoto, LocationVideo,
+    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, SiteSettings, Tag,
 )
 
 
@@ -43,20 +43,6 @@ class ShootTypeSerializer(DictionarySerializer):
 class AmenitySerializer(DictionarySerializer):
     class Meta(DictionarySerializer.Meta):
         model = Amenity
-
-
-class CollectionSerializer(DictionarySerializer):
-    cover = serializers.SerializerMethodField()
-
-    class Meta(DictionarySerializer.Meta):
-        model = Collection
-        fields = DictionarySerializer.Meta.fields + ["cover"]
-
-    def get_cover(self, obj):
-        # Обложка — первое фото самой популярной опубликованной локации подборки
-        loc = obj.locations.filter(is_published=True, photos__isnull=False).order_by("-is_featured", "-views_count").first()
-        photo = loc and loc.photos.order_by("order", "id").first()
-        return file_url(self.context.get("request"), photo.thumbnail or photo.image) if photo else None
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -176,7 +162,6 @@ class LocationListSerializer(serializers.ModelSerializer):
 
 
 class LocationDetailSerializer(LocationListSerializer):
-    collections = DictShortSerializer(many=True, read_only=True)
     shoot_types = DictShortSerializer(many=True, read_only=True)
     amenities = DictShortSerializer(many=True, read_only=True)
     photos = PhotoSerializer(many=True, read_only=True)
@@ -184,7 +169,7 @@ class LocationDetailSerializer(LocationListSerializer):
 
     class Meta(LocationListSerializer.Meta):
         fields = LocationListSerializer.Meta.fields + [
-            "description_ru", "description_uz", "collections", "shoot_types", "amenities", "photos", "videos",
+            "description_ru", "description_uz", "shoot_types", "amenities", "photos", "videos",
             "updated_at",
         ]
 
@@ -194,14 +179,13 @@ class LocationWriteSerializer(serializers.ModelSerializer):
 
     tags = serializers.ListField(child=serializers.CharField(max_length=50), required=False, write_only=True)
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=False)
-    collections = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), many=True, required=False)
     shoot_types = serializers.PrimaryKeyRelatedField(queryset=ShootType.objects.all(), many=True, required=False)
     amenities = serializers.PrimaryKeyRelatedField(queryset=Amenity.objects.all(), many=True, required=False)
 
     class Meta:
         model = Location
         fields = [
-            "id", "slug", "title", "city", "address_hint", "description_ru", "description_uz", "categories", "collections",
+            "id", "slug", "title", "city", "address_hint", "description_ru", "description_uz", "categories",
             "tags", "shoot_types", "amenities", "badge", "is_featured", "is_published",
         ]
         read_only_fields = ["slug"]
@@ -228,7 +212,7 @@ class LocationWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        m2m = {k: validated_data.pop(k) for k in ("categories", "collections", "shoot_types", "amenities") if k in validated_data}
+        m2m = {k: validated_data.pop(k) for k in ("categories", "shoot_types", "amenities") if k in validated_data}
         tags = validated_data.pop("tags", None)
         location = Location.objects.create(**validated_data)
         for key, value in m2m.items():
@@ -239,7 +223,7 @@ class LocationWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        m2m = {k: validated_data.pop(k) for k in ("categories", "collections", "shoot_types", "amenities") if k in validated_data}
+        m2m = {k: validated_data.pop(k) for k in ("categories", "shoot_types", "amenities") if k in validated_data}
         tags = validated_data.pop("tags", None)
         for key, value in validated_data.items():
             setattr(instance, key, value)
@@ -382,3 +366,17 @@ class PortfolioVideoWriteSerializer(serializers.ModelSerializer):
         if not attrs.get("file") and not attrs.get("youtube_url"):
             raise serializers.ValidationError("Загрузите файл или вставьте ссылку YouTube")
         return attrs
+
+
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    hero_image = serializers.ImageField(write_only=True, required=False)
+    hero_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            "hero_title_ru", "hero_title_uz", "hero_subtitle_ru", "hero_subtitle_uz", "hero_image", "hero_image_url",
+        ]
+
+    def get_hero_image_url(self, obj):
+        return file_url(self.context.get("request"), obj.hero_image)

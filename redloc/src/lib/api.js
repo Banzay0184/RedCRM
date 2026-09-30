@@ -91,6 +91,12 @@ function uploadImages(path, ownerKey, ownerId, files, onProgress) {
   return api.post(`${R}/${path}/`, fd, progressOpts(onProgress)).then((r) => r.data)
 }
 
+function postForm(method, path, data) {
+  const body = new FormData()
+  Object.entries(data).forEach(([k, v]) => v !== undefined && v !== null && body.append(k, v))
+  return api[method](`${R}/${path}/`, body, { timeout: 0 }).then((r) => r.data)
+}
+
 // Видео: JSON для ссылки YouTube, multipart — если есть файл или постер
 function postMedia(path, data, onProgress) {
   let body = data
@@ -116,6 +122,7 @@ export const redloc = {
   createLocation: (data) => api.post(`${R}/locations/`, data).then((r) => r.data),
   updateLocation: (slug, data) => api.patch(`${R}/locations/${slug}/`, data).then((r) => r.data),
   deleteLocation: (slug) => api.delete(`${R}/locations/${slug}/`),
+  reorderLocations: (ids) => api.post(`${R}/locations/reorder/`, { ids }),
 
   // media
   photos: (params) => api.get(`${R}/photos/`, { params }).then((r) => r.data),
@@ -130,6 +137,9 @@ export const redloc = {
   deleteVideo: (id) => api.delete(`${R}/videos/${id}/`),
   reorderVideos: (location, ids) => api.post(`${R}/videos/reorder/`, { location, ids }),
 
+  // баннер главной: тексты (+ hero_image файлом или remove_hero_image)
+  updateSite: (data) => postForm('patch', 'site', data),
+
   // портфолио (love story / альбомы)
   createPortfolio: (data) => api.post(`${R}/portfolios/`, data).then((r) => r.data),
   updatePortfolio: (slug, data) => api.patch(`${R}/portfolios/${slug}/`, data).then((r) => r.data),
@@ -141,7 +151,7 @@ export const redloc = {
   deletePortfolioVideo: (id) => api.delete(`${R}/portfolio-videos/${id}/`),
   reorderPortfolioVideos: (portfolio, ids) => api.post(`${R}/portfolio-videos/reorder/`, { portfolio, ids }),
 
-  // dictionaries: kind = cities | categories | collections
+  // dictionaries: kind = cities | categories
   dict: (kind, params) => api.get(`${R}/${kind}/`, { params }).then((r) => r.data),
   createDict: (kind, data) => api.post(`${R}/${kind}/`, data).then((r) => r.data),
   updateDict: (kind, id, data) => api.patch(`${R}/${kind}/${id}/`, data).then((r) => r.data),

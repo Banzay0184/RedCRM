@@ -1,60 +1,51 @@
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  LuCamera, LuImage, LuLink2, LuShieldCheck,
+  LuArrowUpDown, LuCamera, LuImage, LuLink2, LuPencil, LuShieldCheck,
 } from 'react-icons/lu'
 import { redloc } from '../lib/api'
+import { useAuth } from '../lib/auth'
 import { useLang } from '../lib/i18n'
 import { useMeta } from '../lib/useMeta'
 import { LocationGrid } from '../components/LocationCard'
 import Logo from '../components/Logo'
 
+const LocationsOrder = lazy(() => import('./admin/LocationsOrder'))
+
 function Hero({ background }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
+  const { isStaff } = useAuth()
   const { data: meta } = useMeta()
+  const site = meta?.site || {}
+  const pick = (key) => (lang === 'uz' && site[`${key}_uz`]) || site[`${key}_ru`] || t(`hero.${key.replace('hero_', '')}`)
+  const image = site.hero_image_url || background
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-ink text-white">
-      {background && <img src={background} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
-      {!background && (
+    <section className="relative flex min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl bg-ink text-white sm:min-h-[480px] lg:min-h-[540px]">
+      {image && <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/10 sm:bg-gradient-to-r sm:from-ink sm:via-ink/70 sm:to-transparent" />
+      {!image && (
         <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand/30 blur-3xl" aria-hidden="true" />
       )}
-      <div className="relative px-6 pb-6 pt-10 sm:px-10 sm:pt-14">
-        <h1 className="max-w-xl whitespace-pre-line text-3xl font-extrabold leading-tight tracking-tight sm:text-[40px]">
-          {t('hero.title')}
+      {isStaff && (
+        <Link to="/settings?tab=home" className="btn btn-sm absolute right-4 top-4 z-10 bg-white/90 text-ink hover:bg-white">
+          <LuPencil className="h-4 w-4" /> {t('a.editHero')}
+        </Link>
+      )}
+      <div className="relative px-6 pb-8 pt-16 sm:px-12 sm:pb-12">
+        <h1 className="max-w-2xl whitespace-pre-line text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+          {pick('hero_title')}
         </h1>
-        <p className="mt-4 max-w-md whitespace-pre-line text-sm text-white/75 sm:text-base">{t('hero.subtitle')}</p>
+        <p className="mt-5 max-w-lg whitespace-pre-line text-base text-white/80 sm:text-lg">{pick('hero_subtitle')}</p>
         {meta?.stats && (
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 text-xs text-white/60">
-            <span><b className="text-white">{meta.stats.locations}</b> {t('nav.locations').toLowerCase()}</span>
-            <span><b className="text-white">{meta.stats.photos}</b> {t('photos')}</span>
-            <span><b className="text-white">{meta.stats.videos}</b> {t('videos')}</span>
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm text-white/70">
+            <span><b className="text-lg text-white">{meta.stats.locations}</b> {t('nav.locations').toLowerCase()}</span>
+            <span><b className="text-lg text-white">{meta.stats.photos}</b> {t('photos')}</span>
+            <span><b className="text-lg text-white">{meta.stats.videos}</b> {t('videos')}</span>
           </div>
         )}
       </div>
-    </section>
-  )
-}
-
-function Collections() {
-  const { tn } = useLang()
-  const { data: meta } = useMeta()
-  const items = (meta?.collections || []).filter((c) => c.locations_count > 0)
-  if (!items.length) return null
-  return (
-    <section className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none lg:mx-0 lg:px-0">
-      {items.map((c) => (
-        <Link key={c.id} to={`/collections/${c.slug}`}
-          className="group relative h-28 w-40 shrink-0 snap-start overflow-hidden rounded-2xl bg-ink sm:h-32 sm:w-48">
-          {c.cover && <img src={c.cover} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105" />}
-          <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-          <span className="absolute inset-x-3 bottom-2.5 text-white">
-            <span className="block truncate text-base font-bold leading-tight">{tn(c)}</span>
-            <span className="text-[11px] text-white/75">{c.locations_count}</span>
-          </span>
-        </Link>
-      ))}
     </section>
   )
 }
@@ -81,6 +72,9 @@ function Features() {
 }
 
 export default function Home() {
+  const { t } = useLang()
+  const { isStaff } = useAuth()
+  const [ordering, setOrdering] = useState(false)
   const all = useQuery({
     queryKey: ['locations', 'home-all'],
     queryFn: () => redloc.locations({ ordering: 'popular', page_size: 60 }),
@@ -91,8 +85,20 @@ export default function Home() {
   return (
     <div className="space-y-10">
       <Hero background={heroBg} />
-      <Collections />
-      <LocationGrid items={items} loading={all.isLoading} count={8} />
+      <section className="space-y-3">
+        {isStaff && items.length > 1 && !ordering && (
+          <div className="flex justify-end">
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => setOrdering(true)}>
+              <LuArrowUpDown className="h-4 w-4" /> {t('a.order')}
+            </button>
+          </div>
+        )}
+        {ordering ? (
+          <Suspense fallback={null}><LocationsOrder items={items} onDone={() => setOrdering(false)} /></Suspense>
+        ) : (
+          <LocationGrid items={items} loading={all.isLoading} count={8} />
+        )}
+      </section>
       <Features />
     </div>
   )

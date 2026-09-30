@@ -28,7 +28,7 @@ cd redloc && npm install && npm run dev
 
 ```
 REDLOC_FRONTEND_URL=https://redloc.uz   # домен, который попадает в ссылку
-REDLOC_LINK_TTL_MINUTES=5               # для теста; 10 дней = 14400
+REDLOC_LINK_TTL_MINUTES=14400           # 10 дней (по умолчанию); для теста можно 5
 ```
 
 Локации, love story и альбомы добавляются и редактируются в самом REDLOC после входа сотрудника (staff).

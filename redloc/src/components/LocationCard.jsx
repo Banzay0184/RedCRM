@@ -1,22 +1,45 @@
 import { Link } from 'react-router-dom'
-import { LuCamera, LuEyeOff, LuImage, LuMapPin, LuVideo } from 'react-icons/lu'
+import { LuCalendarOff, LuCamera, LuCrown, LuEyeOff, LuFlame, LuImage, LuMapPin, LuVideo } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 import { cx } from '../lib/format'
+
+const BADGES = {
+  top: { icon: LuCrown, className: 'bg-gradient-to-r from-amber-400 via-orange-500 to-brand text-white shadow-lg shadow-orange-500/40' },
+  hit: { icon: LuFlame, className: 'bg-brand text-white shadow-lg shadow-brand/40' },
+  off_season: { icon: LuCalendarOff, className: 'bg-ink/80 text-white backdrop-blur' },
+}
+
+// Метка карточки: ТОП / ХИТ / Не сезон (одна на локацию)
+export function BadgePill({ badge, className }) {
+  const { t } = useLang()
+  const b = BADGES[badge]
+  if (!b) return null
+  const Icon = b.icon
+  return (
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide', b.className, className)}>
+      <Icon className="h-3.5 w-3.5" /> {t(`badge.${badge}`)}
+    </span>
+  )
+}
 
 function LocationCard({ location }) {
   const { t, tn } = useLang()
   const cover = location.cover
+  const offSeason = location.badge === 'off_season'
   return (
     <Link to={`/locations/${location.slug}`}
-      className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
+      className={cx('card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg',
+        location.badge === 'top' && 'ring-2 ring-orange-400/70 shadow-lg shadow-orange-500/15')}>
       <div className="relative aspect-[4/3] overflow-hidden bg-canvas">
         {cover ? (
           <img src={cover.thumbnail} alt={location.title} loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            className={cx('h-full w-full object-cover transition duration-500 group-hover:scale-105',
+              offSeason && 'grayscale group-hover:grayscale-0')} />
         ) : (
           <div className="grid h-full w-full place-items-center text-muted"><LuImage className="h-10 w-10" /></div>
         )}
         <div className="absolute left-3 top-3 flex gap-1.5">
+          <BadgePill badge={location.badge} />
           {!location.is_published && (
             <span className="flex items-center gap-1 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-bold text-white">
               <LuEyeOff className="h-3 w-3" /> {t('loc.hidden')}

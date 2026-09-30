@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Count, F, Max, Prefetch, Q
+from django.db.models import Case, Count, F, IntegerField, Max, Prefetch, Q, Value, When
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
@@ -11,17 +11,17 @@ from rest_framework.response import Response
 
 from .images import InvalidImage, process_photo, process_poster
 from .models import (
-    Amenity, Category, City, Collection, Location, LocationPhoto, LocationVideo,
-    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
+    Amenity, Category, City, Location, LocationPhoto, LocationVideo,
+    Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, SiteSettings, Tag,
 )
 from .access import AUTHENTICATION, CatalogAccess, CatalogReadStaffWrite, access_error, find_link, touch_link
 from .messages import access_link_message
 from .models import AccessLink
 from .permissions import IsStaff
 from .serializers import (
-    AccessLinkSerializer, access_link_url, AmenitySerializer, CategorySerializer, CitySerializer, CollectionSerializer, LocationDetailSerializer, LocationListSerializer,
+    AccessLinkSerializer, access_link_url, AmenitySerializer, CategorySerializer, CitySerializer, LocationDetailSerializer, LocationListSerializer,
     LocationWriteSerializer, PhotoSerializer, PortfolioDetailSerializer, PortfolioListSerializer, PortfolioPhotoSerializer,
-    PortfolioVideoSerializer, PortfolioVideoWriteSerializer, PortfolioWriteSerializer, ShootTypeSerializer,
+    PortfolioVideoSerializer, PortfolioVideoWriteSerializer, PortfolioWriteSerializer, ShootTypeSerializer, SiteSettingsSerializer,
     TagSerializer, VideoSerializer,
 )
 
@@ -107,11 +107,6 @@ class CategoryViewSet(DictionaryViewSet):
     serializer_class = CategorySerializer
 
 
-class CollectionViewSet(DictionaryViewSet):
-    model = Collection
-    serializer_class = CollectionSerializer
-
-
 class ShootTypeViewSet(DictionaryViewSet):
     model = ShootType
     serializer_class = ShootTypeSerializer
@@ -156,7 +151,7 @@ def meta(request):
     return Response({
         "cities": dicts(City, CitySerializer),
         "categories": dicts(Category, CategorySerializer),
-        "collections": dicts(Collection, CollectionSerializer),
+        "site": SiteSettingsSerializer(SiteSettings.load(), context={"request": request}).data,
         "shoot_types": dicts(ShootType, ShootTypeSerializer),
         "amenities": dicts(Amenity, AmenitySerializer),
         "badges": [{"value": v, "label": label} for v, label in Location.BADGE_CHOICES if v],
@@ -178,6 +173,31 @@ def me(request):
         "id": u.id, "username": u.username, "first_name": u.first_name, "last_name": u.last_name,
         "is_staff": u.is_staff,
     })
+
+
+@api_view(["PATCH"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([IsStaff])
+def site_settings(request):
+    """Баннер главной: тексты и фото (multipart). remove_hero_image=1 — вернуть фото по умолчанию."""
+    obj = SiteSettings.load()
+    serializer = SiteSettingsSerializer(obj, data=request.data, partial=True, context={"request": request})
+    serializer.is_valid(raise_exception=True)
+    image = serializer.validated_data.pop("hero_image", None)
+    serializer.save()
+    old = obj.hero_image.name if obj.hero_image else None
+    if image:
+        try:
+            full, _ = process_photo(image)
+        except InvalidImage as exc:
+            raise ValidationError({"hero_image": str(exc)})
+        obj.hero_image.save("hero.webp", full)
+    elif str(request.data.get("remove_hero_image")) in ("1", "true"):
+        obj.hero_image = ""
+        obj.save(update_fields=["hero_image", "updated_at"])
+    if old and old != (obj.hero_image.name if obj.hero_image else None):
+        obj.hero_image.storage.delete(old)
+    return Response(SiteSettingsSerializer(obj, context={"request": request}).data)
 
 
 # ---------------------------------------------------------------- локации
@@ -212,7 +232,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         )
         if self.action == "retrieve":
             qs = qs.prefetch_related(
-                "collections", "shoot_types", "amenities",
+                "shoot_types", "amenities",
                 Prefetch("photos", queryset=photos_qs),
                 Prefetch("videos", queryset=LocationVideo.objects.order_by("order", "id")),
             )
@@ -229,7 +249,6 @@ class LocationViewSet(viewsets.ModelViewSet):
             qs = qs.filter(city__slug__in=_csv(p["city"]))
         for param, field in (
             ("category", "categories__slug"),
-            ("collection", "collections__slug"),
             ("tag", "tags__slug"),
             ("shoot_type", "shoot_types__slug"),
             ("amenity", "amenities__slug"),
@@ -257,14 +276,20 @@ class LocationViewSet(viewsets.ModelViewSet):
                 | Q(categories__name_uz__icontains=q)
             ).distinct()
 
+        # ТОП — всегда первыми, «Не сезон» — в конце, внутри групп — выбранная сортировка
+        qs = qs.annotate(badge_rank=Case(
+            When(badge=Location.BADGE_TOP, then=Value(2)),
+            When(badge=Location.BADGE_OFF_SEASON, then=Value(0)),
+            default=Value(1), output_field=IntegerField(),
+        ))
         ordering = {
             "new": ["-created_at"],
-            "popular": ["-is_featured", "-views_count", "-created_at"],
+            "popular": ["order", "-views_count", "-created_at"],
             "views": ["-views_count"],
             "photos": ["-photos_count", "-created_at"],
             "title": ["title"],
-        }.get(p.get("ordering"), ["-is_featured", "-created_at"])
-        return qs.order_by(*ordering)
+        }.get(p.get("ordering"), ["-created_at"])
+        return qs.order_by("-badge_rank", *ordering)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -273,7 +298,13 @@ class LocationViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(instance).data)
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        # Новая локация — в конец своей группы
+        serializer.save(created_by=self.request.user, order=_next_order(Location.objects))
+
+    @action(detail=False, methods=["post"], permission_classes=[IsStaff])
+    def reorder(self, request):
+        _reorder(Location, request.data.get("ids"))
+        return Response({"ok": True})
 
 
 # ---------------------------------------------------------------- медиа

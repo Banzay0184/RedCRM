@@ -69,7 +69,7 @@ CORS_ALLOWED_ORIGINS = [
 # REDLOC: адрес сайта для ссылок, которые отправляются клиентам в Telegram,
 # и срок жизни такой ссылки в минутах (10 дней = 14400; сейчас 5 минут для теста).
 REDLOC_FRONTEND_URL = os.getenv('REDLOC_FRONTEND_URL', 'https://redloc.uz')
-REDLOC_LINK_TTL_MINUTES = int(os.getenv('REDLOC_LINK_TTL_MINUTES', '5'))
+REDLOC_LINK_TTL_MINUTES = int(os.getenv('REDLOC_LINK_TTL_MINUTES', str(60 * 24 * 10)))  # 10 дней
 
 # Домен фронтенда - используется для формирования публичной ссылки/QR-кода
 # на электронную версию договора (см. message_templates.generate_contract_message).

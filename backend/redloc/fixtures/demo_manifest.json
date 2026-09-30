@@ -57,10 +57,6 @@
      "url": "https://assets.mixkit.co/videos/13218/13218-720.mp4",
      "title": "Панорамные окна"
     }
-   ],
-   "collections": [
-    "osen",
-    "zima"
    ]
   },
   {
@@ -92,7 +88,7 @@
     "циклорама",
     "белый фон"
    ],
-   "badge": "premium",
+   "badge": "top",
    "featured": true,
    "zones": [
     "Циклорама",
@@ -112,9 +108,6 @@
      "url": "https://assets.mixkit.co/videos/22998/22998-720.mp4",
      "title": "Съёмочная площадка"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -149,7 +142,7 @@
     "панорамные окна",
     "вид на горы"
    ],
-   "badge": "premium",
+   "badge": "top",
    "featured": true,
    "zones": [
     "Бассейн",
@@ -179,9 +172,6 @@
      "url": "https://assets.mixkit.co/videos/3171/3171-720.mp4",
      "title": "Бассейн"
     }
-   ],
-   "collections": [
-    "leto"
    ]
   },
   {
@@ -227,10 +217,6 @@
      "url": "https://assets.mixkit.co/videos/41545/41545-720.mp4",
      "title": "Зелёные холмы"
     }
-   ],
-   "collections": [
-    "vesna",
-    "leto"
    ]
   },
   {
@@ -284,9 +270,6 @@
      "url": "https://assets.mixkit.co/videos/4076/4076-720.mp4",
      "title": "Зал с панорамой"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -317,7 +300,7 @@
     "минимализм",
     "растения"
    ],
-   "badge": "new",
+   "badge": "",
    "featured": false,
    "zones": [],
    "q_photos": "minimalist coffee shop interior plants",
@@ -334,10 +317,6 @@
      "url": "https://assets.mixkit.co/videos/41859/41859-720.mp4",
      "title": "Кофе"
     }
-   ],
-   "collections": [
-    "osen",
-    "zima"
    ]
   },
   {
@@ -395,9 +374,6 @@
      "url": "https://assets.mixkit.co/videos/46750/46750-720.mp4",
      "title": "Переговорная"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -447,9 +423,6 @@
      "url": "https://assets.mixkit.co/videos/23097/23097-720.mp4",
      "title": ""
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -509,9 +482,6 @@
      "url": "https://assets.mixkit.co/videos/25591/25591-720.mp4",
      "title": "Гостиная"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -567,11 +537,6 @@
      "url": "https://assets.mixkit.co/videos/4074/4074-720.mp4",
      "title": "Парк и газон"
     }
-   ],
-   "collections": [
-    "vesna",
-    "leto",
-    "osen"
    ]
   },
   {
@@ -599,7 +564,7 @@
     "ретро",
     "автомобили"
    ],
-   "badge": "new",
+   "badge": "",
    "featured": false,
    "zones": [],
    "q_photos": "vintage car garage",
@@ -610,9 +575,6 @@
     "https://images.pexels.com/photos/29284922/pexels-photo-29284922.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/29284925/pexels-photo-29284925.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/29284926/pexels-photo-29284926.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -655,9 +617,6 @@
     "https://images.pexels.com/photos/19227981/pexels-photo-19227981.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19227994/pexels-photo-19227994.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19227975/pexels-photo-19227975.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -692,7 +651,7 @@
     "загородный дом",
     "газон"
    ],
-   "badge": "new",
+   "badge": "",
    "featured": false,
    "zones": [
     "Бассейн",
@@ -719,9 +678,6 @@
      "url": "https://assets.mixkit.co/videos/4075/4075-720.mp4",
      "title": "Сад у дома"
     }
-   ],
-   "collections": [
-    "leto"
    ]
   },
   {
@@ -764,10 +720,6 @@
     "https://images.pexels.com/photos/19228000/pexels-photo-19228000.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19228001/pexels-photo-19228001.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19228004/pexels-photo-19228004.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "vesna",
-    "osen"
    ]
   },
   {
@@ -797,7 +749,7 @@
     "бар",
     "ночь"
    ],
-   "badge": "new",
+   "badge": "",
    "featured": false,
    "zones": [],
    "q_photos": "neon bar interior dark",
@@ -819,9 +771,6 @@
      "url": "https://assets.mixkit.co/videos/4043/4043-720.mp4",
      "title": "Вечер в баре"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -864,10 +813,6 @@
     "https://images.pexels.com/photos/19439132/pexels-photo-19439132.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19439150/pexels-photo-19439150.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19439123/pexels-photo-19439123.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "vesna",
-    "osen"
    ]
   },
   {
@@ -909,10 +854,6 @@
     "https://images.pexels.com/photos/19439175/pexels-photo-19439175.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19439148/pexels-photo-19439148.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19439144/pexels-photo-19439144.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "vesna",
-    "osen"
    ]
   },
   {
@@ -955,9 +896,6 @@
     "https://images.pexels.com/photos/19473661/pexels-photo-19473661.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19473670/pexels-photo-19473670.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19473671/pexels-photo-19473671.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "osen"
    ]
   },
   {
@@ -984,7 +922,7 @@
     "Хива",
     "глиняные стены"
    ],
-   "badge": "premium",
+   "badge": "top",
    "featured": false,
    "zones": [],
    "q_photos": "Khiva Uzbekistan",
@@ -1000,10 +938,6 @@
     "https://images.pexels.com/photos/19473634/pexels-photo-19473634.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19473640/pexels-photo-19473640.jpeg?auto=compress&cs=tinysrgb&w=2000",
     "https://images.pexels.com/photos/19473644/pexels-photo-19473644.jpeg?auto=compress&cs=tinysrgb&w=2000"
-   ],
-   "collections": [
-    "vesna",
-    "osen"
    ]
   },
   {
@@ -1030,7 +964,7 @@
     "сад",
     "весна"
    ],
-   "badge": "",
+   "badge": "off_season",
    "featured": false,
    "zones": [],
    "q_photos": "apricot blossom orchard",
@@ -1050,9 +984,6 @@
      "url": "https://assets.mixkit.co/videos/32941/32941-720.mp4",
      "title": "Цветение"
     }
-   ],
-   "collections": [
-    "vesna"
    ]
   },
   {
@@ -1083,7 +1014,7 @@
     "звукозапись",
     "музыка"
    ],
-   "badge": "new",
+   "badge": "",
    "featured": false,
    "zones": [],
    "q_photos": "podcast studio microphones",
@@ -1105,9 +1036,6 @@
      "url": "https://assets.mixkit.co/videos/2948/2948-720.mp4",
      "title": "Запись в студии"
     }
-   ],
-   "collections": [
-    "zima"
    ]
   },
   {
@@ -1159,11 +1087,6 @@
      "url": "https://assets.mixkit.co/videos/17790/17790-720.mp4",
      "title": "Лошади на выгуле"
     }
-   ],
-   "collections": [
-    "vesna",
-    "leto",
-    "osen"
    ]
   }
  ],

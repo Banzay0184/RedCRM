@@ -9,6 +9,7 @@ import { useAuth } from '../lib/auth'
 import { useLang } from '../lib/i18n'
 import Lightbox from '../components/Lightbox'
 import { Empty, PageLoader } from '../components/ui'
+import { BadgePill } from '../components/LocationCard'
 
 function Videos({ videos }) {
   if (!videos.length) return null
@@ -85,6 +86,7 @@ export default function LocationDetail() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-extrabold tracking-tight">{loc.title}</h1>
+                <BadgePill badge={loc.badge} />
                 {!loc.is_published && (
                   <span className="flex items-center gap-1 rounded-md bg-ink px-2 py-0.5 text-[10px] font-bold text-white">
                     <LuEyeOff className="h-3 w-3" /> {t('loc.hidden')}
@@ -99,6 +101,9 @@ export default function LocationDetail() {
             </div>
           </div>
 
+          {loc.badge === 'off_season' && (
+            <p className="mt-3 rounded-xl bg-canvas px-3 py-2 text-xs text-ink-600">{t('loc.offSeasonNote')}</p>
+          )}
           {td(loc) && <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink-600">{td(loc)}</p>}
 
           {isStaff && (

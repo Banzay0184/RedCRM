@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { LuChevronRight, LuExternalLink, LuHeart, LuTrash2 } from 'react-icons/lu'
+import { LuChevronRight, LuExternalLink, LuHeart, LuImage, LuTrash2, LuX } from 'react-icons/lu'
 import { redloc, errorText } from '../../lib/api'
 import { useLang, usePageTitle } from '../../lib/i18n'
 import { cx } from '../../lib/format'
 import { Empty, Field, PageLoader, Spinner, Toggle } from '../../components/ui'
 import { PhotosManager, VideosManager } from './MediaManager'
+import Dropzone from '../../components/Dropzone'
+import { useGoBack } from '../../lib/useGoBack'
 
 const section = (kind) => (kind === 'album' ? 'albums' : 'love-story')
 
@@ -27,6 +29,10 @@ export default function PortfolioForm() {
   const { t } = useLang()
   usePageTitle(t(slug ? 'a.editPortfolio' : 'a.addPortfolio'))
   const navigate = useNavigate()
+  const goBack = useGoBack()
+  const [pending, setPending] = useState([]) // фото, выбранные до первого сохранения
+  const previews = useMemo(() => pending.map((f) => ({ file: f, url: URL.createObjectURL(f) })), [pending])
+  useEffect(() => () => previews.forEach((p) => URL.revokeObjectURL(p.url)), [previews])
   const qc = useQueryClient()
   const item = useQuery({ queryKey: ['portfolio', slug], queryFn: () => redloc.portfolio(slug), enabled: editing })
   // Для выбора локации: все локации одним списком (их немного)
@@ -60,9 +66,14 @@ export default function PortfolioForm() {
     const payload = { ...form, location: form.location || null, shot_at: form.shot_at || null }
     try {
       const saved = editing ? await redloc.updatePortfolio(slug, payload) : await redloc.createPortfolio(payload)
+      if (!editing && pending.length) {
+        const toastId = toast.loading(t('a.uploading'))
+        await redloc.uploadPortfolioPhotos(saved.id, pending).catch(() => toast.error(t('a.notUploaded')))
+        toast.dismiss(toastId)
+      }
       toast.success(t('common.saved'))
       refresh()
-      if (!editing || saved.slug !== slug) navigate(`/admin/portfolios/${saved.slug}/edit`, { replace: true })
+      goBack(`/${section(saved.kind)}/${saved.slug}`, { force: editing && saved.slug !== slug })
     } catch (err) {
       if (err?.response?.data?.location) {
         // Локацию удалили, пока форма была открыта — обновляем список и сбрасываем выбор
@@ -153,7 +164,25 @@ export default function PortfolioForm() {
                 reorder: (ids) => redloc.reorderPortfolioPhotos(d.id, ids),
                 remove: redloc.deletePortfolioPhoto,
               }} />
-            ) : <p className="text-sm text-muted">{t('a.saveFirst')}</p>}
+            ) : (
+              <div className="space-y-3">
+                <Dropzone accept="image/*" onFiles={(files) => setPending((p) => [...p, ...files])} icon={LuImage}
+                  title={t('a.uploadPhotos')} hint={t('a.dropHint')} button={t('a.chooseFiles')} />
+                {previews.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {previews.map((p, i) => (
+                      <div key={p.url} className="relative aspect-square overflow-hidden rounded-lg">
+                        <img src={p.url} alt="" className="h-full w-full object-cover" />
+                        <button type="button" onClick={() => setPending((list) => list.filter((_, j) => j !== i))}
+                          className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white">
+                          <LuX className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
           <Card title={t('a.videos')}>
             {editing ? (
@@ -171,7 +200,7 @@ export default function PortfolioForm() {
         <button className="btn btn-primary min-w-32" disabled={saving}>
           {saving && <Spinner className="h-4 w-4 text-white" />} {t('common.save')}
         </button>
-        <button type="button" className="btn btn-outline" onClick={() => navigate(-1)}>{t('common.cancel')}</button>
+        <button type="button" className="btn btn-outline" onClick={() => goBack(editing ? `/${section(form.kind)}/${slug}` : `/${section(form.kind)}`)}>{t('common.cancel')}</button>
         {editing && (
           <button type="button" className="btn btn-ghost ml-auto text-brand" onClick={remove}>
             <LuTrash2 className="h-4 w-4" /> <span className="hidden sm:inline">{t('common.delete')}</span>

@@ -6,6 +6,7 @@ import { LuChevronRight, LuExternalLink, LuImage, LuTrash2, LuX } from 'react-ic
 import { redloc, errorText } from '../../lib/api'
 import { useLang, usePageTitle } from '../../lib/i18n'
 import { useMeta } from '../../lib/useMeta'
+import { useGoBack } from '../../lib/useGoBack'
 import { cx } from '../../lib/format'
 import Dropzone from '../../components/Dropzone'
 import { Field, PageLoader, Spinner, Toggle } from '../../components/ui'
@@ -31,6 +32,7 @@ export default function LocationForm() {
   const { t, tn } = useLang()
   usePageTitle(t(slug ? 'a.editLocation' : 'a.addLocation'))
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const qc = useQueryClient()
   const { data: meta, refetch: refetchMeta } = useMeta({ fresh: true })
   const loc = useQuery({ queryKey: ['location', slug], queryFn: () => redloc.location(slug), enabled: editing })
@@ -72,20 +74,18 @@ export default function LocationForm() {
         const saved = await redloc.updateLocation(slug, payload)
         toast.success(t('common.saved'))
         refresh()
-        if (saved.slug !== slug) navigate(`/admin/locations/${saved.slug}/edit`, { replace: true })
+        goBack(`/locations/${saved.slug}`, { force: saved.slug !== slug })
       } else {
         const created = await redloc.createLocation(payload)
         if (pending.length) {
           const toastId = toast.loading(t('a.uploading'))
-          for (let i = 0; i < pending.length; i += 10) {
-            await redloc.uploadPhotos(created.id, pending.slice(i, i + 10)).catch(() => null)
-          }
+          await redloc.uploadPhotos(created.id, pending).catch(() => toast.error(t('a.notUploaded')))
           toast.dismiss(toastId)
         }
         toast.success(t('common.saved'))
         qc.invalidateQueries({ queryKey: ['locations'] })
         qc.invalidateQueries({ queryKey: ['meta'] })
-        navigate(`/admin/locations/${created.slug}/edit`, { replace: true })
+        goBack(`/locations/${created.slug}`)
       }
     } catch (err) {
       const data = err?.response?.data
@@ -221,7 +221,7 @@ export default function LocationForm() {
         <button className="btn btn-primary min-w-32" disabled={saving}>
           {saving && <Spinner className="h-4 w-4 text-white" />} {t('common.save')}
         </button>
-        <button type="button" className="btn btn-outline" onClick={() => navigate(-1)}>{t('common.cancel')}</button>
+        <button type="button" className="btn btn-outline" onClick={() => goBack(editing ? `/locations/${slug}` : '/')}>{t('common.cancel')}</button>
         {editing && (
           <button type="button" className="btn btn-ghost ml-auto text-brand" onClick={remove}>
             <LuTrash2 className="h-4 w-4" /> <span className="hidden sm:inline">{t('common.delete')}</span>

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { LuChevronRight, LuExternalLink, LuHeart, LuTrash2 } from 'react-icons/lu'
 import { redloc, errorText } from '../../lib/api'
-import { useLang } from '../../lib/i18n'
+import { useLang, usePageTitle } from '../../lib/i18n'
 import { cx } from '../../lib/format'
 import { Empty, Field, PageLoader, Spinner, Toggle } from '../../components/ui'
 import { PhotosManager, VideosManager } from './MediaManager'
@@ -25,16 +25,18 @@ export default function PortfolioForm() {
   const [params] = useSearchParams()
   const editing = !!slug
   const { t } = useLang()
+  usePageTitle(t(slug ? 'a.editPortfolio' : 'a.addPortfolio'))
   const navigate = useNavigate()
   const qc = useQueryClient()
   const item = useQuery({ queryKey: ['portfolio', slug], queryFn: () => redloc.portfolio(slug), enabled: editing })
   // Для выбора локации: все локации одним списком (их немного)
-  const locations = useQuery({ queryKey: ['locations', 'all-short'], queryFn: () => redloc.locations({ page_size: 60, ordering: 'title' }) })
+  const locations = useQuery({
+    queryKey: ['locations', 'all-short'], queryFn: () => redloc.locations({ page_size: 60, ordering: 'title' }), refetchOnMount: 'always',
+  })
   const [form, setForm] = useState({
     kind: params.get('kind') === 'album' ? 'album' : 'love_story', title: '', location: '', shot_at: '',
     description_ru: '', description_uz: '', is_published: true,
   })
-  const [descLang, setDescLang] = useState('ru')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -62,7 +64,14 @@ export default function PortfolioForm() {
       refresh()
       if (!editing || saved.slug !== slug) navigate(`/admin/portfolios/${saved.slug}/edit`, { replace: true })
     } catch (err) {
-      toast.error(errorText(err))
+      if (err?.response?.data?.location) {
+        // Локацию удалили, пока форма была открыта — обновляем список и сбрасываем выбор
+        locations.refetch()
+        setForm((f) => ({ ...f, location: '' }))
+        toast.error(t('a.locationGone'))
+      } else {
+        toast.error(errorText(err))
+      }
     } finally {
       setSaving(false)
     }
@@ -123,17 +132,13 @@ export default function PortfolioForm() {
                   <input type="date" className="input" value={form.shot_at} onChange={set('shot_at')} />
                 </Field>
               </div>
-              <div>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="label mb-0">{t('a.description')}</span>
-                  <div className="flex rounded-lg bg-canvas p-0.5 text-[11px] font-semibold">
-                    {['ru', 'uz'].map((l) => (
-                      <button type="button" key={l} onClick={() => setDescLang(l)}
-                        className={cx('rounded-md px-2 py-0.5 uppercase', descLang === l ? 'bg-white shadow-sm' : 'text-muted')}>{l}</button>
-                    ))}
-                  </div>
-                </div>
-                <textarea className="input" rows={5} value={form[`description_${descLang}`]} onChange={set(`description_${descLang}`)} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {['ru', 'uz'].map((l) => (
+                  <Field key={l} label={`${t('a.description')} (${l.toUpperCase()})`} hint={`${(form[`description_${l}`] || '').length} / 3000`}>
+                    <textarea className="input" rows={5} maxLength={3000} lang={l} value={form[`description_${l}`]}
+                      onChange={set(`description_${l}`)} />
+                  </Field>
+                ))}
               </div>
               <Toggle checked={form.is_published} onChange={set('is_published')} label={t('a.published')} />
             </div>

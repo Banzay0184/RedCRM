@@ -15,7 +15,7 @@ from django.utils import timezone
 
 from core.models import Client
 
-from .models import AccessLink, Category, City, Location, LocationPhoto
+from .models import AccessLink, City, Location, LocationPhoto
 
 TMP_MEDIA = tempfile.mkdtemp()
 
@@ -37,8 +37,6 @@ class RedlocApiTests(APITestCase):
         self.staff = User.objects.create_user("admin", password="x", is_staff=True)
         self.user = User.objects.create_user("user", password="x")
         self.city = City.objects.get(slug="tashkent")
-        self.interior = Category.objects.get(slug="interior")
-        self.studio = Category.objects.get(slug="studio")
         # Каталог закрыт: анонимные запросы в тестах идут по действующей ссылке-доступу
         self.link = AccessLink.objects.create()
         self.as_guest()
@@ -50,7 +48,7 @@ class RedlocApiTests(APITestCase):
 
     def create_location(self, **extra):
         self.client.force_authenticate(self.staff)
-        payload = {"title": "Модерн Апартамент", "city": self.city.id, "categories": [self.interior.id],
+        payload = {"title": "Модерн Апартамент", "city": self.city.id,
                    "tags": ["Премиум", " премиум ", "#Минимализм"]}
         payload.update(extra)
         res = self.client.post("/api/redloc/locations/", payload, format="json")
@@ -65,12 +63,6 @@ class RedlocApiTests(APITestCase):
         loc2 = self.create_location()
         self.assertEqual(loc2.slug, "modern-apartament-2")
 
-    def test_category_required(self):
-        self.client.force_authenticate(self.staff)
-        res = self.client.post("/api/redloc/locations/", {"title": "X"}, format="json")
-        self.assertEqual(res.status_code, 400)
-        self.assertIn("categories", res.data)
-
     def test_public_catalog_read_only_and_hides_unpublished(self):
         self.create_location()
         self.create_location(title="Hidden", is_published=False)
@@ -84,12 +76,9 @@ class RedlocApiTests(APITestCase):
 
     def test_filters(self):
         self.create_location(title="A")
-        self.create_location(title="B", categories=[self.studio.id])
-        self.create_location(title="C", city=City.objects.get(slug="bukhara").id,
-                             categories=[self.interior.id, self.studio.id])
+        self.create_location(title="B")
+        self.create_location(title="C", city=City.objects.get(slug="bukhara").id)
         titles = lambda qs: sorted(r["title"] for r in self.client.get(f"/api/redloc/locations/?{qs}").data["results"])
-        self.assertEqual(titles("category=studio"), ["B", "C"])
-        self.assertEqual(titles("category=studio,interior"), ["C"])
         self.assertEqual(titles("city=tashkent"), ["A", "B"])
         self.assertEqual(titles("q=Бухар"), ["C"])
         self.assertEqual(titles("tag=minimalizm"), ["A", "B", "C"])
@@ -204,8 +193,9 @@ class RedlocApiTests(APITestCase):
         self.create_location()
         data = self.client.get("/api/redloc/meta/").data
         self.assertEqual(data["stats"]["locations"], 1)
-        interior = next(c for c in data["categories"] if c["slug"] == "interior")
-        self.assertEqual(interior["locations_count"], 1)
+        tashkent = next(c for c in data["cities"] if c["slug"] == "tashkent")
+        self.assertEqual(tashkent["locations_count"], 1)
+        self.assertNotIn("categories", data)
 
 
 class AccessLinkTests(APITestCase):

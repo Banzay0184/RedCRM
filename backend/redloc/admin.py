@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import (
-    AccessLink, Amenity, Category, City, Location, LocationPhoto, LocationVideo, LocationZone,
+    AccessLink, Amenity, City, Location, LocationPhoto, LocationVideo, LocationZone,
     Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
 from .images import process_photo
 
 
-@admin.register(City, Category, ShootType, Amenity)
+@admin.register(City, ShootType, Amenity)
 class DictionaryAdmin(admin.ModelAdmin):
     list_display = ["name_ru", "name_uz", "slug", "icon", "order"]
     list_editable = ["order"]
@@ -40,9 +40,9 @@ class ZoneInline(admin.TabularInline):
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
     list_display = ["title", "city", "badge", "is_featured", "is_published", "views_count", "created_at"]
-    list_filter = ["is_published", "is_featured", "badge", "city", "categories"]
+    list_filter = ["is_published", "badge", "city"]
     search_fields = ["title", "description_ru", "description_uz"]
-    filter_horizontal = ["categories", "tags", "shoot_types", "amenities"]
+    filter_horizontal = ["tags", "shoot_types", "amenities"]
     inlines = [ZoneInline, PhotoInline, VideoInline]
 
 

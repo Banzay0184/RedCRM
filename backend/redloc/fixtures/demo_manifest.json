@@ -7,9 +7,6 @@
    "address_hint": "Мирабадский район",
    "description_ru": "Просторный лофт 180 м² с красной кирпичной кладкой, металлическими балками и окнами в пол. Днём много мягкого естественного света, вечером — тёплые лампы Эдисона.",
    "description_uz": "180 m² keng loft: qizil g‘isht devorlar, metall to‘sinlar va poldan shiftgacha derazalar. Kunduzi yumshoq tabiiy yorug‘lik ko‘p, kechqurun — iliq Edison lampalari.",
-   "categories": [
-    "interior"
-   ],
    "shoot_types": [
     "photoshoot",
     "clip",
@@ -66,9 +63,6 @@
    "address_hint": "Юнусабад, 4 квартал",
    "description_ru": "Белая фотостудия с циклорамой 6×4 м, импульсным светом Godox и набором фонов. Подходит для каталожной, портретной и предметной съёмки.",
    "description_uz": "6×4 m siklorama, Godox impuls yoritgichlari va fonlar to‘plamiga ega oq fotostudiya. Katalog, portret va predmetli suratga olish uchun.",
-   "categories": [
-    "studio"
-   ],
    "shoot_types": [
     "photoshoot",
     "fashion",
@@ -117,10 +111,6 @@
    "address_hint": "Бостанлыкский район, берег водохранилища",
    "description_ru": "Современная вилла с панорамным остеклением, бассейном-инфинити и видом на Чарвакское водохранилище и горы. Лучший свет — на закате.",
    "description_uz": "Panoramali oynalar, infinity basseyn va Chorvoq suv ombori hamda tog‘larga manzarali zamonaviy villa. Eng yaxshi yorug‘lik — quyosh botishida.",
-   "categories": [
-    "house",
-    "nature"
-   ],
    "shoot_types": [
     "wedding",
     "clip",
@@ -181,9 +171,6 @@
    "address_hint": "Чимган, 1,5 км от канатной дороги",
    "description_ru": "Открытое горное плато с альпийскими лугами и видом на Большой Чимган. Весной — поля цветов, осенью — золотая трава, зимой — снег.",
    "description_uz": "Katta Chimyonga qaragan alp o‘tloqlari bilan ochiq tog‘ platosi. Bahorda gullar, kuzda oltin o‘t, qishda qor.",
-   "categories": [
-    "nature"
-   ],
    "shoot_types": [
     "photoshoot",
     "wedding",
@@ -226,10 +213,6 @@
    "address_hint": "Шайхантахурский район",
    "description_ru": "Ресторан с высокими потолками, хрустальными люстрами, бирюзовыми стенами и мраморным полом. Съёмки — утром до 11:00 или по понедельникам.",
    "description_uz": "Baland shiftli, billur qandilli, moviy devorli va marmar polli restoran. Suratga olish — ertalab 11:00 gacha yoki dushanba kunlari.",
-   "categories": [
-    "interior",
-    "business"
-   ],
    "shoot_types": [
     "advertising",
     "interview",
@@ -279,10 +262,6 @@
    "address_hint": "Яккасарайский район",
    "description_ru": "Небольшая уютная кофейня с минималистичным интерьером, бетоном и живыми растениями. Идеальна для Reels, интервью и lifestyle-съёмки.",
    "description_uz": "Minimalistik interyer, beton va jonli o‘simliklarga ega kichik shinam qahvaxona. Reels, intervyu va lifestyle suratga olish uchun ideal.",
-   "categories": [
-    "interior",
-    "business"
-   ],
    "shoot_types": [
     "reels",
     "interview",
@@ -326,10 +305,6 @@
    "address_hint": "Яккасарайский район",
    "description_ru": "Светлый креативный офис с open space, лаунж-зоной, стеной журналов и небольшой студией с фонами. Для корпоративных роликов и интервью.",
    "description_uz": "Open space, lounge-zona, jurnallar devori va fonlarga ega kichik studiyali yorug‘ kreativ ofis. Korporativ roliklar va intervyular uchun.",
-   "categories": [
-    "business",
-    "interior"
-   ],
    "shoot_types": [
     "interview",
     "advertising",
@@ -383,9 +358,6 @@
    "address_hint": "Зангиатинский район",
    "description_ru": "Бывший производственный цех с высокими потолками, бетонным полом и металлическими фермами, плюс заброшенный корпус с атмосферой постапокалипсиса.",
    "description_uz": "Baland shiftli, beton polli va metall fermali sobiq ishlab chiqarish sexi hamda post-apokaliptik muhitli tashlandiq bino.",
-   "categories": [
-    "industrial"
-   ],
    "shoot_types": [
     "clip",
     "movie",
@@ -432,10 +404,6 @@
    "address_hint": "Мирзо-Улугбекский район",
    "description_ru": "Просторные апартаменты с дизайнерским ремонтом: гостиная с панорамными окнами, столовая, кабинет с книжными стеллажами и мраморные ванные.",
    "description_uz": "Dizaynerlik ta’miriga ega keng apartamentlar: panoramali derazali mehmonxona, oshxona-zal, kitob javonli kabinet va marmar hammomlar.",
-   "categories": [
-    "house",
-    "interior"
-   ],
    "shoot_types": [
     "photoshoot",
     "reels",
@@ -491,10 +459,6 @@
    "address_hint": "Кибрайский район",
    "description_ru": "Частный сад с фруктовыми деревьями, розарием и деревянной беседкой. Популярен для свадебных прогулок и love story.",
    "description_uz": "Mevali daraxtlar, atirgulzor va yog‘och shiyponga ega xususiy bog‘. To‘y sayrlari va love story uchun mashhur.",
-   "categories": [
-    "nature",
-    "exterior"
-   ],
    "shoot_types": [
     "wedding",
     "photoshoot",
@@ -546,9 +510,6 @@
    "address_hint": "Сергелийский район",
    "description_ru": "Подземный паркинг с коллекцией американских маслкаров 60–70-х. Бетон, неоновые лампы и отражения на полу — готовая картинка для клипа.",
    "description_uz": "60–70-yillar Amerika muscle-carlar kolleksiyasiga ega yer osti avtoturargohi. Beton, neon lampalar va poldagi aks — klip uchun tayyor kadr.",
-   "categories": [
-    "transport"
-   ],
    "shoot_types": [
     "clip",
     "fashion",
@@ -584,10 +545,6 @@
    "address_hint": "Линии Чиланзарская и Узбекистанская",
    "description_ru": "Метро Ташкента — одно из самых красивых в мире: мрамор, люстры, мозаика и колонны. Съёмка — в ночное окно после закрытия, с разрешением метрополитена.",
    "description_uz": "Toshkent metrosi dunyodagi eng chiroyli metrolardan biri: marmar, qandillar, mozaika va ustunlar. Suratga olish — yopilgandan keyin tungi vaqtda, metropoliten ruxsati bilan.",
-   "categories": [
-    "city",
-    "historic"
-   ],
    "shoot_types": [
     "clip",
     "fashion",
@@ -626,10 +583,6 @@
    "address_hint": "Кибрайский район",
    "description_ru": "Двухэтажный дом с ухоженным газоном, зимним садом и крытым бассейном. Светлые интерьеры, большая кухня-столовая и спальни с видом на сад.",
    "description_uz": "Ozoda maysazor, qishki bog‘ va yopiq basseynga ega ikki qavatli uy. Yorug‘ interyerlar, katta oshxona-zal va bog‘ga qaragan yotoqxonalar.",
-   "categories": [
-    "house",
-    "exterior"
-   ],
    "shoot_types": [
     "photoshoot",
     "advertising",
@@ -687,10 +640,6 @@
    "address_hint": "Алмазарский район, Старый город",
    "description_ru": "Архитектурный ансамбль в Старом городе: медресе, мечети с бирюзовыми куполами и просторная площадь. Красив в утреннем свете.",
    "description_uz": "Eski shahardagi me’moriy ansambl: madrasa, moviy gumbazli masjidlar va keng maydon. Ertalabki yorug‘likda juda chiroyli.",
-   "categories": [
-    "historic",
-    "exterior"
-   ],
    "shoot_types": [
     "photoshoot",
     "wedding",
@@ -729,10 +678,6 @@
    "address_hint": "Ул. Шота Руставели",
    "description_ru": "Тёмный бар с красными арками, росписью на стенах, камином и кожаными диванами. Для клипов, ночных сцен и рекламы напитков.",
    "description_uz": "Qizil arkalar, devor rasmlari, kamin va charm divanlarga ega qorong‘i bar. Kliplar, tungi sahnalar va ichimliklar reklamasi uchun.",
-   "categories": [
-    "interior",
-    "business"
-   ],
    "shoot_types": [
     "clip",
     "movie",
@@ -780,10 +725,6 @@
    "address_hint": "Исторический центр",
    "description_ru": "Ансамбль из трёх медресе XV–XVII веков. Съёмка возможна рано утром до открытия для туристов; нужно разрешение дирекции — поможем оформить.",
    "description_uz": "XV–XVII asrlarga oid uch madrasa ansambli. Sayyohlar uchun ochilishidan oldin, erta tongda suratga olish mumkin; direksiya ruxsati kerak — rasmiylashtirishda yordam beramiz.",
-   "categories": [
-    "historic",
-    "exterior"
-   ],
    "shoot_types": [
     "photoshoot",
     "wedding",
@@ -822,9 +763,6 @@
    "address_hint": "Северо-восток старого города",
    "description_ru": "Улица голубых куполов и майоликовых порталов. Узкие коридоры дают красивую перспективу и мягкую тень даже в полдень.",
    "description_uz": "Moviy gumbazlar va sirkor peshtoqlar ko‘chasi. Tor yo‘laklar chiroyli perspektiva va tush paytida ham yumshoq soya beradi.",
-   "categories": [
-    "historic"
-   ],
    "shoot_types": [
     "photoshoot",
     "fashion",
@@ -863,10 +801,6 @@
    "address_hint": "Старый город",
    "description_ru": "Минарет Калян, мечеть и медресе Мири-Араб. Вечером ансамбль подсвечивается — идеальная точка для синего часа.",
    "description_uz": "Minorai Kalon, masjid va Mir-Arab madrasasi. Kechqurun ansambl yoritiladi — ko‘k soat uchun ideal nuqta.",
-   "categories": [
-    "historic",
-    "city"
-   ],
    "shoot_types": [
     "photoshoot",
     "wedding",
@@ -905,10 +839,6 @@
    "address_hint": "Внутренний город",
    "description_ru": "Город-музей под открытым небом за глиняными стенами. Минарет Кальта-Минор, узкие улочки и плоские крыши — готовая декорация для исторического кино.",
    "description_uz": "Loy devorlar ortidagi ochiq osmon ostidagi shahar-muzey. Kalta Minor, tor ko‘chalar va yassi tomlar — tarixiy kino uchun tayyor dekoratsiya.",
-   "categories": [
-    "historic",
-    "city"
-   ],
    "shoot_types": [
     "movie",
     "photoshoot",
@@ -947,9 +877,6 @@
    "address_hint": "Риштанский район",
    "description_ru": "Большой абрикосовый сад. В конце марта — начале апреля всё в белом и розовом цвету, летом — зелень и спелые фрукты.",
    "description_uz": "Katta o‘rik bog‘i. Mart oxiri — aprel boshida hammasi oq va pushti gullarda, yozda — yashillik va pishgan mevalar.",
-   "categories": [
-    "nature"
-   ],
    "shoot_types": [
     "photoshoot",
     "wedding",
@@ -993,9 +920,6 @@
    "address_hint": "Мирабадский район",
    "description_ru": "Профессиональная студия звукозаписи: вокальная кабина, микшерный пульт, мониторы и тёплый свет. Подходит для клипов, backstage и подкастов.",
    "description_uz": "Professional ovoz yozish studiyasi: vokal kabinasi, mikser pulti, monitorlar va iliq yorug‘lik. Kliplar, backstage va podkastlar uchun.",
-   "categories": [
-    "studio"
-   ],
    "shoot_types": [
     "clip",
     "interview",
@@ -1045,10 +969,6 @@
    "address_hint": "Ахангаранский район",
    "description_ru": "Конноспортивный клуб: деревянная конюшня, крытый манеж и выгул с горами на фоне. Лошади и инструктор — по договорённости.",
    "description_uz": "Otchilik klubi: yog‘och otxona, yopiq manej va tog‘lar fonidagi sayr maydoni. Otlar va instruktor — kelishuv asosida.",
-   "categories": [
-    "nature",
-    "other"
-   ],
    "shoot_types": [
     "photoshoot",
     "fashion",

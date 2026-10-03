@@ -151,7 +151,7 @@ export const redloc = {
   deletePortfolioVideo: (id) => api.delete(`${R}/portfolio-videos/${id}/`),
   reorderPortfolioVideos: (portfolio, ids) => api.post(`${R}/portfolio-videos/reorder/`, { portfolio, ids }),
 
-  // dictionaries: kind = cities | categories
+  // dictionaries: kind = cities
   dict: (kind, params) => api.get(`${R}/${kind}/`, { params }).then((r) => r.data),
   createDict: (kind, data) => api.post(`${R}/${kind}/`, data).then((r) => r.data),
   updateDict: (kind, id, data) => api.patch(`${R}/${kind}/${id}/`, data).then((r) => r.data),

@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .models import (
-    AccessLink, Amenity, Category, City, Location, LocationPhoto, LocationVideo,
+    AccessLink, Amenity, City, Location, LocationPhoto, LocationVideo,
     Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, SiteSettings, Tag,
 )
 
@@ -28,11 +28,6 @@ class DictionarySerializer(serializers.ModelSerializer):
 class CitySerializer(DictionarySerializer):
     class Meta(DictionarySerializer.Meta):
         model = City
-
-
-class CategorySerializer(DictionarySerializer):
-    class Meta(DictionarySerializer.Meta):
-        model = Category
 
 
 class ShootTypeSerializer(DictionarySerializer):
@@ -135,7 +130,6 @@ class DictShortSerializer(serializers.Serializer):
 
 class LocationListSerializer(serializers.ModelSerializer):
     city = CityShortSerializer(read_only=True)
-    categories = DictShortSerializer(many=True, read_only=True)
     tags = serializers.SerializerMethodField()
     cover = serializers.SerializerMethodField()
     photos_count = serializers.IntegerField(read_only=True)
@@ -144,7 +138,7 @@ class LocationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = [
-            "id", "slug", "title", "city", "address_hint", "categories", "tags", "badge", "is_featured",
+            "id", "slug", "title", "city", "address_hint", "tags", "badge", "is_featured",
             "is_published", "cover", "photos_count", "videos_count", "views_count", "created_at",
         ]
 
@@ -178,24 +172,16 @@ class LocationWriteSerializer(serializers.ModelSerializer):
     """Создание/редактирование локации. Теги приходят списком строк и создаются на лету."""
 
     tags = serializers.ListField(child=serializers.CharField(max_length=50), required=False, write_only=True)
-    categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=False)
     shoot_types = serializers.PrimaryKeyRelatedField(queryset=ShootType.objects.all(), many=True, required=False)
     amenities = serializers.PrimaryKeyRelatedField(queryset=Amenity.objects.all(), many=True, required=False)
 
     class Meta:
         model = Location
         fields = [
-            "id", "slug", "title", "city", "address_hint", "description_ru", "description_uz", "categories",
+            "id", "slug", "title", "city", "address_hint", "description_ru", "description_uz",
             "tags", "shoot_types", "amenities", "badge", "is_featured", "is_published",
         ]
         read_only_fields = ["slug"]
-
-    def validate(self, attrs):
-        creating_without = not self.instance and not attrs.get("categories")
-        clearing = "categories" in attrs and not attrs["categories"]
-        if creating_without or clearing:
-            raise serializers.ValidationError({"categories": "Выберите хотя бы одну категорию"})
-        return attrs
 
     @staticmethod
     def _tags(names):
@@ -212,7 +198,7 @@ class LocationWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        m2m = {k: validated_data.pop(k) for k in ("categories", "shoot_types", "amenities") if k in validated_data}
+        m2m = {k: validated_data.pop(k) for k in ("shoot_types", "amenities") if k in validated_data}
         tags = validated_data.pop("tags", None)
         location = Location.objects.create(**validated_data)
         for key, value in m2m.items():
@@ -223,7 +209,7 @@ class LocationWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        m2m = {k: validated_data.pop(k) for k in ("categories", "shoot_types", "amenities") if k in validated_data}
+        m2m = {k: validated_data.pop(k) for k in ("shoot_types", "amenities") if k in validated_data}
         tags = validated_data.pop("tags", None)
         for key, value in validated_data.items():
             setattr(instance, key, value)

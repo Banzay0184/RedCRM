@@ -21,7 +21,7 @@ from django.utils import timezone
 
 from redloc.images import process_photo, process_poster
 from redloc.models import (
-    Amenity, Category, City, Location, LocationPhoto, LocationVideo, Portfolio,
+    Amenity, City, Location, LocationPhoto, LocationVideo, Portfolio,
     PortfolioPhoto, PortfolioVideo, ShootType, Tag,
 )
 
@@ -78,7 +78,6 @@ class Command(BaseCommand):
             badge=item.get("badge", ""),
             is_featured=item.get("featured", False),
         )
-        loc.categories.set(Category.objects.filter(slug__in=item.get("categories", [])))
         loc.shoot_types.set(ShootType.objects.filter(slug__in=item.get("shoot_types", [])))
         loc.amenities.set(Amenity.objects.filter(slug__in=item.get("amenities", [])))
         tags = [demo_tag] + [Tag.objects.get_or_create(name=t)[0] for t in item.get("tags", [])]

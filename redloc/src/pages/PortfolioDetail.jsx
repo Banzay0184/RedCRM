@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { LuChevronRight, LuHeart, LuMapPin, LuPencil } from 'react-icons/lu'
 import { redloc } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { useLang } from '../lib/i18n'
+import { useLang, usePageTitle } from '../lib/i18n'
 import Lightbox from '../components/Lightbox'
 import VideoModal from '../components/VideoModal'
 import VideoTile from '../components/VideoTile'
@@ -15,6 +15,7 @@ export default function PortfolioDetail() {
   const { t, tn, td } = useLang()
   const { isStaff } = useAuth()
   const { data: item, isLoading, isError } = useQuery({ queryKey: ['portfolio', slug], queryFn: () => redloc.portfolio(slug) })
+  usePageTitle(item?.title)
   const [lightbox, setLightbox] = useState(null)
   const [video, setVideo] = useState(null)
 

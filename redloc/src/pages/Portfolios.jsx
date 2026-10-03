@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { LuCamera, LuEyeOff, LuHeart, LuImage, LuMapPin, LuPlus, LuVideo } from 'react-icons/lu'
 import { redloc } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { useLang } from '../lib/i18n'
+import { useLang, usePageTitle } from '../lib/i18n'
 import { CardSkeleton } from '../components/LocationCard'
 import { Empty } from '../components/ui'
 
@@ -44,6 +44,7 @@ function PortfolioCard({ item }) {
 
 export default function Portfolios({ kind }) {
   const { t } = useLang()
+  usePageTitle(t(kind === 'album' ? 'nav.albums' : 'nav.loveStory'))
   const { isStaff } = useAuth()
   const isAlbum = kind === 'album'
   const { data, isLoading } = useQuery({

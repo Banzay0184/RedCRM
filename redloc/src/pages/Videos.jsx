@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { LuVideo } from 'react-icons/lu'
 import { redloc } from '../lib/api'
-import { useLang } from '../lib/i18n'
+import { useLang, usePageTitle } from '../lib/i18n'
 import VideoModal from '../components/VideoModal'
 import VideoTile from '../components/VideoTile'
 import { Empty, PageLoader, Spinner } from '../components/ui'
 
 export default function Videos() {
   const { t } = useLang()
+  usePageTitle(t('videos.title'))
   const [video, setVideo] = useState(null)
   const list = useInfiniteQuery({
     queryKey: ['videos'],

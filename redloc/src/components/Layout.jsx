@@ -152,6 +152,7 @@ function Topbar({ onMenu }) {
         <Link to="/" className="lg:hidden"><Logo compact /></Link>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <AccessUntil />
+          <BackgroundMusic />
           <LangSwitch />
           <UserMenu />
         </div>
@@ -207,7 +208,6 @@ export default function Layout() {
         <Outlet />
       </main>
       <MobileNav />
-      <BackgroundMusic />
     </div>
   )
 }

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from .images import InvalidImage, process_photo, process_poster
 from .models import (
-    Amenity, Category, City, Location, LocationPhoto, LocationVideo,
+    Amenity, City, Location, LocationPhoto, LocationVideo,
     Portfolio, PortfolioPhoto, PortfolioVideo, ShootType, SiteSettings, Tag,
 )
 from .access import AUTHENTICATION, CatalogAccess, CatalogReadStaffWrite, access_error, find_link, touch_link
@@ -19,7 +19,7 @@ from .messages import access_link_message
 from .models import AccessLink
 from .permissions import IsStaff
 from .serializers import (
-    AccessLinkSerializer, access_link_url, AmenitySerializer, CategorySerializer, CitySerializer, LocationDetailSerializer, LocationListSerializer,
+    AccessLinkSerializer, access_link_url, AmenitySerializer, CitySerializer, LocationDetailSerializer, LocationListSerializer,
     LocationWriteSerializer, PhotoSerializer, PortfolioDetailSerializer, PortfolioListSerializer, PortfolioPhotoSerializer,
     PortfolioVideoSerializer, PortfolioVideoWriteSerializer, PortfolioWriteSerializer, ShootTypeSerializer, SiteSettingsSerializer,
     TagSerializer, VideoSerializer,
@@ -102,11 +102,6 @@ class CityViewSet(DictionaryViewSet):
     serializer_class = CitySerializer
 
 
-class CategoryViewSet(DictionaryViewSet):
-    model = Category
-    serializer_class = CategorySerializer
-
-
 class ShootTypeViewSet(DictionaryViewSet):
     model = ShootType
     serializer_class = ShootTypeSerializer
@@ -150,7 +145,6 @@ def meta(request):
     published = Location.objects.filter(is_published=True)
     return Response({
         "cities": dicts(City, CitySerializer),
-        "categories": dicts(Category, CategorySerializer),
         "site": SiteSettingsSerializer(SiteSettings.load(), context={"request": request}).data,
         "shoot_types": dicts(ShootType, ShootTypeSerializer),
         "amenities": dicts(Amenity, AmenitySerializer),
@@ -224,7 +218,7 @@ class LocationViewSet(viewsets.ModelViewSet):
         photos_qs = LocationPhoto.objects.order_by("order", "id")
         qs = (
             Location.objects.select_related("city")
-            .prefetch_related("categories", "tags", Prefetch("photos", queryset=photos_qs[:1], to_attr="cover_photos"))
+            .prefetch_related("tags", Prefetch("photos", queryset=photos_qs[:1], to_attr="cover_photos"))
             .annotate(
                 photos_count=Count("photos", distinct=True),
                 videos_count=Count("videos", distinct=True),
@@ -248,7 +242,6 @@ class LocationViewSet(viewsets.ModelViewSet):
         if p.get("city"):
             qs = qs.filter(city__slug__in=_csv(p["city"]))
         for param, field in (
-            ("category", "categories__slug"),
             ("tag", "tags__slug"),
             ("shoot_type", "shoot_types__slug"),
             ("amenity", "amenities__slug"),
@@ -272,8 +265,6 @@ class LocationViewSet(viewsets.ModelViewSet):
                 | Q(tags__name__icontains=q)
                 | Q(city__name_ru__icontains=q)
                 | Q(city__name_uz__icontains=q)
-                | Q(categories__name_ru__icontains=q)
-                | Q(categories__name_uz__icontains=q)
             ).distinct()
 
         # ТОП — всегда первыми, «Не сезон» — в конце, внутри групп — выбранная сортировка
@@ -325,8 +316,6 @@ class PhotoViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.Gen
         p = self.request.query_params
         if p.get("location"):
             qs = qs.filter(location__slug=p["location"]) if not p["location"].isdigit() else qs.filter(location_id=p["location"])
-        if p.get("category"):
-            qs = qs.filter(location__categories__slug=p["category"])
         if p.get("city"):
             qs = qs.filter(location__city__slug=p["city"])
         if self.action == "list" and not p.get("location"):

@@ -4,31 +4,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { LuChevronRight, LuExternalLink, LuImage, LuTrash2, LuX } from 'react-icons/lu'
 import { redloc, errorText } from '../../lib/api'
-import { useLang } from '../../lib/i18n'
+import { useLang, usePageTitle } from '../../lib/i18n'
 import { useMeta } from '../../lib/useMeta'
 import { cx } from '../../lib/format'
-import { DictIcon } from '../../lib/icons'
 import Dropzone from '../../components/Dropzone'
 import { Field, PageLoader, Spinner, Toggle } from '../../components/ui'
 import { PhotosManager, VideosManager } from './MediaManager'
 
 const EMPTY = {
-  title: '', city: '', address_hint: '', categories: [], description_ru: '', description_uz: '',
+  title: '', city: '', address_hint: '', description_ru: '', description_uz: '',
   badge: '', is_published: true,
-}
-
-function ChipsSelect({ items, value, onChange }) {
-  const { tn } = useLang()
-  const toggle = (id) => onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id])
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((it) => (
-        <button type="button" key={it.id} data-active={value.includes(it.id)} className="chip-toggle" onClick={() => toggle(it.id)}>
-          {it.icon && <DictIcon name={it.icon} className="h-3.5 w-3.5" />} {tn(it)}
-        </button>
-      ))}
-    </div>
-  )
 }
 
 function Card({ title, children, className }) {
@@ -44,12 +29,12 @@ export default function LocationForm() {
   const { slug } = useParams()
   const editing = !!slug
   const { t, tn } = useLang()
+  usePageTitle(t(slug ? 'a.editLocation' : 'a.addLocation'))
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { data: meta } = useMeta()
+  const { data: meta, refetch: refetchMeta } = useMeta({ fresh: true })
   const loc = useQuery({ queryKey: ['location', slug], queryFn: () => redloc.location(slug), enabled: editing })
   const [form, setForm] = useState(EMPTY)
-  const [descLang, setDescLang] = useState('ru')
   const [pending, setPending] = useState([]) // фото, выбранные до первого сохранения
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
@@ -58,7 +43,7 @@ export default function LocationForm() {
     if (!loc.data) return
     const d = loc.data
     setForm({
-      title: d.title, city: d.city?.id || '', address_hint: d.address_hint, categories: d.categories.map((c) => c.id),
+      title: d.title, city: d.city?.id || '', address_hint: d.address_hint,
       description_ru: d.description_ru, description_uz: d.description_uz,
       badge: d.badge, is_published: d.is_published,
     })
@@ -77,12 +62,11 @@ export default function LocationForm() {
   const submit = async (e) => {
     e.preventDefault()
     setErrors({})
-    if (!form.categories.length) {
-      setErrors({ categories: t('a.needCategory') })
-      return
-    }
+    // Город могли удалить в «Настройках», пока форма была открыта — тогда сохраняем без города
+    const city = meta.cities.some((c) => c.id === form.city) ? form.city : null
+    if (form.city && !city) setForm((f) => ({ ...f, city: '' }))
     setSaving(true)
-    const payload = { ...form, city: form.city || null }
+    const payload = { ...form, city }
     try {
       if (editing) {
         const saved = await redloc.updateLocation(slug, payload)
@@ -106,7 +90,13 @@ export default function LocationForm() {
     } catch (err) {
       const data = err?.response?.data
       if (data && typeof data === 'object') setErrors(Object.fromEntries(Object.entries(data).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])))
-      toast.error(errorText(err))
+      if (data?.city) {
+        // Справочник поменялся на сервере — подтягиваем актуальный и просим выбрать заново
+        refetchMeta()
+        toast.error(t('a.dictChanged'))
+      } else {
+        toast.error(errorText(err))
+      }
     } finally {
       setSaving(false)
     }
@@ -158,21 +148,13 @@ export default function LocationForm() {
                   <input className="input" maxLength={200} value={form.address_hint} onChange={set('address_hint')} />
                 </Field>
               </div>
-              <Field label={t('filters.category')} required error={errors.categories}>
-                <ChipsSelect items={meta.categories} value={form.categories} onChange={set('categories')} />
-              </Field>
-              <div>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="label mb-0">{t('a.description')}</span>
-                  <div className="flex rounded-lg bg-canvas p-0.5 text-[11px] font-semibold">
-                    {['ru', 'uz'].map((l) => (
-                      <button type="button" key={l} onClick={() => setDescLang(l)}
-                        className={cx('rounded-md px-2 py-0.5 uppercase', descLang === l ? 'bg-white shadow-sm' : 'text-muted')}>{l}</button>
-                    ))}
-                  </div>
-                </div>
-                <textarea className="input" rows={6} placeholder={t('a.descPlaceholder')}
-                  value={form[`description_${descLang}`]} onChange={set(`description_${descLang}`)} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {['ru', 'uz'].map((l) => (
+                  <Field key={l} label={`${t('a.description')} (${l.toUpperCase()})`} hint={`${(form[`description_${l}`] || '').length} / 3000`}>
+                    <textarea className="input" rows={6} maxLength={3000} lang={l} value={form[`description_${l}`]}
+                      onChange={set(`description_${l}`)} />
+                  </Field>
+                ))}
               </div>
             </div>
           </Card>

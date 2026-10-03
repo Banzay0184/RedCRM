@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
 import { LuMusic, LuVolume2, LuVolumeX } from 'react-icons/lu'
 import Logo from './Logo'
 import { useLang } from '../lib/i18n'
+import { cx } from '../lib/format'
 
 const KEY = 'redloc_music'
 const ASKED = 'redloc_music_asked'
@@ -98,10 +100,22 @@ export default function BackgroundMusic() {
   }
 
   const on = enabled && playing
-  // На страницах редактирования кнопка мешала бы панели «Сохранить / Удалить» — прячем, музыка играет дальше
-  if (pathname.startsWith('/admin') || pathname.startsWith('/settings')) return null
-  if (ask) {
+  // На страницах редактирования окно-вопрос не показываем — спросим, когда сотрудник выйдет на сайт
+  const adminPage = pathname.startsWith('/admin') || pathname.startsWith('/settings')
+  const label = t(on ? 'music.off' : 'music.on')
+  const button = (
+    <button type="button" onClick={() => choose(!on)} aria-label={label} title={label} aria-pressed={on}
+      className={cx('btn btn-ghost btn-sm gap-1.5 px-2', on ? 'text-brand' : 'text-muted')}>
+      {on ? <LuVolume2 className="h-[18px] w-[18px]" /> : <LuVolumeX className="h-[18px] w-[18px]" />}
+      <span className="hidden text-xs font-semibold md:inline">{t('music.label')}</span>
+    </button>
+  )
+  if (ask && !adminPage) {
     return (
+      <>
+      {button}
+      {/* Портал: у шапки backdrop-blur, внутри неё fixed-окно не растянулось бы на весь экран */}
+      {createPortal(
       <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-4 backdrop-blur-sm">
         <div className="w-full max-w-xs rounded-3xl bg-ink p-6 text-center text-white shadow-2xl ring-1 ring-white/10">
           <Logo dark compact className="mx-auto" />
@@ -114,13 +128,11 @@ export default function BackgroundMusic() {
             {t('music.skip')}
           </button>
         </div>
-      </div>
+      </div>,
+      document.body,
+      )}
+      </>
     )
   }
-  return (
-    <button type="button" onClick={() => choose(!on)} aria-label={t(on ? 'music.off' : 'music.on')} title={t(on ? 'music.off' : 'music.on')}
-      className="fixed bottom-20 right-4 z-30 grid h-11 w-11 place-items-center rounded-full bg-ink/85 text-white shadow-lg backdrop-blur transition hover:scale-105 lg:bottom-6 lg:right-6">
-      {on ? <LuVolume2 className="h-5 w-5" /> : <LuVolumeX className="h-5 w-5 opacity-70" />}
-    </button>
-  )
+  return button
 }

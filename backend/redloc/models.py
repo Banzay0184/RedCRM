@@ -73,12 +73,6 @@ class City(Dictionary):
         verbose_name_plural = "Города"
 
 
-class Category(Dictionary):
-    class Meta(Dictionary.Meta):
-        verbose_name = "Категория"
-        verbose_name_plural = "Категории"
-
-
 class ShootType(Dictionary):
     """Для чего подходит локация: фотосессия, клип, свадьба, реклама..."""
 
@@ -131,7 +125,6 @@ class Location(BaseModel):
     address_hint = models.CharField(max_length=200, blank=True)
     description_ru = models.TextField(blank=True)
     description_uz = models.TextField(blank=True)
-    categories = models.ManyToManyField(Category, related_name="locations", blank=True)
     tags = models.ManyToManyField(Tag, related_name="locations", blank=True)
     shoot_types = models.ManyToManyField(ShootType, related_name="locations", blank=True)
     amenities = models.ManyToManyField(Amenity, related_name="locations", blank=True)

@@ -4,32 +4,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { LuArrowDown, LuArrowUp, LuImage, LuPlus, LuRotateCcw, LuTrash2 } from 'react-icons/lu'
 import { redloc, errorText } from '../../lib/api'
-import { useLang } from '../../lib/i18n'
+import { useLang, usePageTitle } from '../../lib/i18n'
 import { cx } from '../../lib/format'
-import { DictIcon, ICON_KEYS } from '../../lib/icons'
 import { move } from '../../components/Sortable'
 import { Field, PageLoader, Spinner } from '../../components/ui'
 import Dropzone from '../../components/Dropzone'
 import { useMeta } from '../../lib/useMeta'
 
 const KINDS = [
-  { kind: 'categories', label: 'filters.category', icons: true },
-  { kind: 'cities', label: 'filters.city', icons: false },
+  { kind: 'cities', label: 'filters.city' },
 ]
 
-function IconSelect({ value, onChange }) {
-  return (
-    <div className="relative">
-      <DictIcon name={value} className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
-      <select className="input h-9 w-[92px] pl-8 text-xs" value={value || ''} onChange={(e) => onChange(e.target.value)}>
-        <option value="">—</option>
-        {ICON_KEYS.map((k) => <option key={k} value={k}>{k}</option>)}
-      </select>
-    </div>
-  )
-}
-
-function Row({ item, kind, icons, onChanged, onMove, first, last }) {
+function Row({ item, kind, onChanged, onMove, first, last }) {
   const { t } = useLang()
   const [draft, setDraft] = useState({ name_ru: item.name_ru, name_uz: item.name_uz, icon: item.icon })
   const dirty = draft.name_ru !== item.name_ru || draft.name_uz !== item.name_uz || draft.icon !== item.icon
@@ -57,7 +43,6 @@ function Row({ item, kind, icons, onChanged, onMove, first, last }) {
         <button className="text-muted hover:text-ink disabled:opacity-30" disabled={first} onClick={() => onMove(-1)}><LuArrowUp className="h-3.5 w-3.5" /></button>
         <button className="text-muted hover:text-ink disabled:opacity-30" disabled={last} onClick={() => onMove(1)}><LuArrowDown className="h-3.5 w-3.5" /></button>
       </div>
-      {icons && <IconSelect value={draft.icon} onChange={(icon) => setDraft({ ...draft, icon })} />}
       <input className="input h-9 flex-1" value={draft.name_ru} placeholder="RU" onChange={(e) => setDraft({ ...draft, name_ru: e.target.value })} />
       <input className="input h-9 flex-1" value={draft.name_uz} placeholder="UZ" onChange={(e) => setDraft({ ...draft, name_uz: e.target.value })} />
       <span className="w-8 text-center text-xs text-muted" title={t('nav.locations')}>{item.locations_count}</span>
@@ -67,7 +52,7 @@ function Row({ item, kind, icons, onChanged, onMove, first, last }) {
   )
 }
 
-function DictEditor({ kind, icons }) {
+function DictEditor({ kind }) {
   const { t } = useLang()
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['dict', kind], queryFn: () => redloc.dict(kind) })
@@ -97,12 +82,11 @@ function DictEditor({ kind, icons }) {
     <div>
       <div className="divide-y divide-line">
         {data.map((item, i) => (
-          <Row key={`${item.id}-${item.name_ru}-${item.name_uz}-${item.icon}`} item={item} kind={kind} icons={icons}
+          <Row key={`${item.id}-${item.name_ru}-${item.name_uz}-${item.icon}`} item={item} kind={kind}
             onChanged={refresh} onMove={(d) => reorder(i, d)} first={i === 0} last={i === data.length - 1} />
         ))}
       </div>
       <form onSubmit={add} className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-canvas p-3 sm:flex-nowrap">
-        {icons && <IconSelect value={draft.icon} onChange={(icon) => setDraft({ ...draft, icon })} />}
         <input className="input h-9 flex-1" required placeholder={`${t('a.name')} (RU)`} value={draft.name_ru}
           onChange={(e) => setDraft({ ...draft, name_ru: e.target.value })} />
         <input className="input h-9 flex-1" placeholder={`${t('a.name')} (UZ)`} value={draft.name_uz}
@@ -114,7 +98,7 @@ function DictEditor({ kind, icons }) {
 }
 
 function HeroEditor() {
-  const { t } = useLang()
+  const { t, tIn } = useLang()
   const qc = useQueryClient()
   const { data: meta } = useMeta()
   const site = meta?.site
@@ -158,11 +142,13 @@ function HeroEditor() {
           ))}
         </div>
       </div>
-      <Field label={t('a.heroTitle')} hint={t('hero.title').replace('\n', ' ')}>
-        <textarea className="input" rows={2} maxLength={120} value={form[`hero_title_${lang}`]} onChange={set(`hero_title_${lang}`)} />
+      <Field label={`${t('a.heroTitle')} (${lang.toUpperCase()})`} hint={t('a.heroDefaultHint')}>
+        <textarea className="input" rows={2} maxLength={120} placeholder={tIn(lang, 'hero.title')}
+          value={form[`hero_title_${lang}`]} onChange={set(`hero_title_${lang}`)} />
       </Field>
-      <Field label={t('a.heroSubtitle')} hint={t('hero.subtitle').replace('\n', ' ')}>
-        <textarea className="input" rows={2} maxLength={300} value={form[`hero_subtitle_${lang}`]} onChange={set(`hero_subtitle_${lang}`)} />
+      <Field label={`${t('a.heroSubtitle')} (${lang.toUpperCase()})`}>
+        <textarea className="input" rows={2} maxLength={300} placeholder={tIn(lang, 'hero.subtitle')}
+          value={form[`hero_subtitle_${lang}`]} onChange={set(`hero_subtitle_${lang}`)} />
       </Field>
       <Field label={t('a.heroImage')} hint={t('a.heroImageHint')}>
         <div className="space-y-2">
@@ -185,6 +171,7 @@ function HeroEditor() {
 
 export default function Settings() {
   const { t } = useLang()
+  usePageTitle(t('nav.settings'))
   const [params, setParams] = useSearchParams()
   const tab = params.get('tab') || 'home'
   const setTab = (k) => setParams({ tab: k }, { replace: true })
@@ -198,7 +185,7 @@ export default function Settings() {
         ))}
       </div>
       <section className="card p-5">
-        {current ? <DictEditor key={tab} kind={tab} icons={current.icons} /> : <HeroEditor />}
+        {current ? <DictEditor key={tab} kind={tab} /> : <HeroEditor />}
       </section>
     </div>
   )

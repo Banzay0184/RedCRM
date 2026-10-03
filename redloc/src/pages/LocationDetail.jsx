@@ -6,7 +6,7 @@ import {
 } from 'react-icons/lu'
 import { redloc } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { useLang } from '../lib/i18n'
+import { useLang, usePageTitle } from '../lib/i18n'
 import Lightbox from '../components/Lightbox'
 import { Empty, PageLoader } from '../components/ui'
 import { BadgePill } from '../components/LocationCard'
@@ -36,6 +36,7 @@ export default function LocationDetail() {
   const { t, tn, td } = useLang()
   const { isStaff } = useAuth()
   const { data: loc, isLoading, isError } = useQuery({ queryKey: ['location', slug], queryFn: () => redloc.location(slug) })
+  usePageTitle(loc?.title)
   const [lightbox, setLightbox] = useState(null)
 
   const thumbs = useMemo(() => loc?.photos.slice(1, 5) || [], [loc])
@@ -56,7 +57,8 @@ export default function LocationDetail() {
       </nav>
 
       <section className="card grid gap-6 p-4 sm:p-5 lg:grid-cols-[1.25fr_1fr]">
-        <div>
+        {/* Фото «прилипают» при прокрутке, чтобы под ними не оставалась пустая колонка при длинном описании */}
+        <div className="lg:sticky lg:top-20 lg:self-start">
           <button onClick={() => main && setLightbox(0)} className="block aspect-[4/3] w-full overflow-hidden rounded-xl bg-canvas">
             {main ? (
               <img src={main.image} alt={loc.title} className="h-full w-full object-cover" />

@@ -58,9 +58,8 @@ function LocationCard({ location }) {
           <span className="flex items-center gap-1.5"><LuCamera className="h-4 w-4" /> {location.photos_count} {t('photos')}</span>
           <span className="flex items-center gap-1.5"><LuVideo className="h-4 w-4" /> {location.videos_count} {t('videos')}</span>
         </div>
-        {(location.categories.length > 0 || location.tags.length > 0) && (
+        {location.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {location.categories.slice(0, 1).map((c) => <span key={c.id} className="chip">{tn(c)}</span>)}
             {location.tags.slice(0, 2).map((tag) => <span key={tag} className="chip">{tag}</span>)}
           </div>
         )}

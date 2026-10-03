@@ -6,7 +6,7 @@ import {
 } from 'react-icons/lu'
 import { redloc } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { useLang } from '../lib/i18n'
+import { useLang, usePageTitle } from '../lib/i18n'
 import { useMeta } from '../lib/useMeta'
 import { LocationGrid } from '../components/LocationCard'
 import Logo from '../components/Logo'
@@ -14,7 +14,7 @@ import Logo from '../components/Logo'
 const LocationsOrder = lazy(() => import('./admin/LocationsOrder'))
 
 function Hero({ background }) {
-  const { t, lang } = useLang()
+  const { t, tp, lang } = useLang()
   const { isStaff } = useAuth()
   const { data: meta } = useMeta()
   const site = meta?.site || {}
@@ -40,7 +40,8 @@ function Hero({ background }) {
         <p className="mt-5 max-w-lg whitespace-pre-line text-base text-white/80 sm:text-lg">{pick('hero_subtitle')}</p>
         {meta?.stats && (
           <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm text-white/70">
-            <span><b className="text-lg text-white">{meta.stats.locations}</b> {t('nav.locations').toLowerCase()}</span>
+            {/* tp даёт «5 локаций» — число выделяем жирным, слово оставляем как есть */}
+            <span><b className="text-lg text-white">{meta.stats.locations}</b>{tp('count.locations', meta.stats.locations).slice(String(meta.stats.locations).length)}</span>
             <span><b className="text-lg text-white">{meta.stats.photos}</b> {t('photos')}</span>
             <span><b className="text-lg text-white">{meta.stats.videos}</b> {t('videos')}</span>
           </div>
@@ -73,6 +74,7 @@ function Features() {
 
 export default function Home() {
   const { t } = useLang()
+  usePageTitle()
   const { isStaff } = useAuth()
   const [ordering, setOrdering] = useState(false)
   const all = useQuery({

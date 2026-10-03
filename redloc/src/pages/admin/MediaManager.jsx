@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import {
-  LuArrowDown, LuArrowUp, LuImage, LuPlus, LuStar, LuTrash2, LuVideo, LuYoutube,
+  LuArrowDown, LuArrowLeft, LuArrowRight, LuArrowUp, LuImage, LuPlus, LuStar, LuTrash2, LuVideo, LuYoutube,
 } from 'react-icons/lu'
 import { errorText } from '../../lib/api'
 import { useLang } from '../../lib/i18n'
@@ -18,6 +18,15 @@ function Progress({ value, label }) {
       <div className="mb-1.5 flex justify-between text-xs"><span>{label}</span><span>{value}%</span></div>
       <div className="h-1.5 overflow-hidden rounded-full bg-line"><div className="h-full bg-brand transition-all" style={{ width: `${value}%` }} /></div>
     </div>
+  )
+}
+
+function TileButton({ label, onClick, disabled, children }) {
+  return (
+    <button type="button" title={label} aria-label={label} onClick={onClick} disabled={disabled}
+      className="grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-brand disabled:invisible [&>svg]:h-3.5 [&>svg]:w-3.5">
+      {children}
+    </button>
   )
 }
 
@@ -97,12 +106,20 @@ export function PhotosManager({ photos, api, onChanged }) {
           <div className="text-xs text-muted">{t('a.dragHint')}</div>
           <Sortable items={photos} onReorder={reorder} className="grid grid-cols-3 gap-2 sm:grid-cols-4"
             renderItem={(p, i) => (
-              <button type="button" onClick={() => setEdit(p)}
-                className="group relative block aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-canvas active:cursor-grabbing">
-                <img src={p.thumbnail} alt="" draggable={false} className="h-full w-full object-cover" />
+              <div className="group relative aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-canvas active:cursor-grabbing">
+                <button type="button" onClick={() => setEdit(p)} className="block h-full w-full" aria-label={t('a.photo')}>
+                  <img src={p.thumbnail} alt="" draggable={false} className="h-full w-full object-cover transition group-hover:brightness-90" />
+                </button>
                 {i === 0 && <span className="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[9px] font-bold text-white">{t('a.cover')}</span>}
-                <span className="absolute inset-0 bg-ink/0 transition group-hover:bg-ink/20" />
-              </button>
+                {/* Кнопки на фото: на телефоне видны всегда (там нет перетаскивания), на компьютере — при наведении */}
+                <div className="absolute inset-x-1 bottom-1 flex items-center justify-between gap-1 transition sm:opacity-0 sm:group-hover:opacity-100">
+                  <TileButton label={t('a.moveEarlier')} disabled={i === 0} onClick={() => reorder(move(photos, i, -1))}><LuArrowLeft /></TileButton>
+                  {i !== 0 && (
+                    <TileButton label={t('a.makeCover')} onClick={() => reorder([p, ...photos.filter((x) => x.id !== p.id)])}><LuStar /></TileButton>
+                  )}
+                  <TileButton label={t('a.moveLater')} disabled={i === photos.length - 1} onClick={() => reorder(move(photos, i, 1))}><LuArrowRight /></TileButton>
+                </div>
+              </div>
             )} />
         </>
       )}

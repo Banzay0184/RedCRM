@@ -38,8 +38,8 @@ function LocationCard({ location }) {
         ) : (
           <div className="grid h-full w-full place-items-center text-muted"><LuImage className="h-10 w-10" /></div>
         )}
-        <div className="absolute left-3 top-3 flex gap-1.5">
-          <BadgePill badge={location.badge} />
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3">
+          <BadgePill badge={location.badge} className="max-sm:gap-0.5 max-sm:px-2 max-sm:py-0.5 max-sm:text-[9px] max-sm:[&>svg]:h-3 max-sm:[&>svg]:w-3" />
           {!location.is_published && (
             <span className="flex items-center gap-1 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-bold text-white">
               <LuEyeOff className="h-3 w-3" /> {t('loc.hidden')}
@@ -47,19 +47,20 @@ function LocationCard({ location }) {
           )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-1 font-semibold">{location.title}</h3>
+      {/* На телефоне карточки в два столбца — всё компактнее, теги скрыты */}
+      <div className="flex flex-1 flex-col p-2.5 sm:p-4">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug sm:line-clamp-1 sm:text-base">{location.title}</h3>
         {location.city && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-muted">
-            <LuMapPin className="h-3.5 w-3.5" /> {tn(location.city)}
+          <div className="mt-1 flex min-w-0 items-center gap-1 text-[11px] text-muted sm:text-xs">
+            <LuMapPin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" /> <span className="truncate">{tn(location.city)}</span>
           </div>
         )}
-        <div className="mt-3 flex items-center gap-4 text-xs text-ink-600">
-          <span className="flex items-center gap-1.5"><LuCamera className="h-4 w-4" /> {location.photos_count} {t('photos')}</span>
-          <span className="flex items-center gap-1.5"><LuVideo className="h-4 w-4" /> {location.videos_count} {t('videos')}</span>
+        <div className="mt-2 flex items-center gap-3 text-[11px] text-ink-600 sm:mt-3 sm:gap-4 sm:text-xs">
+          <span className="flex items-center gap-1"><LuCamera className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {location.photos_count}<span className="hidden sm:inline"> {t('photos')}</span></span>
+          <span className="flex items-center gap-1"><LuVideo className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {location.videos_count}<span className="hidden sm:inline"> {t('videos')}</span></span>
         </div>
         {location.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-3 hidden flex-wrap gap-1.5 sm:flex">
             {location.tags.slice(0, 2).map((tag) => <span key={tag} className="chip">{tag}</span>)}
           </div>
         )}
@@ -81,9 +82,9 @@ export function CardSkeleton() {
   )
 }
 
-export function LocationGrid({ items, loading, count = 8, className = 'sm:grid-cols-2 xl:grid-cols-4' }) {
+export function LocationGrid({ items, loading, count = 8, className = 'lg:grid-cols-3 xl:grid-cols-4' }) {
   return (
-    <div className={cx('grid grid-cols-1 gap-4', className)}>
+    <div className={cx('grid grid-cols-2 gap-3 sm:gap-4', className)}>
       {loading
         ? Array.from({ length: count }).map((_, i) => <CardSkeleton key={i} />)
         : items.map((loc) => <LocationCard key={loc.id} location={loc} />)}

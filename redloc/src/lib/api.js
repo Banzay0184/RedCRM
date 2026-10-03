@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { chunkBySize, shrinkImage } from './images'
 
 export const API_URL = import.meta.env.VITE_API_URL || 'https://api.redcrm.uz/api'
 const TOKEN_KEY = 'redloc_token'
@@ -65,6 +66,7 @@ api.interceptors.response.use(
 )
 
 export function errorText(error, fallback = 'Что-то пошло не так') {
+  if (error?.response?.status === 413) return 'Файл слишком большой для сервера. Попробуйте меньше файлов за раз или файл поменьше.'
   const data = error?.response?.data
   if (!data) return error?.message || fallback
   if (typeof data === 'string') return fallback
@@ -83,17 +85,34 @@ const progressOpts = (onProgress) => ({
   onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
 })
 
-// Пачка фото одним multipart-запросом: { <owner>: id, images: [...] }
-function uploadImages(path, ownerKey, ownerId, files, onProgress) {
-  const fd = new FormData()
-  fd.append(ownerKey, ownerId)
-  files.forEach((f) => fd.append('images', f))
-  return api.post(`${R}/${path}/`, fd, progressOpts(onProgress)).then((r) => r.data)
+// Фото: сжимаем в браузере и отправляем пачками по объёму, чтобы не упереться в лимит запроса сервера.
+// Результат как у одного запроса: { created: [...], errors: [...] }
+async function uploadImages(path, ownerKey, ownerId, files, onProgress) {
+  const ready = await Promise.all(files.map(shrinkImage))
+  const total = ready.reduce((n, f) => n + f.size, 0) || 1
+  const result = { created: [], errors: [] }
+  let sent = 0
+  for (const chunk of chunkBySize(ready)) {
+    const fd = new FormData()
+    fd.append(ownerKey, ownerId)
+    chunk.forEach((f) => fd.append('images', f))
+    const chunkSize = chunk.reduce((n, f) => n + f.size, 0)
+    const data = await api
+      .post(`${R}/${path}/`, fd, progressOpts((p) => onProgress?.(Math.round(((sent + (chunkSize * p) / 100) / total) * 100))))
+      .then((r) => r.data)
+    result.created.push(...(data.created || []))
+    result.errors.push(...(data.errors || []))
+    sent += chunkSize
+  }
+  return result
 }
 
-function postForm(method, path, data) {
+async function postForm(method, path, data) {
   const body = new FormData()
-  Object.entries(data).forEach(([k, v]) => v !== undefined && v !== null && body.append(k, v))
+  for (const [k, v] of Object.entries(data)) {
+    if (v === undefined || v === null) continue
+    body.append(k, v instanceof File ? await shrinkImage(v) : v)
+  }
   return api[method](`${R}/${path}/`, body, { timeout: 0 }).then((r) => r.data)
 }
 

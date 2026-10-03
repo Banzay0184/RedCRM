@@ -25,8 +25,8 @@ function PortfolioCard({ item }) {
             <LuEyeOff className="h-3 w-3" /> {t('loc.hidden')}
           </span>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-4 pt-16 text-white">
-          <h3 className="line-clamp-2 text-lg font-bold leading-snug">{item.title}</h3>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-2.5 pt-12 text-white sm:p-4 sm:pt-16">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug sm:text-lg">{item.title}</h3>
           {item.location && (
             <div className="mt-1 flex items-center gap-1 text-xs text-white/80">
               <LuMapPin className="h-3.5 w-3.5" /> {item.location.title}{item.location.city && ` · ${tn(item.location.city)}`}
@@ -69,7 +69,7 @@ export default function Portfolios({ kind }) {
       {!isLoading && items.length === 0 ? (
         <Empty icon={LuHeart} title={t('portfolio.empty')} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
             : items.map((p) => <PortfolioCard key={p.id} item={p} />)}

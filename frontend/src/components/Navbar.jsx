@@ -4,6 +4,7 @@ import {useContext, useEffect, useState} from "react";
 import {FaBars, FaTimes, FaUserCircle} from "react-icons/fa";
 import {GlobalContext} from "./BaseContex.jsx";
 import {isAdmin} from "../utils/roles.js";
+import {openRedloc} from "../utils/redloc.js";
 
 function Navbar({onLogout}) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Для мобильного меню
@@ -83,6 +84,11 @@ function Navbar({onLogout}) {
                                 Настройка
                             </Link>
                         </li>
+                        <li>
+                            <button type="button" onClick={openRedloc} className="btn btn-outline btn-primary">
+                                REDLOC
+                            </button>
+                        </li>
                     </ul>
                 </div>
             ) : ''}
@@ -145,6 +151,14 @@ function Navbar({onLogout}) {
                                     <Link to="/settings" className="hover:text-accent " onClick={toggleMobileMenu}>
                                         Настройка
                                     </Link>
+                                </li>
+                                <li>
+                                    <button type="button" className="hover:text-accent" onClick={() => {
+                                        toggleMobileMenu();
+                                        openRedloc();
+                                    }}>
+                                        REDLOC
+                                    </button>
                                 </li>
                                 <li>
                                     <button

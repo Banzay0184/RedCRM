@@ -4,6 +4,7 @@ import {login, getUser} from "../api";
 import {GlobalContext} from "../components/BaseContex.jsx";
 import {jwtDecode} from "jwt-decode";
 import {getTokenStorage} from "../utils/roles.js";
+import {redlocLoginUrl} from "../utils/redloc.js";
 
 
 // Объект для перевода ошибок
@@ -140,6 +141,15 @@ function LoginPage() {
                     >
                         {isLoading ? "Загрузка..." : "Войти"}
                     </button>
+
+                    <a
+                        href={redlocLoginUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-5 text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                        Перейти в REDLOC →
+                    </a>
                 </form>
             </div>
         </div>

@@ -2,6 +2,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useQueryClient } from '@tanstack/react-query'
 import { redloc, tokenStore } from './api'
 
+// Вход из RedCRM: токен приходит в hash (#sso=…), не уходит на сервер и сразу убирается из адреса.
+// Выполняется до первого рендера, чтобы AuthProvider стартовал уже с токеном.
+;(() => {
+  const m = window.location.hash.match(/^#sso=([^&]+)/)
+  if (!m) return
+  tokenStore.set(decodeURIComponent(m[1]))
+  window.history.replaceState(null, '', window.location.pathname + window.location.search)
+})()
+
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {

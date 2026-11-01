@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -39,15 +39,11 @@ export default function LocationDetail() {
   usePageTitle(loc?.title)
   const [lightbox, setLightbox] = useState(null)
 
-  const thumbs = useMemo(() => loc?.photos.slice(1, 5) || [], [loc])
-
   if (isLoading) return <PageLoader />
   if (isError || !loc) {
     return <Empty icon={LuMapPin} title={t('loc.notFound')} action={<Link to="/" className="btn btn-primary">{t('nav.home')}</Link>} />
   }
 
-  const main = loc.photos[0]
-  const rest = loc.photos.length - 5
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-1.5 text-xs text-muted">
@@ -56,33 +52,7 @@ export default function LocationDetail() {
         <span className="truncate text-ink">{loc.title}</span>
       </nav>
 
-      <section className="card grid gap-6 p-4 sm:p-5 lg:grid-cols-[1.25fr_1fr]">
-        {/* Фото «прилипают» при прокрутке, чтобы под ними не оставалась пустая колонка при длинном описании */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <button onClick={() => main && setLightbox(0)} className="block aspect-[4/3] w-full overflow-hidden rounded-xl bg-canvas">
-            {main ? (
-              <img src={main.image} alt={loc.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="grid h-full place-items-center text-muted"><LuImage className="h-12 w-12" /></div>
-            )}
-          </button>
-          {thumbs.length > 0 && (
-            <div className="mt-2 grid grid-cols-5 gap-2">
-              {thumbs.map((p, i) => (
-                <button key={p.id} onClick={() => setLightbox(i + 1)} className="aspect-[4/3] overflow-hidden rounded-lg bg-canvas">
-                  <img src={p.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition hover:opacity-80" />
-                </button>
-              ))}
-              {rest > 0 && (
-                <button onClick={() => setLightbox(5)} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-ink">
-                  {loc.photos[5] && <img src={loc.photos[5].thumbnail} alt="" className="h-full w-full object-cover opacity-40" />}
-                  <span className="absolute inset-0 grid place-items-center text-sm font-bold text-white">+{rest}</span>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
+      <section className="card p-4 sm:p-5">
         <div className="flex flex-col">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
@@ -117,6 +87,20 @@ export default function LocationDetail() {
           )}
         </div>
       </section>
+
+      {/* Все фото сеткой 3 в ряд, как профиль Instagram; тап — полноэкранный просмотр */}
+      {loc.photos.length > 0 ? (
+        <section className="grid grid-cols-3 gap-0.5 overflow-hidden rounded-xl sm:gap-1">
+          {loc.photos.map((p, i) => (
+            <button key={p.id} onClick={() => setLightbox(i)} className="aspect-[3/4] overflow-hidden bg-canvas">
+              <img src={p.thumbnail} alt={i === 0 ? loc.title : ''} loading={i < 6 ? 'eager' : 'lazy'}
+                className="h-full w-full object-cover transition hover:opacity-80" />
+            </button>
+          ))}
+        </section>
+      ) : (
+        <div className="card grid aspect-[4/3] place-items-center text-muted"><LuImage className="h-12 w-12" /></div>
+      )}
 
       <Videos videos={loc.videos} />
 

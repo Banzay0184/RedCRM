@@ -52,5 +52,8 @@
     "tailwindcss": "^3.4.13",
     "terser": "^5.44.1",
     "vite": "^5.4.8"
+  },
+  "engines": {
+    "node": "26.x"
   }
 }
